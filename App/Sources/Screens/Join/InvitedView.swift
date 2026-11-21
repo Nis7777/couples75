@@ -12,7 +12,7 @@ struct InvitedView: View {
                     SmallLabel(text: "You're in")
                         .padding(.top, 8)
                     TitleText("\(model.nameA) invited you")
-                    CharacterImage(characterID: model.sceneA.characterID, pose: .bust, initial: model.nameA)
+                    CharacterImage(characterID: model.sceneA.characterID, pose: .bust)
                         .padding(10)
                         .frame(width: 110, height: 110)
                         .background(Circle().fill(Color.peach))

@@ -20,12 +20,12 @@ struct CoupleScene: View {
             let h = geo.size.height
             let figureWidth = min(h * 0.46, geo.size.width * 0.52)
             HStack(alignment: .bottom, spacing: -figureWidth * 0.14) {
-                CharacterImage(characterID: left.characterID, pose: leftPose, initial: left.name)
+                CharacterImage(characterID: left.characterID, pose: leftPose)
                     .frame(width: figureWidth, height: h, alignment: .bottom)
                     .zIndex(1)
                 Group {
                     if let right {
-                        CharacterImage(characterID: right.characterID, pose: rightPose, initial: right.name)
+                        CharacterImage(characterID: right.characterID, pose: rightPose)
                     } else {
                         PartnerOutlineImage()
                     }

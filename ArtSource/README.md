@@ -1,6 +1,6 @@
 # Art to add (transparent PNGs)
 
-Put the finished PNGs in this folder with exactly these names. Until a file exists, the app shows a placeholder.
+The PNGs in this folder are imported into `Shared/Assets.xcassets` (one image set per file, named after the file). `AppIcon.png` is the app icon.
 
 ## Characters: 12 presets x 5 poses = 60 files
 Characters: w1–w6 (women) and m1–m6 (men). w1 = Maya's look, m1 = Joao's look.

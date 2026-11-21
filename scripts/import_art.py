@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Import every PNG in ArtSource/ into App/Resources/Assets.xcassets.
+"""Optional helper: re-import every PNG in ArtSource/ into Shared/Assets.xcassets after the art changes.
+The imported art is already committed, so the project builds without running this.
 
 - Each PNG becomes an image set named after the file (char_w1_stand.png -> "char_w1_stand").
 - AppIcon.png is resized to 1024x1024, alpha stripped, and used as the single-size app icon.
-  If AppIcon.png is missing, a placeholder icon is generated.
 Uses `sips` on macOS; falls back to Pillow if available.
 Run from the repository root:  python3 scripts/import_art.py
 """
@@ -11,7 +11,7 @@ import json, os, shutil, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "ArtSource")
-CAT = os.path.join(ROOT, "App", "Resources", "Assets.xcassets")
+CAT = os.path.join(ROOT, "Shared", "Assets.xcassets")
 INFO = {"author": "xcode", "version": 1}
 
 def write_json(path, obj):
@@ -37,18 +37,6 @@ def make_icon(src, dst):
     bg.paste(img, mask=img.split()[3])
     bg.save(dst)
 
-def placeholder_icon(dst):
-    from PIL import Image, ImageDraw, ImageFont
-    img = Image.new("RGB", (1024, 1024), (201, 69, 42))
-    d = ImageDraw.Draw(img)
-    d.ellipse((212, 212, 812, 812), outline=(232, 165, 75), width=60)
-    try:
-        font = ImageFont.truetype("DejaVuSans-Bold.ttf", 300)
-    except OSError:
-        font = ImageFont.load_default()
-    d.text((512, 512), "75", fill=(255, 246, 240), font=font, anchor="mm")
-    img.save(dst)
-
 def main():
     os.makedirs(CAT, exist_ok=True)
     write_json(os.path.join(CAT, "Contents.json"), {"info": INFO})
@@ -69,9 +57,6 @@ def main():
     if os.path.exists(icon_src):
         make_icon(icon_src, icon_dst)
         print("AppIcon imported")
-    elif not os.path.exists(icon_dst):
-        placeholder_icon(icon_dst)
-        print("AppIcon placeholder generated")
     write_json(os.path.join(icon_dir, "Contents.json"), {
         "images": [{"filename": "AppIcon.png", "idiom": "universal", "platform": "ios", "size": "1024x1024"}],
         "info": INFO})
@@ -88,7 +73,7 @@ def main():
             "images": [{"filename": fn, "idiom": "universal"}],
             "info": INFO, "properties": {"preserves-vector-representation": False}})
         count += 1
-    print(f"Imported {count} image(s). Missing images show a placeholder in the app.")
+    print(f"Imported {count} image(s).")
 
 if __name__ == "__main__":
     sys.exit(main())

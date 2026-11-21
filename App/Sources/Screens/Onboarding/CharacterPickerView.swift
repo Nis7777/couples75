@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// "Pick your character" (replaces 02): big preview on top, a 4×2 grid of busts below.
+/// "Pick your character" (replaces 02): big preview on top, a 4×3 grid of busts below (women and men mixed).
 /// Used by A (step 2) and B (joining step 3).
 struct CharacterPickerView: View {
     @Binding var characterID: String
@@ -17,7 +17,7 @@ struct CharacterPickerView: View {
             VStack(spacing: 16) {
                 TitleText("Pick your character")
                     .padding(.top, 8)
-                CharacterImage(characterID: characterID, pose: .stand, initial: name.isEmpty ? characterID : name)
+                CharacterImage(characterID: characterID, pose: .stand)
                     .frame(maxHeight: .infinity)
                     .id(characterID)
                     .transition(.scale(scale: 0.92).combined(with: .opacity))
@@ -28,7 +28,7 @@ struct CharacterPickerView: View {
                             Haptics.tap()
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { characterID = id }
                         } label: {
-                            CharacterImage(characterID: id, pose: .bust, initial: id)
+                            CharacterImage(characterID: id, pose: .bust)
                                 .padding(6)
                                 .frame(maxWidth: .infinity)
                                 .aspectRatio(1, contentMode: .fit)
@@ -50,8 +50,7 @@ struct CharacterPickerView: View {
     }
 
     private func characterLabel(_ id: String) -> String {
-        let n = id.dropFirst()
-        return id.hasPrefix("w") ? "Woman \(n)" : "Man \(n)"
+        "Character \((Characters.all.firstIndex(of: id) ?? 0) + 1)"
     }
 }
 

@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 // Design tokens (section 1.1). Shared by the app and the widget extension.
 
@@ -45,80 +44,37 @@ enum CharacterPose: String, CaseIterable {
 }
 
 enum Characters {
-    /// 4 women w1–w4 and 4 men m1–m4. w1 is Maya's look, m1 is Joao's.
-    static let all = ["w1", "w2", "w3", "w4", "m1", "m2", "m3", "m4"]
+    /// 12 presets: 6 women w1–w6 and 6 men m1–m6, shown mixed. w1 is Maya's look, m1 is Joao's.
+    static let all = ["w1", "m1", "w2", "m2", "w3", "m3", "w4", "m4", "w5", "m5", "w6", "m6"]
 
     static func assetName(_ id: String, _ pose: CharacterPose) -> String { "char_\(id)_\(pose.rawValue)" }
 }
 
-/// A single character image. Falls back to a peach rounded rectangle with an initial if the PNG is missing.
+/// A single character image from the asset catalog (transparent PNG).
 struct CharacterImage: View {
     var characterID: String
     var pose: CharacterPose
-    var initial: String
 
     var body: some View {
-        if let ui = UIImage(named: Characters.assetName(characterID, pose)) {
-            Image(uiImage: ui)
-                .resizable()
-                .scaledToFit()
-        } else {
-            PlaceholderFigure(initial: initial, isBust: pose == .bust)
-        }
+        Image(Characters.assetName(characterID, pose))
+            .resizable()
+            .scaledToFit()
     }
 }
 
 /// The dashed "not joined yet" partner.
 struct PartnerOutlineImage: View {
     var body: some View {
-        if let ui = UIImage(named: "partner_outline") {
-            Image(uiImage: ui).resizable().scaledToFit()
-        } else {
-            GeometryReader { geo in
-                let w = min(geo.size.width, geo.size.height * 0.42)
-                VStack(spacing: w * 0.06) {
-                    Circle()
-                        .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [6, 5]))
-                        .frame(width: w * 0.5, height: w * 0.5)
-                    RoundedRectangle(cornerRadius: w * 0.25)
-                        .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [6, 5]))
-                        .frame(width: w, height: geo.size.height - w * 0.56)
-                }
-                .foregroundStyle(Color.textSecondary.opacity(0.6))
-                .frame(width: geo.size.width, height: geo.size.height)
-            }
-            .aspectRatio(0.42, contentMode: .fit)
-        }
+        Image("partner_outline")
+            .resizable()
+            .scaledToFit()
     }
 }
 
 struct TrophyImage: View {
     var body: some View {
-        if let ui = UIImage(named: "trophy") {
-            Image(uiImage: ui).resizable().scaledToFit()
-        } else {
-            Image(systemName: "trophy.fill")
-                .resizable()
-                .scaledToFit()
-                .foregroundStyle(Color.gold)
-        }
-    }
-}
-
-struct PlaceholderFigure: View {
-    var initial: String
-    var isBust: Bool
-
-    var body: some View {
-        RoundedRectangle(cornerRadius: 22, style: .continuous)
-            .fill(Color.peach)
-            .overlay(
-                Text(initial.prefix(1).uppercased())
-                    .font(.rounded(40))
-                    .foregroundStyle(Color.coral)
-                    .minimumScaleFactor(0.3)
-            )
-            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(Color.cardBorder, lineWidth: 1))
-            .aspectRatio(isBust ? 1 : 0.42, contentMode: .fit)
+        Image("trophy")
+            .resizable()
+            .scaledToFit()
     }
 }

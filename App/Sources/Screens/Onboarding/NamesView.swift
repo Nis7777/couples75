@@ -24,8 +24,7 @@ struct NamesView: View {
                         .padding(.top, 16)
                         .padding(.bottom, 8)
                     nameCard(label: "You", text: $model.draft.myName, field: .me, hint: nil) {
-                        CharacterImage(characterID: model.draft.characterID, pose: .bust,
-                                       initial: model.draft.myName.isEmpty ? "Y" : model.draft.myName)
+                        CharacterImage(characterID: model.draft.characterID, pose: .bust)
                     }
                     nameCard(label: "Partner", text: $model.draft.partnerName, field: .partner,
                              hint: "Picks their character later") {
