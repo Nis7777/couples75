@@ -31,15 +31,17 @@ When the device has no iCloud account (for example a Simulator that isn't signed
 
 ## 0. Project setup (do this first)
 
-- Use **XcodeGen**: write `project.yml` and generate the project with `xcodegen generate` (`brew install xcodegen` if missing). Don't hand-write a pbxproj.
+- Commit a complete `Couples75.xcodeproj` (objectVersion 77, `PBXFileSystemSynchronizedRootGroup` folders, so every file in `App/`, `Shared/`, `Widgets/` and `Tests/` is included automatically) with a shared scheme **Couples75** that uses `Config/Products.storekit` on Run. No XcodeGen or scripts are needed to open and run it.
 - Targets:
-  1. `App`: the main SwiftUI app.
-  2. `Widgets`: a WidgetKit extension (small + medium widgets, section 5.9).
+  1. `Couples75`: the main SwiftUI app.
+  2. `Widgets`: a WidgetKit extension (small + medium widgets, section 4.10).
+  3. `Couples75Tests`: XCTest unit tests.
   - Both share the App Group `APP_GROUP`. The app writes a small `WidgetSnapshot` JSON there; the widget only reads it.
 - Capabilities on `App`: iCloud with **CloudKit** (container `CLOUDKIT_CONTAINER`), Push Notifications, App Groups, Background Modes (remote notifications, background fetch). Add `CKSharingSupported = YES` to Info.plist so iCloud share links open the app. No Sign in with Apple: the user's iCloud account is their identity.
 - **No third-party packages at all.** Apple frameworks only: SwiftUI, CloudKit, StoreKit (StoreKit 2), AVFoundation, WidgetKit, UserNotifications, BackgroundTasks.
 - Add a **StoreKit Configuration file** `Products.storekit` with both subscriptions in one subscription group "Couples 75" (storefront Portugal, EUR: monthly 3,99 €, yearly 29,99 €; no introductory offers). Set it on the Run scheme so purchases work in the Simulator.
-- Art: import every PNG from `ArtSource/` into `Assets.xcassets` with the file name as the asset name (section 1.3). `AppIcon.png` may not be 1024×1024: resize it with `sips`, strip alpha, and use it as the single-size App Icon. **If an image is missing, show a neutral placeholder (a peach rounded rectangle with the character's initial) and never crash.**
+- Art: every PNG from `ArtSource/` is an image set in `Shared/Assets.xcassets` (shared by the app and the widget) named after the file; `AppIcon.png` (1024×1024, no alpha) is the single-size App Icon. Avatar recolouring layers (section 1.3) live in `ArtSource/masks/`, with the stand and bust poses in `Shared/Assets.xcassets` and the other poses in `App/Masks.xcassets`.
+- Font: bundle **Outfit** (OFL, google/fonts `ofl/outfit`) as static weights in `Shared/Fonts/` and register them with `UIAppFonts` in both Info.plists.
 - Write a `README.md` with: build-and-run steps, how to set up the CloudKit container and deploy the schema to Production in the CloudKit Console, how to create the two subscriptions in App Store Connect, how to test sharing between two Apple IDs on two devices, and how to use Mock mode.
 
 ## 1. Design system
@@ -56,21 +58,30 @@ When the device has no iCloud account (for example a Simulator that isn't signed
 - Onboarding screens 01–07, 09, 10 and 14 in the mockups use an older lighter coral and a ">" chevron: build them with `coral` #C9452A and the "›" chevron like the rest.
 
 ### 1.2 Components
-- Type: SF Pro Rounded for titles (bold, 28–34pt, centred on onboarding), SF Pro for body. Support Dynamic Type where layouts allow.
+- Type: **Outfit** for all text (fallback SF Pro Rounded): titles bold 26–30pt (centred on onboarding), body 15–17pt. Support Dynamic Type where layouts allow.
+- Background: `ivory` with a very soft peach glow. Illustrations sit on a full-width `peach` panel or a soft peach blob and take 40–50% of the screen height on onboarding.
+- Cards: white, radius 20, soft shadow (black 5%, radius 12, y 4) and a faint #F1DDD2 border. Pills: gold "Most popular" / "BEST VALUE", sage "Done" / "Partner linked", brown "{x} left".
 - Primary button: full width, 58pt tall, fully rounded capsule, `coral`, white 18pt semibold label ending in " ›".
 - Secondary button: white capsule, 1pt border #EAD5CA, `textPrimary` label.
-- Option card (radio): 72pt tall, radius 18, white; when selected, `peach` fill, 1.5pt `coral` border and a filled coral check circle on the left.
-- Onboarding header: a 6pt gold progress bar (rounded) and "Step X of N" (13pt, `textSecondary`) under it. N is computed from the actual steps shown (section 3); never hard-code.
-- Floating tab bar (not the system bar): a white rounded rectangle with a soft shadow and 3 items: **Today** (`sun.max`), **Progress** (`circle.grid.2x2`), **Profile** (`person`). The selected item is `coral`. No Challenges tab.
+- Option card (radio): 64–72pt tall, radius 18, white, 1pt #F1DDD2 border; when selected, `peach` fill, 1.5pt `coral` border and a filled coral check circle on the left.
+- Onboarding header: a 6pt gold progress bar (rounded) on a light peach track and "Step X of N" under it. N is computed from the actual steps shown (section 3); never hard-code.
+- Floating tab bar (not the system bar): a plain white rounded rectangle with a soft shadow (no top line), floating above the bottom edge, with 4 items: **Today** (`sun.max`), **Proof** (`checkmark.seal`, with a coral number badge, section 4.12), **Progress** (`circle.grid.2x2`), **Profile** (`person`). The selected item is `coral`. No Challenges tab. Every tab screen has enough bottom padding that nothing is hidden behind the bar.
 - Day ring: a gold circular progress ring (stroke 14) showing day/75, with "DAY 14 / 75" in the centre and the two characters overlapping it (see 15_today).
 - Haptics: light impact on taps, success haptic on a check-in and on Day 75, warning haptic on a save used.
 - Animations: push-style slide + fade between onboarding steps, spring animations on selections, confetti on Day 75.
 
 ### 1.3 Characters (important)
 The mockups always show the same two people, "Maya" and "Joao". In the real app each user picks a character, so every scene must be **composed from two separate single-person images**, never one combined picture.
-- v1 avatar = **pick one of 12 preset characters** (6 women `w1`–`w6`, 6 men `m1`–`m6`), covering Black, East Asian, South Asian, Latina/Latino, Middle Eastern/North African and White people, one woman and one man each. Either partner can pick any character (same-sex couples work automatically). `w1` = Maya's look, `m1` = Joao's look. **Replace the mockup's face/hair/outfit avatar builder (02) with a simple character picker in the same style** (big character preview on top, a 4×3 grid of character busts below, women and men mixed, no labels for ethnicity).
+- **Avatar builder** (styled like 02): a big live preview on a gold pedestal, tabs **Hairstyle**, **Skin**, **Hair colour**, **Outfit**, an options grid or colour swatches, and "Looks like me ›".
+  - Hairstyle: the 12 base characters (6 women `w1`–`w6`, 6 men `m1`–`m6`, covering Black, East Asian, South Asian, Latina/Latino, Middle Eastern/North African and White people; women and men mixed, no labels for ethnicity) as round head thumbnails (`char_*_bust`). This picks the base image. Either partner can pick any character. `w1` = Maya's look, `m1` = Joao's look.
+  - Skin: #F6D7C3, #EBC1A0, #D9A27C, #C68B5F, #A86B45, #8A5233, #6B3D25, #4A2A1A.
+  - Hair colour: black #1E1A18, dark brown #3B2A20, brown #6B4630, auburn #8C3F24, ginger #C8642E, blonde #E2B96A, platinum #EFE3C8, grey #A8A29E. For `w5` (hijab) this tab is "Hijab" and changes the hijab colour: dusty rose #D99A9A, sage #7FA38A, navy #2E3F66, beige #D8C3A5, black #1E1A18, lavender #B9A3D9, teal #2F7F7C, terracotta #C9684A.
+  - Outfit (jacket): coral #F08A73, sage #7FA38A, mustard #E2A93B, lavender #B9A3D9, navy #2E3F66, terracotta #C9684A, teal #2F7F7C, dusty rose #D99A9A.
+  - Each tab also offers the character's original colour first (the default). Save characterID + skin + hairColor + jacketColor on the `Member` record and use them in every scene (Today, Proof, Progress, Day 75, invite card, widgets, partner views).
+- Recolouring: `scripts/make_masks.py` (Python, Pillow, numpy, scipy; run once, offline) builds, for each of the 60 `char_*.png`, a skin mask (face, ears, neck, hands, ankles), a hair mask (hair, beard, moustache, eyebrows; for `w5` the hijab) and a jacket mask (chest, sleeves, collar). Outlines, eyes, mouth, trousers and shoes are never in a mask. Each mask is saved as a shading layer `mask_{id}_{pose}_{skin|hair|jacket}` (grey = the region's brightness normalised so its brightest pixels are white, alpha = mask). Every result is checked by eye in `ArtSource/masks/check/` (skin green, hair blue, jacket red). `CharacterView(characterID:pose:skin:hairColor:jacketColor:)` draws the original image, then each layer multiplied by the chosen colour so the original shadows stay.
+- **A partner who hasn't built an avatar yet is always drawn as `partner_outline`** (the dashed figure), everywhere. Never show a default character for them.
 - Asset names: `char_{id}_{pose}` with poses `stand` (hands on hips), `crossed` (arms crossed, serious), `cheer` (one fist up), `stretch` (lunge/stretch), `bust` (head and shoulders for circles), all transparent PNGs. Plus `partner_outline` (the dashed "not joined yet" figure, used for any partner) and `trophy`.
-- Compose scenes in SwiftUI: two characters side by side, partner A on the left, slightly overlapping, bottoms aligned, scaled to fit the available height (never cropped at the head). The gold ring, trophy and confetti are separate layers.
+- Compose scenes in SwiftUI: two characters side by side, partner A on the left, slightly overlapping, bottoms aligned, scaled to fit the available space and never cropped at the head or the sides; most scenes show them from head to hips or waist on a peach panel. The gold ring, trophy and confetti are separate layers.
 - Partner A's accent is `coral`, partner B's is `sage` (rule list headers, progress rings).
 - Never use gendered pronouns in copy. Use names: "Day 1 starts the morning after Joao joins", never "after he joins".
 
@@ -80,7 +91,7 @@ The mockups always show the same two people, "Maya" and "Joao". In the real app 
 - A **couple** has exactly 2 members: A (creator) and B (joined by invite). Each has their own subscription.
 - A **round** is one 75-day attempt. Fields: `mode` (`standard` with `SAVES_PER_ROUND` saves, or `hard` with 0 saves), `status` (`waiting`, `active`, `completed`, `failed`, `abandoned`), per-member start date, per-member miss count, saves used, the bet, pause used (bool).
 - Each member has exactly **4 rules** for the round. Each rule has a `type`: `photo` (proved by an in-app live photo) or `honour` (proved by an evening tap "I stuck to it today"). Every member has at least 2 photo rules. Intensity can differ per member (Maya "45 min workout", Joao "20 min walk").
-- Rule library (seed it; use these titles exactly), with Easy / Couples 75 / Hard intensities:
+- Rule library (seed it; use these titles exactly), with Gentle / Couples 75 / Hard intensities:
   - Workout (photo): "20 min walk" / "45 min workout" / "Two 45 min workouts"
   - Water (photo): "2L of water" / "3L of water" / "4L of water"
   - Reading (photo): "Read 5 pages" / "Read 10 pages" / "Read 20 pages"
@@ -132,7 +143,7 @@ The mockups always show the same two people, "Maya" and "Joao". In the real app 
 
 ### 3.1 Person A onboarding (steps that show "Step X of N")
 1. **Hook** (01): TAGLINE as the headline, the couple standing, "Let's start ›".
-2. **Pick your character** (replaces 02): "Pick your character", big preview, 4×3 grid, "Looks like me ›".
+2. **Build your avatar** (02): the avatar builder from section 1.3.
 3. **Names** (03): "Who's in this with you?", your name field and your partner's name field. The partner card shows `partner_outline` and "Picks their character later".
 4. **Is {partner} on iPhone?** (30, moved here from just before the paywall): two option cards "Yes, iPhone" and "No, Android", **nothing preselected**, Continue disabled until one is picked. Remove the footnote from this screen. "No, Android" → the Android waitlist screen (3.4) and nothing else.
 5. **How long have you been together?** (04): <1 yr, 1–3 yrs, 3+ yrs.
@@ -142,7 +153,7 @@ The mockups always show the same two people, "Maya" and "Joao". In the real app 
 9. **When do you usually wake up?** (new): a time wheel, default 07:30.
 10. **How often do you start something together and quit?** (07): slider Rarely / Sometimes / Usually / Always.
 11. **Mirror moment** (08): keep exactly: "Most couples quit before it gets hard. Not because they're weak. Because no one's watching."
-12. **Pick your level** (09): rename the options to "Easy", "Couples 75" (with the "Most popular" pill, preselected) and "Hard mode". Never show the words "75 Soft" or "75 Hard". Under Hard mode, small text: "No saves. One miss restarts the round."
+12. **How hard should it be?** (09): both characters in the stretch pose above the title (the partner as `partner_outline` until they've joined), then three cards: "Gentle" ("Lighter daily rules · 3 saves"), "Couples 75" (with the "Most popular" pill, preselected; "The full plan · 3 shared saves") and "Hard mode" ("The full plan · no saves, one miss restarts"). Gentle lowers each member's rule intensity one step; Hard mode raises it one step and has no saves. Never show the words "75 Soft" or "75 Hard".
 13. **Building your plan** (10): animated checklist "Matching rules to your goals…", "Building Day 1", "Setting the finish line", ~3 seconds, auto-advances.
 14. **Plan reveal** (11): "{A} & {B}'s 75-day plan", the ring scene, a Daily rules card with two columns (A in coral, B in sage). The saves card reads "3 saves" with subtitle **"Shared. Each one covers a missed day."** (not "Life happens passes"); in Hard mode it reads "No saves" / "One miss restarts the round". If B hasn't answered yet, label B's column "Draft: {B} can adjust when they join" and use Couples 75 intensity for B. Button "See our plan ›" → next.
 15. **Set the stakes** (12): "Set the stakes", subtitle "{B} accepts this when they join." Options: Loser plans the date / Loser cooks dinner for a week / Loser plans the trip / Custom (opens a one-line text field, max 40 characters). Below: "Hold to sign", "We finish this together", and the fingerprint button: hold for 1.5 s with a filling coral ring and a success haptic, then advance.
@@ -176,7 +187,7 @@ Title "Couples 75 is iPhone-only for now", body "Leave your email and we'll tell
 ### 3.5 Person B joining
 1. **Taps the link or enters the code** → **"{A} invited you"** (25): small coral label "You're in", title "{A} invited you", A's bust in a circle, a card "{A} picked this plan for you both" listing A's and B's rules, "3 saves, shared" (not "Life happens saves"), and the bet box. "See the plan ›". Footer: "You can swap one rule and change the bet. Couples 75 is {monthly price} a month each, so you'll subscribe before Day 1."
 2. If the app was opened without a link, the first screen (before the hook) is **"Did your partner invite you?"** (26): "Tap the link in their message again, or enter their 6-letter code." Six code boxes, "Join {A} ›" (enabled when the code resolves; show A's name after resolving), and "I don't have a code" → the normal A onboarding.
-3. **Pick your character** (same as A).
+3. **Build your avatar** (same builder as A).
 4. **Your fitness level** and **When do you usually wake up?** (same screens as A).
 5. **Accept or tweak** (new): B's 4 rules (from B's own fitness level), "Swap a rule" (pick one rule to replace from the library), and "Change the bet" (same options as 12). A gets a notification to accept or decline; if A doesn't answer in `TWEAK_AUTO_ACCEPT_H` hours, B's version is used.
 6. **Paywall for B** (same design as 13c): header "Join {A}: {monthly price} a month", subtitle "{A} already subscribed. Subscribe to start Day 1 together." Same monthly/yearly cards, no 3-step strip, primary "Join {A} ›", footer Terms · Privacy · Restore. Closing it goes to a screen "{A} is waiting for you" with "Subscribe ›"; B cannot start without subscribing.
@@ -185,16 +196,17 @@ B never sees A's couple quiz. If B already has an active subscription (from an e
 
 ### 3.6 Waiting and warm-up
 - **Waiting for {B}** (27): header "{A} & {B}" with a "Not started" pill, "Waiting for {B}", "Day 1 starts the morning after {B} joins and subscribes.", A's character + `partner_outline`, "Remind {B} ›" (re-opens the share sheet), "Copy invite code" (copies the code and the link), and "Or start a warm-up day. It doesn't count." Remind reminders are also sent as local notifications to A on days 1, 3 and 6 after paying: "Nudge {B}? Your plan is waiting." On day 7 the Waiting screen adds: "Invite someone else" (new code and a new share; the old ones are deleted) and "Manage subscription" (opens the App Store subscriptions page).
-- **Warm-up day** (28): banner "Warm-up day: this doesn't count", "Practise a check-in while you wait. Day 1 starts the morning after {B} joins." Today's practice lists both columns; "Practise check-in ›". Practice check-ins are stored with `isWarmup = true` and never count.
+- **Warm-up day** (28): uses the **same layout as Today** (4.1) with the peach, coral-bordered banner "Warm-up day: this doesn't count" + "Practise a check-in while you wait. Day 1 starts the morning after {B} joins." at the top, a "Warm-up" pill in the header instead of the streak, "Today's practice" with both columns (B's draft rules until B joins), and "Practise check-in ›" as the button. Practice check-ins are stored with `isWarmup = true` and never count.
 
 ## 4. Main app screens (mockup → corrections)
 
 ### 4.1 Today (15)
 - Header: "{A} & {B}" and a gold streak pill "🔥 {streak}".
-- The ring scene with "DAY {n} / 75". A speech bubble from whoever is done: "{name}'s done. Your turn." (only when exactly one of them is done for today). Status chips under each character: "Done" (sage) or "{x} left" (brown).
+- A peach hero card with the gold day ring centred behind both characters, shown head to waist and always fully inside the card (never cropped at the head or the sides), "DAY {n} / 75" between them. A speech bubble from whoever is done: "{name}'s done. Your turn." (only when exactly one of them is done for today). Status chips across their waists: "Done" (sage) or "{x} left" (brown).
 - Week dots (S M T W T F S) for the current week: gold = complete, coral ring = today, faint = future, and a small coral "S" dot for a day covered by a save, grey for paused.
 - **Replace "Miss a day = restart"** with a row: "Saves" + three small gold squares (filled = left) and "Score: {A} {missesA} · {B} {missesB}". In Hard mode: "Hard mode · no saves".
-- "Today's rules": two cards side by side (A, B), each rule with a check circle; your own rules are tappable. Photo rule → camera (21). Honour rule → a small sheet "Did you stick to {rule} today?" with "Yes, I did ›" (only enabled after 18:00 local; before that the row says "Tap tonight").
+- Above the rule cards, when the partner has check-ins you haven't reacted to: a peach row "New from {partner}" with the latest unreacted thumbnail and "Tap to react ›" that opens it in Proof (4.12).
+- "Today's rules": two cards side by side (A, B), rule text 15pt on one line, each rule with a check circle; in the partner's card each checked photo rule shows a small rounded thumbnail instead of the check (a coral dot if you haven't reacted) and the header shows "{n} to react"; tapping it opens Proof. Your own rules are tappable. Photo rule → camera (21). Honour rule → a small sheet "Did you stick to {rule} today?" with "Yes, I did ›" (only enabled after 18:00 local; before that the row says "Tap tonight").
 - Primary "Check in ›" opens your next unchecked rule.
 - Bet row at the bottom: "🏆 Stakes: {bet}".
 - After 21:00, if you still have rules left, a coral banner: "{x} rules left. {hours} hours to go."
@@ -203,7 +215,7 @@ B never sees A's couple quiz. If B already has an active subscription (from an e
 Full-screen dark camera (`AVCaptureSession`, back camera default, flip button). Top: rule title and "Live photo · not from your camera roll", a "LIVE" pill. Bottom: "Snap proof for {partner}", Cancel, shutter. After capture: preview with "Retake" / "Send ›". **Burn a stamp into the image** (bottom left, dark pill): "DAY {n} · {SAT 21 NOV} · {07:14}" in the member's local time. Compress to max 1080 px on the long side, HEIC (or JPEG 0.6), aiming for ~150 KB, and save it as a `CKAsset` on the `CheckIn` record. If iCloud says the storage is full, show "{owner}'s iCloud is full, so photos can't be saved. Free up space or check in with an honour tap today." and let the user submit that photo rule as an honour tap for that day only. Photo prompts under the rule title keep photos non-intimate, e.g. cold shower: "Photo of the running shower or your face after. Never your body." There is no way to pick from the photo library.
 
 ### 4.3 Partner check-in (22)
-Opened from the notification or by tapping the partner's rule. Header "{name} checked in", rule title, "Day {n} · {time}", the photo. "React": ❤️ 🔥 💪 👀 😂, a one-line comment field, then two buttons: **"Sus 🤨"** (secondary) and **"Approve ›"** (primary). **Remove "Prove it"**. Add a small "Report" link at the bottom (opens an email draft to SUPPORT_EMAIL with the check-in id).
+Opened full screen from Proof (tap a photo); swiping goes to the next unreacted check-in. Header "{name} checked in", rule title, "Day {n} · {time}", the photo. "React": ❤️ 🔥 💪 👀 😂, a one-line comment field, then two buttons: **"Sus 🤨"** (secondary) and **"Approve ›"** (primary). **Remove "Prove it"**. Add a small "Report" link at the bottom (opens an email draft to SUPPORT_EMAIL with the check-in id).
 
 ### 4.4 Save used (23)
 Shown to both members the next time they open the app after a miss. Characters `crossed`. Title "Save used". Body: "{name} missed a rule on Day {n}. One save covered it, so the run continues." Card rows: "Saves left: {x} of 3", "Score: {A} {a} · {B} {b}", "Whoever has more misses at Day 75 owes the bet." Button "Back to today ›". **Never say "Life happens pass", "skipped" or "no restart" here.**
@@ -234,11 +246,21 @@ Your character, your name, "Partner linked" pill (sage; make sure it isn't cut o
 - Your subscription lapsed (2.6): full-screen "Renew to keep your run" paywall. Your partner's lapsed: a banner on Today, and the round shows as paused.
 - Round frozen banner on Today: "Your run is paused until the subscription is renewed."
 
+### 4.12 Proof (new tab)
+- Title "Proof" and a segmented control "From {partner}" | "Mine". The tab icon shows a coral number badge: how many partner check-ins you haven't reacted to (approve, emoji, Sus or comment; "Seen" doesn't count).
+- "From {partner}": cards grouped by day ("Today", "Yesterday", "Day 21"), newest first, unreacted ones at the top of each day with a coral dot.
+  - Photo check-in card: the photo large (rounded, 4:5) with its burned-in day/time stamp, the rule name and time, then the emoji reactions (❤️ 🔥 💪 👀 😂), "Sus 🤨" and "Approve ›".
+  - Honour check-in card (compact): "{partner} stuck to {rule}" with the same reactions, Sus and Approve.
+  - Tapping a photo opens the full-screen partner check-in (4.3) with the comment field; swiping goes to the next unreacted check-in.
+  - Empty state: both characters with "All caught up. Nothing to check right now."
+- "Mine": your own check-ins with what your partner did: "Approved ❤️", their emoji, "Sus 🤨", their comment, or "Not seen yet" / "Seen".
+- Works in Mock mode: Debug menu → "Act as {partner}" → "Simulate partner check-in" shows the new check-in, the badge and the dot.
+
 ## 5. Notifications
 
 - Ask for permission with a priming screen right after the invite step (or after B's "I'm in"): "Turn on reminders so neither of you misses a day" → system prompt.
 - **Local** (scheduled on device, rescheduled daily): wake-up reminder "Day {n}. 4 rules today." (+ " {partner} is already up." if the partner has checked in); 21:00 warning only if rules are left: "{x} rules left. {hours} hours to go." (cancel when complete); A's invite nudges (3.6).
-- **Partner events** (partner checked in, reaction or comment on your check-in, Sus, save used, round ended, pause request and its answer, B joined, tweak proposal and its answer, partner's subscription ended): there is no server, so use CloudKit subscriptions. A subscribes to its couple zone in the private database, B to the shared database (`CKDatabaseSubscription` / `CKRecordZoneSubscription` with `shouldSendContentAvailable = true`). When the silent push arrives, fetch the changes (`CKFetchDatabaseChangesOperation` + `CKFetchRecordZoneChangesOperation` with saved change tokens) and post a **local** notification with the right text ("{name} finished {rule}. React?", "{name} thinks that's sus 🤨", ...). iOS doesn't always deliver silent pushes, so also fetch changes on every app open, when returning to the foreground, and in a `BGAppRefreshTask`. Deep link every notification to the right screen.
+- **Partner events** (partner checked in, reaction or comment on your check-in, Sus, save used, round ended, pause request and its answer, B joined, tweak proposal and its answer, partner's subscription ended): there is no server, so use CloudKit subscriptions. A subscribes to its couple zone in the private database, B to the shared database (`CKDatabaseSubscription` / `CKRecordZoneSubscription` with `shouldSendContentAvailable = true`). When the silent push arrives, fetch the changes (`CKFetchDatabaseChangesOperation` + `CKFetchRecordZoneChangesOperation` with saved change tokens) and post a **local** notification with the right text ("{name} finished {rule}. React?", "{name} thinks that's sus 🤨", ...). iOS doesn't always deliver silent pushes, so also fetch changes on every app open, when returning to the foreground, and in a `BGAppRefreshTask`. Deep link every notification to the right screen; "{name} finished {rule}. React?" opens that exact check-in in Proof.
 
 ## 6. Data and sync (CloudKit, no server)
 
@@ -249,7 +271,7 @@ Your character, your name, "Partner linked" pill (sage; make sure it isn't cut o
 
 ### 6.2 Record types (all in the couple's zone, all children of the `Couple` root record so the share includes them)
 - `Couple`: createdAt, ownerMemberID, title.
-- `Member`: memberID (UUID created on first launch and stored in the iCloud key-value store so it survives reinstalls), role `A|B`, name, characterID, timeZone (IANA; update on every launch), wakeTime, fitnessLevel, joinedAt, subscribedUntil, subscriptionProduct, leftAt.
+- `Member`: memberID (UUID created on first launch and stored in the iCloud key-value store so it survives reinstalls), role `A|B`, name, characterID, skinColor, hairColor, jacketColor (avatar colours as "#RRGGBB"; empty = the character's original), timeZone (IANA; update on every launch), wakeTime, fitnessLevel, joinedAt, subscribedUntil, subscriptionProduct, leftAt.
 - `RoundConfig`: fromRound (the round number it applies from), mode `standard|hard`, betText, rewardText, createdBy, createdAt. The latest config whose fromRound ≤ the round number applies.
 - `Rule`: memberID, fromRound, position 1–4, libraryKey, title, type `photo|honour`.
 - `RuleTweak`: proposedBy, payload (JSON: swapped rule, new bet), createdAt. `TweakAnswer`: tweakID, accepted (Bool), answeredAt. No answer after `TWEAK_AUTO_ACCEPT_H` hours = accepted.
@@ -279,7 +301,7 @@ Your character, your name, "Partner linked" pill (sage; make sure it isn't cut o
 
 ## 7. Mock mode (so I can test without any backend)
 
-In Mock mode, use `MockStore`: both members' facts live in a local JSON file, purchases go through the StoreKit configuration file, and the same `RulesEngine` computes everything. Add a hidden **Debug menu** (triple-tap the Today header in DEBUG builds) with:
+The Simulator always runs in Mock mode. In Mock mode, use `MockStore`: both members' facts live in a local JSON file, purchases go through the StoreKit configuration file, and the same `RulesEngine` computes everything. Add a hidden **Debug menu** (triple-tap the Today header in DEBUG builds) with:
 - "Act as {A} / Act as {B}" (switch which member you are)
 - "Simulate partner check-in", "Simulate partner reaction", "Simulate Sus"
 - "Advance to next day" (settles the current day), "Jump to Day 74"
@@ -309,8 +331,8 @@ In Mock mode the camera falls back to a generated placeholder image in the Simul
 
 ## 10. Quality bar
 
-- iPhone only, portrait only, iOS 17+. Works on iPhone SE (small) through Pro Max with nothing cropped: scale illustrations to the available height.
+- iPhone only, portrait only, iOS 17+. Works on iPhone SE (small) through Pro Max with nothing cropped, nothing hidden behind buttons or the tab bar and no text cut off: scale illustrations to the available space. Keep SwiftUI previews of every screen at iPhone SE and Pro Max sizes (`App/Sources/Previews/ScreenPreviews.swift`).
 - MVVM with `@Observable`, one file per screen, no third-party packages.
 - VoiceOver labels on every control; the ring and the grid read their values.
-- Must **build with zero errors and warnings**. Run `xcodebuild -scheme App -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build`, fix everything, then run all XCTest tests and fix failures.
+- Must **build with zero errors and warnings**. Run `xcodebuild -scheme Couples75 -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build`, fix everything, then run all XCTest tests and fix failures.
 - When you finish, give me a checklist of what I still have to do by hand: Apple Developer (bundle ID, App Group, iCloud container, Push Notifications), CloudKit Console (deploy the schema to Production), App Store Connect (the two subscriptions, prices, privacy labels), testing the invite on two real iPhones with two different Apple IDs, and the character PNGs I need to generate.
