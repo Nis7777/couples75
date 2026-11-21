@@ -15,7 +15,7 @@ extension AppModel {
     /// A is waiting: make the simulated partner join (with a subscription).
     func debugSimulatePartnerJoin() async {
         guard isMock, let a = memberA, memberB == nil || memberB?.joinedAt == nil else { return }
-        let now = now()
+        let now = self.now()
         let periods = MockData.farFutureSubscription(from: now)
         let b = MemberFact(id: a.id == MockData.simulatedB ? MockData.simulatedA : MockData.simulatedB, role: .b,
                            name: facts.couple?.invitedName ?? "Joao", characterID: "m1",
@@ -25,13 +25,13 @@ extension AppModel {
         let keys = draftRulesForB.map { $0.libraryKey }
         let rules = PlanGenerator.rules(keys: keys.isEmpty ? PlanGenerator.ruleKeys(goals: [.fitness]) : keys,
                                         memberID: b.id, intensity: .standard, round: 1, now: now)
-        await save([.member(b)] + rules.map { .rule($0) })
+        await save([FactRecord.member(b)] + rules.map { FactRecord.rule($0) })
     }
 
     func debugPartnerCheckIn() async {
         guard isMock, let p = partner, let today = state.today[p.id] else { return }
         guard let item = today.items.first(where: { !$0.isChecked }) ?? today.items.first else { return }
-        let now = now()
+        let now = self.now()
         let warm = today.beforeStart
         let photo = item.rule.type == .photo
             ? ImageTools.placeholderPhoto(title: item.rule.title,
@@ -48,7 +48,7 @@ extension AppModel {
 
     func debugPartnerReaction() async {
         guard isMock, let p = partner, let c = myLatestCheckIn else { toast = "Check in first."; return }
-        let now = now()
+        let now = self.now()
         await save([
             .reaction(ReactionFact(id: .newID(), checkInID: c.id, memberID: p.id, kind: .approve, emoji: nil,
                                    comment: nil, createdAt: now)),
@@ -135,7 +135,7 @@ extension AppModel {
 
     func debugPartnerLapse() async {
         guard isMock, var p = partner else { return }
-        let now = now()
+        let now = self.now()
         p.subscriptionPeriods = p.subscriptionPeriods.compactMap { period in
             if period.start >= now { return nil }
             return SubscriptionPeriod(start: period.start, end: min(period.end, now))
@@ -146,7 +146,7 @@ extension AppModel {
 
     func debugPartnerRenew() async {
         guard isMock, var p = partner else { return }
-        let now = now()
+        let now = self.now()
         p.recordSubscription(product: Brand.iapMonthly, purchaseDate: now, expiration: now.addingTimeInterval(86_400 * 3650))
         await save([.member(p)])
     }

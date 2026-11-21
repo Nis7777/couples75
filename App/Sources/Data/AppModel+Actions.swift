@@ -30,7 +30,7 @@ extension AppModel {
 
     /// After A pays: create the couple, rules and invite.
     func createCouple() async -> Bool {
-        let now = now()
+        let now = self.now()
         let fitness = draft.fitness ?? .somewhatActive
         var a = MemberFact(id: meID, role: .a, name: draft.myName.trimmingCharacters(in: .whitespaces),
                            characterID: draft.characterID, timeZone: TimeZone.current.identifier,
@@ -50,7 +50,7 @@ extension AppModel {
         let rulesB = PlanGenerator.rules(keys: keys, memberID: PendingPartner.id,
                                          intensity: draft.partnerIntensity, round: 1, now: now)
         var records: [FactRecord] = [.member(a), .roundConfig(config)]
-        records += rulesA.map { .rule($0) } + rulesB.map { .rule($0) }
+        records += rulesA.map { FactRecord.rule($0) } + rulesB.map { FactRecord.rule($0) }
         do {
             invite = try await store.createCouple(couple: couple, records: records, inviterName: a.name)
             UserDefaults.standard.set(now, forKey: Prefs.invitePaidAtKey)
@@ -165,7 +165,7 @@ extension AppModel {
     /// B accepts or tweaks: writes B's member record, rules and (if changed) a RuleTweak for A to answer.
     func submitJoinPlan() async -> Bool {
         guard let jd = joinDraft else { return false }
-        let now = now()
+        let now = self.now()
         let b = MemberFact(id: meID, role: .b, name: facts.couple?.invitedName ?? "Partner",
                            characterID: jd.characterID, timeZone: TimeZone.current.identifier,
                            wakeTime: jd.wakeTime, fitnessLevel: jd.fitness ?? .somewhatActive, joinedAt: nil,
@@ -175,7 +175,7 @@ extension AppModel {
         base.swappedPosition = nil
         base.swapKey = nil
         let baseRules = proposedRulesForMe(base)
-        var records: [FactRecord] = [.member(b)] + baseRules.map { .rule($0) }
+        var records: [FactRecord] = [FactRecord.member(b)] + baseRules.map { FactRecord.rule($0) }
         let swapped = jd.swappedPosition != nil && jd.swapKey != nil
         let newBet = jd.changeBet && !jd.betText.isEmpty && jd.betText != currentBet ? jd.betText : nil
         if swapped || newBet != nil {
@@ -253,7 +253,7 @@ extension AppModel {
     @discardableResult
     func checkIn(rule: RuleFact, photo: Data?, honourFallback: Bool = false) async -> Bool {
         guard let m = me else { return false }
-        let now = now()
+        let now = self.now()
         let warm = isWarmup
         let date = LocalDate(now, in: m.tz)
         let c = CheckInFact(id: .newID(), memberID: m.id, ruleID: rule.id, capturedAt: now, localDate: date.string,
@@ -349,7 +349,7 @@ extension AppModel {
 
     /// "Start round 2" after Day 75: new wake time and level; both members' rules follow the new level.
     func startNextRound(after round: RoundState, level: Level, wakeTime: String) async {
-        let now = now()
+        let now = self.now()
         let next = round.number + 1
         var records: [FactRecord] = [
             .roundConfig(RoundConfigFact(id: .newID(), fromRound: next, mode: level.mode, betText: round.betText,
@@ -359,7 +359,7 @@ extension AppModel {
             let current = RulesEngine.effectiveRules(for: m.id, round: round.number, facts: facts, at: now)
             let intensity = level.adjust(m.fitnessLevel.intensity)
             records += PlanGenerator.rules(keys: current.map { $0.libraryKey }, memberID: m.id,
-                                           intensity: intensity, round: next, now: now).map { .rule($0) }
+                                           intensity: intensity, round: next, now: now).map { FactRecord.rule($0) }
         }
         if var mine = me {
             mine.wakeTime = wakeTime
