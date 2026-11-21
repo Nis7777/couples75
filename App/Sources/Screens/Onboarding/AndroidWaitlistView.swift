@@ -32,7 +32,7 @@ struct AndroidWaitlistView: View {
                         .textContentType(.emailAddress)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
-                        .font(.system(size: 17))
+                        .font(.app(17))
                         .padding(16)
                         .card(radius: 14)
                         .accessibilityLabel("Email")

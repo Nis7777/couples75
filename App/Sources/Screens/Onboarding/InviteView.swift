@@ -29,12 +29,12 @@ struct InviteCodeCard: View {
     var body: some View {
         VStack(spacing: 8) {
             Text("Invite code")
-                .font(.system(size: 13, weight: .semibold))
+                .font(.app(13, .semibold))
                 .foregroundStyle(Color.textSecondary)
             if let code = model.invite?.code {
                 HStack(spacing: 14) {
                     Text(code)
-                        .font(.system(size: 34, weight: .heavy, design: .monospaced))
+                        .font(.app(34, .heavy))
                         .tracking(6)
                         .foregroundStyle(Color.textPrimary)
                         .accessibilityLabel("Code \(code.map(String.init).joined(separator: " "))")
@@ -54,7 +54,7 @@ struct InviteCodeCard: View {
                 HStack(spacing: 10) {
                     ProgressView().tint(.coral)
                     Button("Get a code") { Task { await model.regenerateInvite() } }
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.app(15, .semibold))
                 }
                 .frame(height: 44)
             }
@@ -95,7 +95,7 @@ struct InviteShareButton: View {
     private var label: some View {
         if secondary {
             Text(title)
-                .font(.system(size: 17, weight: .semibold))
+                .font(.app(17, .semibold))
                 .foregroundStyle(Color.textPrimary)
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
@@ -103,7 +103,7 @@ struct InviteShareButton: View {
                 .overlay(Capsule().stroke(Color.buttonBorder, lineWidth: 1))
         } else {
             Text("\(title) ›")
-                .font(.system(size: 18, weight: .semibold))
+                .font(.app(18, .semibold))
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 58)
@@ -132,7 +132,7 @@ struct InviteCardView: View {
     var body: some View {
         VStack(spacing: 12) {
             Text(Brand.appName.uppercased())
-                .font(.system(size: 12, weight: .heavy))
+                .font(.app(12, .heavy))
                 .tracking(2)
                 .foregroundStyle(Color.coral)
             Text("\(inviter.name) invited you to \(Brand.appName)")
@@ -145,12 +145,12 @@ struct InviteCardView: View {
                 ForEach(Array(rules.enumerated()), id: \.offset) { _, r in
                     HStack(spacing: 6) {
                         Circle().fill(Color.sage).frame(width: 6, height: 6)
-                        Text(r).font(.system(size: 13)).foregroundStyle(Color.textPrimary)
+                        Text(r).font(.app(13)).foregroundStyle(Color.textPrimary)
                     }
                 }
                 HStack(spacing: 6) {
                     Text("🏆")
-                    Text(bet).font(.system(size: 13, weight: .bold)).foregroundStyle(Color.textPrimary)
+                    Text(bet).font(.app(13, .bold)).foregroundStyle(Color.textPrimary)
                 }
                 .padding(.top, 4)
             }
@@ -158,12 +158,12 @@ struct InviteCardView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: 14).fill(Color.white))
             Text(code)
-                .font(.system(size: 28, weight: .heavy, design: .monospaced))
+                .font(.app(28, .heavy))
                 .tracking(5)
                 .foregroundStyle(Color.textPrimary)
             if let monthlyPrice {
                 Text("\(monthlyPrice)/month each")
-                    .font(.system(size: 11))
+                    .font(.app(11))
                     .foregroundStyle(Color.textSecondary)
             }
         }

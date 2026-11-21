@@ -85,7 +85,7 @@ struct SmallWidgetView: View {
             }
             .padding(4)
             Text(dayText(s))
-                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .font(.app(14, .bold))
                 .foregroundStyle(Color.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -119,19 +119,19 @@ struct MediumWidgetView: View {
             .frame(maxWidth: 130, maxHeight: .infinity)
             VStack(alignment: .leading, spacing: 8) {
                 Text(dayText(s))
-                    .font(.system(size: 22, weight: .heavy, design: .rounded))
+                    .font(.app(22, .heavy))
                     .foregroundStyle(Color.textPrimary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 Text("\(s.nameA) \(s.doneA ? "✓" : "…") · \(s.nameB) \(s.doneB ? "✓" : "…")")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.app(15, .semibold))
                     .foregroundStyle(Color.textSecondary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 HStack(spacing: 4) {
                     Image(systemName: "flame.fill").foregroundStyle(Color.gold)
                     Text("\(s.streak)")
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.app(15, .bold))
                         .foregroundStyle(Color.textPrimary)
                 }
             }

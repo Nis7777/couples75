@@ -19,7 +19,7 @@ struct LeaveCoupleSheet: View {
             if !myPhotos.isEmpty {
                 ShareLink(items: myPhotos, preview: { _ in SharePreview("My \(Brand.appName) photo") }) {
                     Text("Save my photos")
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(.app(17, .semibold))
                         .foregroundStyle(Color.textPrimary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
@@ -31,7 +31,7 @@ struct LeaveCoupleSheet: View {
                 confirm = true
             } label: {
                 Text("Leave couple")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.app(18, .semibold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 58)

@@ -14,16 +14,16 @@ struct StakesView: View {
                     TitleText("Set the stakes")
                         .padding(.top, 12)
                     Text("\(model.draft.partnerName) accepts this when they join.")
-                        .font(.system(size: 15))
+                        .font(.app(15))
                         .foregroundStyle(Color.textSecondary)
                         .padding(.bottom, 8)
                     BetPicker(bet: $model.draft.bet, customBet: $model.draft.customBet)
                     VStack(spacing: 6) {
                         Text("Hold to sign")
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.app(16, .bold))
                             .foregroundStyle(Color.textPrimary)
                         Text("We finish this together")
-                            .font(.system(size: 14))
+                            .font(.app(14))
                             .foregroundStyle(Color.textSecondary)
                         HoldToSignButton(enabled: !model.draft.betText.isEmpty) { next() }
                             .padding(.top, 8)
@@ -55,7 +55,7 @@ struct BetPicker: View {
             }
             if bet == .custom {
                 TextField("Loser…", text: $customBet)
-                    .font(.system(size: 17))
+                    .font(.app(17))
                     .focused($customFocused)
                     .padding(16)
                     .card(radius: 14)
@@ -66,7 +66,7 @@ struct BetPicker: View {
                     }
                     .accessibilityLabel("Custom bet, up to 40 characters")
                 Text("\(customBet.count)/\(BetOption.customMaxLength)")
-                    .font(.system(size: 12))
+                    .font(.app(12))
                     .foregroundStyle(Color.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }

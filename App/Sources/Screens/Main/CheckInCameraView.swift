@@ -35,7 +35,7 @@ struct CheckInCameraView: View {
                     Image(systemName: "camera.metering.unknown")
                         .font(.system(size: 48))
                     Text("No camera here. The shutter makes a sample photo.")
-                        .font(.system(size: 14))
+                        .font(.app(14))
                         .multilineTextAlignment(.center)
                 }
                 .foregroundStyle(.white.opacity(0.7))
@@ -79,10 +79,10 @@ struct CheckInCameraView: View {
                 .font(.rounded(22))
                 .foregroundStyle(.white)
             Text("Live photo · not from your camera roll")
-                .font(.system(size: 13, weight: .medium))
+                .font(.app(13, .medium))
                 .foregroundStyle(.white.opacity(0.8))
             Text(RuleLibrary.photoPrompt(for: rule.libraryKey))
-                .font(.system(size: 13))
+                .font(.app(13))
                 .foregroundStyle(.white.opacity(0.75))
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -102,7 +102,7 @@ struct CheckInCameraView: View {
                         captured = nil
                     } label: {
                         Text("Retake")
-                            .font(.system(size: 17, weight: .semibold))
+                            .font(.app(17, .semibold))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 58)
@@ -112,11 +112,11 @@ struct CheckInCameraView: View {
                 }
             } else {
                 Text("Snap proof for \(model.partnerName)")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.app(15, .semibold))
                     .foregroundStyle(.white)
                 HStack {
                     Button("Cancel") { dismiss() }
-                        .font(.system(size: 17, weight: .medium))
+                        .font(.app(17, .medium))
                         .foregroundStyle(.white)
                         .frame(width: 80, alignment: .leading)
                     Spacer()

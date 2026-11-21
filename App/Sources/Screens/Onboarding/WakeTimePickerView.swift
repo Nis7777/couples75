@@ -15,7 +15,7 @@ struct WakeTimePickerView: View {
                 TitleText("When do you usually wake up?")
                     .padding(.top, 24)
                 Text("We'll remind you when your day starts.")
-                    .font(.system(size: 15))
+                    .font(.app(15))
                     .foregroundStyle(Color.textSecondary)
                 DatePicker("Wake-up time",
                            selection: Binding(get: { ClockTime.date(from: wakeTime) },

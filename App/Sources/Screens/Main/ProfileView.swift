@@ -47,7 +47,7 @@ struct ProfileView: View {
                     }
                     Toggle(isOn: $eveningOn) {
                         Text("Evening warning (\(Brand.eveningWarning))")
-                            .font(.system(size: 16))
+                            .font(.app(16))
                             .foregroundStyle(Color.textPrimary)
                     }
                     .tint(.coral)
@@ -74,8 +74,8 @@ struct ProfileView: View {
                     Button { openURL(Brand.privacyURL) } label: { row("Privacy", chevron: true) }
                     Button { contactSupport() } label: { row("Contact support", chevron: true) }
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("About").font(.system(size: 16)).foregroundStyle(Color.textPrimary)
-                        Text(Brand.disclaimer).font(.system(size: 13)).foregroundStyle(Color.textSecondary)
+                        Text("About").font(.app(16)).foregroundStyle(Color.textPrimary)
+                        Text(Brand.disclaimer).font(.app(13)).foregroundStyle(Color.textSecondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, 6)
@@ -126,12 +126,12 @@ struct ProfileView: View {
     private func row(_ title: String, value: String? = nil, chevron: Bool = false) -> some View {
         HStack(spacing: 8) {
             Text(title)
-                .font(.system(size: 16))
+                .font(.app(16))
                 .foregroundStyle(Color.textPrimary)
             Spacer(minLength: 8)
             if let value {
                 Text(value)
-                    .font(.system(size: 15))
+                    .font(.app(15))
                     .foregroundStyle(Color.textSecondary)
                     .multilineTextAlignment(.trailing)
             }

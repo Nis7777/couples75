@@ -20,7 +20,7 @@ struct Day75View: View {
                         SmallLabel(text: "Day 75")
                         TitleText("We finished \(Brand.appName)", size: 32)
                         Text("\(model.nameA) & \(model.nameB)")
-                            .font(.system(size: 17, weight: .semibold))
+                            .font(.app(17, .semibold))
                             .foregroundStyle(Color.textSecondary)
                         TrophyScene(left: model.sceneA, right: model.sceneB)
                             .frame(height: 280)
@@ -32,7 +32,7 @@ struct Day75View: View {
                     ShareLink(item: Image(uiImage: shareImage),
                               preview: SharePreview("We finished \(Brand.appName)", image: Image(uiImage: shareImage))) {
                         Text("Share our card ›")
-                            .font(.system(size: 18, weight: .semibold))
+                            .font(.app(18, .semibold))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 58)
@@ -91,10 +91,10 @@ struct RecapCard: View {
 
     private func row(_ label: String, _ value: String) -> some View {
         HStack(alignment: .top) {
-            Text(label).font(.system(size: 15)).foregroundStyle(Color.textSecondary)
+            Text(label).font(.app(15)).foregroundStyle(Color.textSecondary)
             Spacer()
             Text(value)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.app(15, .semibold))
                 .foregroundStyle(Color.textPrimary)
                 .multilineTextAlignment(.trailing)
         }
@@ -115,7 +115,7 @@ struct ShareCardView: View {
     var body: some View {
         VStack(spacing: 14) {
             Text("DAY 75")
-                .font(.system(size: 16, weight: .heavy))
+                .font(.app(16, .heavy))
                 .tracking(3)
                 .foregroundStyle(Color.coral)
                 .padding(.top, 40)
@@ -124,7 +124,7 @@ struct ShareCardView: View {
                 .foregroundStyle(Color.textPrimary)
                 .multilineTextAlignment(.center)
             Text("\(nameA) & \(nameB)")
-                .font(.system(size: 18, weight: .semibold))
+                .font(.app(18, .semibold))
                 .foregroundStyle(Color.textSecondary)
             TrophyScene(left: a, right: b)
                 .frame(height: 300)
@@ -134,13 +134,13 @@ struct ShareCardView: View {
             }
             if let owes {
                 Text("🏆 \(owes)")
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.app(15, .bold))
                     .foregroundStyle(Color.textPrimary)
                     .multilineTextAlignment(.center)
             }
             Spacer()
             Text(Brand.tagline)
-                .font(.system(size: 13, weight: .medium))
+                .font(.app(13, .medium))
                 .foregroundStyle(Color.textSecondary)
                 .padding(.bottom, 28)
         }
@@ -152,7 +152,7 @@ struct ShareCardView: View {
     private func stat(_ value: String, _ label: String) -> some View {
         VStack(spacing: 2) {
             Text(value).font(.rounded(28)).foregroundStyle(Color.gold)
-            Text(label).font(.system(size: 12)).foregroundStyle(Color.textSecondary)
+            Text(label).font(.app(12)).foregroundStyle(Color.textSecondary)
         }
     }
 }

@@ -57,7 +57,7 @@ struct OnboardingFlow: View {
     }
 }
 
-/// Shared page layout: back chevron + "Step X of N" header, content, bottom actions.
+/// Shared page layout: "Step X of N" header (back chevron on its left), content, bottom actions.
 struct OnboardingPage<Content: View, Actions: View>: View {
     var step: Int?
     var total: Int = OnboardingDraft.countedSteps.count
@@ -67,30 +67,30 @@ struct OnboardingPage<Content: View, Actions: View>: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 12) {
+            ZStack(alignment: .bottomLeading) {
+                if let step {
+                    OnboardingHeader(step: step, total: total)
+                        .padding(.horizontal, Metrics.side + 8)
+                } else {
+                    Color.clear.frame(height: back == nil ? 8 : 36)
+                }
                 if let back {
                     Button(action: back) {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 18, weight: .semibold))
+                            .font(.system(size: 17, weight: .semibold))
                             .foregroundStyle(Color.textPrimary)
-                            .frame(width: 36, height: 36)
+                            .frame(width: 44, height: 36)
+                            .contentShape(Rectangle())
                     }
                     .accessibilityLabel("Back")
-                } else {
-                    Color.clear.frame(width: 36, height: 36)
+                    .padding(.leading, 8)
+                    .offset(y: step == nil ? 0 : 9)
                 }
-                if let step {
-                    OnboardingHeader(step: step, total: total)
-                } else {
-                    Spacer()
-                }
-                Color.clear.frame(width: 36, height: 36)
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 8)
+            .padding(.top, 10)
 
             content
-                .padding(.horizontal, 24)
+                .padding(.horizontal, Metrics.side)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             BottomActions { actions }

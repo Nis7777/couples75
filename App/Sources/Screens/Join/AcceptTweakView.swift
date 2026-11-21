@@ -22,7 +22,7 @@ struct AcceptTweakView: View {
                     BodyText("Set from your fitness level. You can swap one rule and change the bet.")
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Your daily rules")
-                            .font(.system(size: 15, weight: .bold))
+                            .font(.app(15, .bold))
                             .foregroundStyle(Color.sage)
                         ForEach(rules) { r in
                             HStack(spacing: 10) {
@@ -30,7 +30,7 @@ struct AcceptTweakView: View {
                                     .foregroundStyle(Color.sage)
                                     .frame(width: 22)
                                 Text(r.title)
-                                    .font(.system(size: 16))
+                                    .font(.app(16))
                                     .foregroundStyle(Color.textPrimary)
                                 Spacer()
                                 if r.position == jd.swappedPosition {
@@ -50,7 +50,7 @@ struct AcceptTweakView: View {
                     }
                     if changed {
                         Text("\(model.nameA) gets \(Int(Brand.tweakAutoAcceptHours)) hours to accept your changes. No answer means your version is used.")
-                            .font(.system(size: 13))
+                            .font(.app(13))
                             .foregroundStyle(Color.textSecondary)
                             .multilineTextAlignment(.center)
                     }

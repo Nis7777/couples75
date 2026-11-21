@@ -24,7 +24,7 @@ struct RoundEndView: View {
                     BetCard(round: live)
                     if live.status == .failed {
                         Text("Back to Day 1 tomorrow. Best streak: \(model.state.bestStreak) days. Your history is kept.")
-                            .font(.system(size: 14))
+                            .font(.app(14))
                             .foregroundStyle(Color.textSecondary)
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
@@ -43,7 +43,7 @@ struct RoundEndView: View {
                 }
             } else if live.paidAt != nil {
                 Label("Bet paid", systemImage: "checkmark.seal.fill")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.app(16, .semibold))
                     .foregroundStyle(Color.sage)
                     .frame(height: 44)
             }
@@ -69,28 +69,28 @@ struct BetCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("🏆 The bet")
-                .font(.system(size: 14, weight: .bold))
+                .font(.app(14, .bold))
                 .foregroundStyle(Color.textSecondary)
             if let owesLine {
                 Text(owesLine)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.app(15, .semibold))
                     .foregroundStyle(Color.textPrimary)
                 Text(round.betText)
-                    .font(.system(size: 26, weight: .bold))
+                    .font(.app(26, .bold))
                     .foregroundStyle(Color.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 Text(round.rewardUnlocked ? "Nobody owes anything. Your reward is unlocked: \(round.rewardText ?? "")"
                                           : "Nobody owes anything")
-                    .font(.system(size: 20, weight: .bold))
+                    .font(.app(20, .bold))
                     .foregroundStyle(Color.textPrimary)
             }
             Text("Final score: \(scoreText)")
-                .font(.system(size: 14))
+                .font(.app(14))
                 .foregroundStyle(Color.textSecondary)
             if let paid = round.paidAt {
                 Text("Paid \(paid.formatted(date: .abbreviated, time: .omitted))")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.app(13, .semibold))
                     .foregroundStyle(Color.sage)
             }
         }

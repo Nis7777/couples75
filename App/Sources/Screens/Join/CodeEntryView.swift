@@ -17,14 +17,14 @@ struct CodeEntryView: View {
                         .padding(.top, 32)
                     BodyText("Tap the link in their message again, or enter their 6-letter code.")
                     BodyText("Just installed? If you tapped the link before \(Brand.appName) was installed, tap it again now or type the code.")
-                        .font(.system(size: 13))
+                        .font(.app(13))
                     codeBoxes
                         .padding(.top, 8)
                     if resolving {
                         ProgressView().tint(.coral)
                     } else if let lookup {
                         Label("\(lookup.inviterName) invited you", systemImage: "checkmark.circle.fill")
-                            .font(.system(size: 15, weight: .semibold))
+                            .font(.app(15, .semibold))
                             .foregroundStyle(Color.sage)
                     }
                 }
@@ -68,7 +68,7 @@ struct CodeEntryView: View {
                     let chars = Array(code)
                     let ch = i < chars.count ? String(chars[i]) : ""
                     Text(ch)
-                        .font(.system(size: 26, weight: .bold, design: .monospaced))
+                        .font(.app(26, .bold))
                         .foregroundStyle(Color.textPrimary)
                         .frame(maxWidth: 52)
                         .frame(height: 60)

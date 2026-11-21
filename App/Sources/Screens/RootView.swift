@@ -5,7 +5,7 @@ struct RootView: View {
 
     var body: some View {
         ZStack {
-            Color.ivory.ignoresSafeArea()
+            AppBackground()
             switch model.route {
             case .loading:
                 ProgressView().tint(.coral)
@@ -31,6 +31,8 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: model.route)
+        .font(.app(16))
+        .foregroundStyle(Color.textPrimary)
         .tint(.coral)
         .preferredColorScheme(.light)
         .alert("Something went wrong", isPresented: Binding(
@@ -50,7 +52,7 @@ struct ToastView: View {
     var body: some View {
         VStack {
             Text(text)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.app(15, .semibold))
                 .foregroundStyle(.white)
                 .padding(.horizontal, 18)
                 .padding(.vertical, 12)

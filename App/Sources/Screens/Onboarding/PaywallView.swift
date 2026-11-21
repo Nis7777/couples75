@@ -50,7 +50,7 @@ struct PaywallView: View {
                             .padding(.top, 4)
                     }
                     Text("Cancel anytime.")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.app(14, .medium))
                         .foregroundStyle(Color.textSecondary)
                 }
                 .padding(.horizontal, 24)
@@ -110,13 +110,13 @@ struct PaywallView: View {
         VStack(spacing: 8) {
             if let title {
                 Text(title)
-                    .font(.system(size: 22, weight: .semibold))
+                    .font(.app(22, .semibold))
                     .foregroundStyle(Color.textPrimary)
                     .multilineTextAlignment(.center)
                     .accessibilityAddTraits(.isHeader)
             }
             Text(subtitle)
-                .font(.system(size: 15))
+                .font(.app(15))
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -129,7 +129,7 @@ struct PaywallView: View {
         VStack(spacing: 12) {
             if purchases.productsFailed {
                 Text("Couldn't load prices from the App Store.")
-                    .font(.system(size: 15))
+                    .font(.app(15))
                     .foregroundStyle(Color.textSecondary)
                 SecondaryButton("Try again") { Task { await purchases.loadProducts() } }
             } else {
@@ -209,12 +209,12 @@ struct StepsStrip: View {
     private func item(_ n: Int, _ text: String) -> some View {
         VStack(spacing: 4) {
             Text("\(n)")
-                .font(.system(size: 13, weight: .bold))
+                .font(.app(13, .bold))
                 .foregroundStyle(.white)
                 .frame(width: 22, height: 22)
                 .background(Circle().fill(Color.coral))
             Text(text)
-                .font(.system(size: 12, weight: .medium))
+                .font(.app(12, .medium))
                 .foregroundStyle(Color.textPrimary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -240,7 +240,7 @@ struct FooterLinks: View {
                 }
             }
         }
-        .font(.system(size: 13, weight: .medium))
+        .font(.app(13, .medium))
         .foregroundStyle(Color.textSecondary)
         .tint(Color.textSecondary)
     }

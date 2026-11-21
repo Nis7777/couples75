@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-// Section 1.2 components.
+// Section 1.2 components, styled after the mockups in reference/.
 
 enum Haptics {
     static func tap() { UIImpactFeedbackGenerator(style: .light).impactOccurred() }
@@ -9,7 +9,32 @@ enum Haptics {
     static func warning() { UINotificationFeedbackGenerator().notificationOccurred(.warning) }
 }
 
-/// Full width, 58pt capsule, coral, white 18pt semibold label ending in " ›".
+enum Metrics {
+    static let side: CGFloat = 20
+    static let buttonHeight: CGFloat = 58
+    static let cardRadius: CGFloat = 20
+    static let optionRadius: CGFloat = 18
+}
+
+// MARK: - Background
+
+/// Ivory with a very soft peach glow.
+struct AppBackground: View {
+    var body: some View {
+        ZStack {
+            Color.ivory
+            RadialGradient(colors: [Color.peach.opacity(0.55), Color.ivory.opacity(0)],
+                           center: UnitPoint(x: 0.5, y: 0.28), startRadius: 10, endRadius: 520)
+            RadialGradient(colors: [Color.peach.opacity(0.35), Color.ivory.opacity(0)],
+                           center: UnitPoint(x: 0.9, y: 1.0), startRadius: 10, endRadius: 380)
+        }
+        .ignoresSafeArea()
+    }
+}
+
+// MARK: - Buttons
+
+/// Full width, 58pt coral capsule, white 18pt semibold label ending in " ›".
 struct PrimaryButton: View {
     var title: String
     var isEnabled: Bool = true
@@ -28,24 +53,36 @@ struct PrimaryButton: View {
             Haptics.tap()
             action()
         } label: {
-            ZStack {
-                if isLoading {
-                    ProgressView().tint(.white)
-                } else {
-                    Text(title.hasSuffix("›") ? title : "\(title) ›")
-                        .font(.system(size: 18, weight: .semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                }
-            }
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 58)
-            .background(Capsule().fill(Color.coral.opacity(isEnabled ? 1 : 0.4)))
+            PrimaryButtonLabel(title: title, isEnabled: isEnabled, isLoading: isLoading)
         }
         .buttonStyle(PressableStyle())
         .disabled(!isEnabled || isLoading)
         .accessibilityLabel(title.replacingOccurrences(of: " ›", with: ""))
+    }
+}
+
+/// The look of the primary button (also used inside ShareLink labels).
+struct PrimaryButtonLabel: View {
+    var title: String
+    var isEnabled = true
+    var isLoading = false
+
+    var body: some View {
+        ZStack {
+            if isLoading {
+                ProgressView().tint(.white)
+            } else {
+                Text(title.hasSuffix("›") ? title : "\(title) ›")
+                    .font(.app(18, .semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+        }
+        .foregroundStyle(.white)
+        .frame(maxWidth: .infinity)
+        .frame(height: Metrics.buttonHeight)
+        .background(Capsule().fill(Color.coral.opacity(isEnabled ? 1 : 0.45)))
+        .contentShape(Capsule())
     }
 }
 
@@ -64,17 +101,26 @@ struct SecondaryButton: View {
             Haptics.tap()
             action()
         } label: {
-            Text(title)
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(Color.textPrimary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .frame(maxWidth: .infinity)
-                .frame(height: 52)
-                .background(Capsule().fill(Color.white))
-                .overlay(Capsule().stroke(Color.buttonBorder, lineWidth: 1))
+            SecondaryButtonLabel(title: title)
         }
         .buttonStyle(PressableStyle())
+    }
+}
+
+struct SecondaryButtonLabel: View {
+    var title: String
+
+    var body: some View {
+        Text(title)
+            .font(.app(18, .semibold))
+            .foregroundStyle(Color.textPrimary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .frame(maxWidth: .infinity)
+            .frame(height: 54)
+            .background(Capsule().fill(Color.white))
+            .overlay(Capsule().stroke(Color.buttonBorder, lineWidth: 1))
+            .contentShape(Capsule())
     }
 }
 
@@ -96,10 +142,11 @@ struct TextLinkButton: View {
             action()
         } label: {
             Text(title)
-                .font(.system(size: 15, weight: .medium))
+                .font(.app(15, .medium))
                 .foregroundStyle(color)
-                .underline(false)
+                .multilineTextAlignment(.center)
                 .padding(.vertical, 8)
+                .frame(minHeight: 36)
         }
     }
 }
@@ -108,23 +155,37 @@ struct PressableStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .opacity(configuration.isPressed ? 0.92 : 1)
             .animation(.spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }
 
-/// 72pt radio card. Selected: peach fill, 1.5pt coral border, filled coral check circle on the left.
+// MARK: - Option card
+
+/// White card, 1pt border, radius 18, 64–72pt tall. Selected: peach fill, 1.5pt coral border,
+/// filled coral check circle on the left.
 struct OptionCard<Trailing: View>: View {
     var title: String
     var subtitle: String?
     var isSelected: Bool
+    var minHeight: CGFloat = 68
+    /// Grow to fill the height offered (04's tall cards).
+    var expands = false
     var trailing: Trailing
     var action: () -> Void
 
-    init(title: String, subtitle: String? = nil, isSelected: Bool, action: @escaping () -> Void,
-         @ViewBuilder trailing: () -> Trailing) {
+    func expanding() -> OptionCard {
+        var copy = self
+        copy.expands = true
+        return copy
+    }
+
+    init(title: String, subtitle: String? = nil, isSelected: Bool, minHeight: CGFloat = 68,
+         action: @escaping () -> Void, @ViewBuilder trailing: () -> Trailing) {
         self.title = title
         self.subtitle = subtitle
         self.isSelected = isSelected
+        self.minHeight = minHeight
         self.action = action
         self.trailing = trailing()
     }
@@ -135,27 +196,32 @@ struct OptionCard<Trailing: View>: View {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) { action() }
         } label: {
             HStack(spacing: 14) {
-                CheckCircle(isOn: isSelected)
+                CheckCircle(isOn: isSelected, size: 26)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(title)
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(Color.textPrimary)
+                    HStack(spacing: 10) {
+                        Text(title)
+                            .font(.app(18, .semibold))
+                            .foregroundStyle(Color.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        trailing
+                    }
                     if let subtitle {
                         Text(subtitle)
-                            .font(.system(size: 13))
+                            .font(.app(14))
                             .foregroundStyle(Color.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
-                Spacer(minLength: 8)
-                trailing
+                Spacer(minLength: 0)
             }
-            .padding(.horizontal, 18)
-            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 18, style: .continuous)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, minHeight: minHeight, maxHeight: expands ? .infinity : nil, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: Metrics.optionRadius, style: .continuous)
                 .fill(isSelected ? Color.peach : Color.white))
-            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous)
+            .overlay(RoundedRectangle(cornerRadius: Metrics.optionRadius, style: .continuous)
                 .stroke(isSelected ? Color.coral : Color.cardBorder, lineWidth: isSelected ? 1.5 : 1))
+            .contentShape(RoundedRectangle(cornerRadius: Metrics.optionRadius, style: .continuous))
         }
         .buttonStyle(PressableStyle())
         .accessibilityElement(children: .combine)
@@ -164,11 +230,14 @@ struct OptionCard<Trailing: View>: View {
 }
 
 extension OptionCard where Trailing == EmptyView {
-    init(title: String, subtitle: String? = nil, isSelected: Bool, action: @escaping () -> Void) {
-        self.init(title: title, subtitle: subtitle, isSelected: isSelected, action: action) { EmptyView() }
+    init(title: String, subtitle: String? = nil, isSelected: Bool, minHeight: CGFloat = 68,
+         action: @escaping () -> Void) {
+        self.init(title: title, subtitle: subtitle, isSelected: isSelected, minHeight: minHeight,
+                  action: action) { EmptyView() }
     }
 }
 
+/// Filled coral circle with a white check; an empty peach ring when off.
 struct CheckCircle: View {
     var isOn: Bool
     var color: Color = .coral
@@ -176,21 +245,25 @@ struct CheckCircle: View {
 
     var body: some View {
         ZStack {
-            Circle()
-                .stroke(isOn ? color : Color.buttonBorder, lineWidth: 1.5)
-                .background(Circle().fill(isOn ? color : Color.white))
             if isOn {
+                Circle().fill(color)
                 Image(systemName: "checkmark")
-                    .font(.system(size: size * 0.5, weight: .bold))
+                    .font(.system(size: size * 0.48, weight: .heavy))
                     .foregroundStyle(.white)
+            } else {
+                Circle().fill(Color.white)
+                Circle().stroke(Color.radio, lineWidth: 1.8)
             }
         }
         .frame(width: size, height: size)
+        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isOn)
         .accessibilityHidden(true)
     }
 }
 
-/// 6pt gold progress bar and "Step X of N".
+// MARK: - Onboarding header
+
+/// 6pt gold bar on a light peach track, "Step X of N" under it.
 struct OnboardingHeader: View {
     var step: Int
     var total: Int
@@ -199,88 +272,109 @@ struct OnboardingHeader: View {
         VStack(spacing: 8) {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    Capsule().fill(Color.peach)
+                    Capsule().fill(Color.track)
                     Capsule().fill(Color.gold)
-                        .frame(width: geo.size.width * CGFloat(step) / CGFloat(max(total, 1)))
+                        .frame(width: max(6, geo.size.width * CGFloat(step) / CGFloat(max(total, 1))))
                 }
             }
             .frame(height: 6)
             Text("Step \(step) of \(total)")
-                .font(.system(size: 13))
-                .foregroundStyle(Color.textSecondary)
+                .font(.app(14, .medium))
+                .foregroundStyle(Color.textPrimary)
         }
-        .animation(.easeInOut(duration: 0.3), value: step)
+        .animation(.easeInOut(duration: 0.35), value: step)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Step \(step) of \(total)")
     }
 }
 
+// MARK: - Cards
+
+/// White, radius 20, faint border and a soft shadow.
 struct CardBackground: ViewModifier {
     var fill: Color = .card
-    var radius: CGFloat = 20
+    var radius: CGFloat = Metrics.cardRadius
+    var shadow = true
 
     func body(content: Content) -> some View {
         content
-            .background(RoundedRectangle(cornerRadius: radius, style: .continuous).fill(fill))
+            .background(
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .fill(fill)
+                    .shadow(color: .black.opacity(shadow ? 0.05 : 0), radius: 12, y: 4)
+            )
             .overlay(RoundedRectangle(cornerRadius: radius, style: .continuous).stroke(Color.cardBorder, lineWidth: 1))
     }
 }
 
 extension View {
-    func card(fill: Color = .card, radius: CGFloat = 20) -> some View {
-        modifier(CardBackground(fill: fill, radius: radius))
+    func card(fill: Color = .card, radius: CGFloat = Metrics.cardRadius, shadow: Bool = true) -> some View {
+        modifier(CardBackground(fill: fill, radius: radius, shadow: shadow))
+    }
+
+    /// Peach box with a thin coral border (warm-up banner, bet box, saves card).
+    func peachBox(radius: CGFloat = 16) -> some View {
+        background(RoundedRectangle(cornerRadius: radius, style: .continuous).fill(Color.peach))
+            .overlay(RoundedRectangle(cornerRadius: radius, style: .continuous)
+                .stroke(Color.coral.opacity(0.55), lineWidth: 1))
     }
 
     func screenBackground() -> some View {
-        background(Color.ivory.ignoresSafeArea())
+        background(AppBackground())
     }
 }
+
+// MARK: - Text
 
 struct Pill: View {
     var text: String
     var fill: Color
     var foreground: Color = .white
+    var size: CGFloat = 13
 
     var body: some View {
         Text(text)
-            .font(.system(size: 12, weight: .bold))
+            .font(.app(size, .semibold))
             .foregroundStyle(foreground)
             .lineLimit(1)
             .fixedSize()
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
+            .padding(.horizontal, size * 0.9)
+            .padding(.vertical, size * 0.42)
             .background(Capsule().fill(fill))
     }
 }
 
+/// Small coral label above a title ("You're in", "Round over", "Pause request").
 struct SmallLabel: View {
     var text: String
     var color: Color = .coral
 
     var body: some View {
         Text(text)
-            .font(.system(size: 13, weight: .bold))
+            .font(.app(15, .semibold))
             .foregroundStyle(color)
-            .textCase(.uppercase)
-            .tracking(0.5)
     }
 }
 
 struct TitleText: View {
     var text: String
-    var size: CGFloat = 30
+    var size: CGFloat = 28
+    var alignment: TextAlignment = .center
 
-    init(_ text: String, size: CGFloat = 30) {
+    init(_ text: String, size: CGFloat = 28, alignment: TextAlignment = .center) {
         self.text = text
         self.size = size
+        self.alignment = alignment
     }
 
     var body: some View {
         Text(text)
-            .font(.rounded(size))
+            .font(.app(size, .bold))
             .foregroundStyle(Color.textPrimary)
-            .multilineTextAlignment(.center)
+            .multilineTextAlignment(alignment)
+            .lineSpacing(1)
             .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: alignment == .leading ? .leading : .center)
             .accessibilityAddTraits(.isHeader)
     }
 }
@@ -288,22 +382,25 @@ struct TitleText: View {
 struct BodyText: View {
     var text: String
     var alignment: TextAlignment = .center
+    var size: CGFloat = 16
 
-    init(_ text: String, alignment: TextAlignment = .center) {
+    init(_ text: String, alignment: TextAlignment = .center, size: CGFloat = 16) {
         self.text = text
         self.alignment = alignment
+        self.size = size
     }
 
     var body: some View {
         Text(text)
-            .font(.system(size: 16))
+            .font(.app(size))
             .foregroundStyle(Color.textSecondary)
             .multilineTextAlignment(alignment)
+            .lineSpacing(2)
             .fixedSize(horizontal: false, vertical: true)
     }
 }
 
-/// A coral banner (evening warning, frozen run, ...).
+/// A coloured banner (evening warning, frozen run, ...).
 struct Banner: View {
     var text: String
     var fill: Color = .coral
@@ -312,44 +409,46 @@ struct Banner: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            if let icon { Image(systemName: icon) }
+            if let icon { Image(systemName: icon).font(.system(size: 15, weight: .semibold)) }
             Text(text)
-                .font(.system(size: 14, weight: .semibold))
+                .font(.app(15, .semibold))
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
         }
         .foregroundStyle(foreground)
-        .padding(14)
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(fill))
+        .padding(.horizontal, 16)
+        .padding(.vertical, 13)
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(fill))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .stroke(fill == .peach ? Color.coral.opacity(0.55) : .clear, lineWidth: 1))
         .accessibilityElement(children: .combine)
     }
 }
 
-/// A close (×) button for full-screen sheets.
+/// A plain × (top-left of sheets and full-screen pages).
 struct CloseButton: View {
     var action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Image(systemName: "xmark")
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(size: 20, weight: .medium))
                 .foregroundStyle(Color.textPrimary)
-                .frame(width: 40, height: 40)
-                .background(Circle().fill(Color.white))
-                .overlay(Circle().stroke(Color.cardBorder, lineWidth: 1))
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
         }
         .accessibilityLabel("Close")
     }
 }
 
-/// Bottom-pinned action area used by most onboarding screens.
+/// Bottom-pinned action area: 20pt side margins and space below.
 struct BottomActions<Content: View>: View {
     @ViewBuilder var content: Content
 
     var body: some View {
-        VStack(spacing: 10) { content }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 12)
-            .padding(.top, 8)
+        VStack(spacing: 8) { content }
+            .padding(.horizontal, Metrics.side)
+            .padding(.bottom, 16)
+            .padding(.top, 10)
     }
 }

@@ -34,6 +34,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         NotificationManager.shared.configure()
+        AppDelegate.styleNavigationBars()
         NotificationManager.shared.onRoute = { [weak self] route in self?.model.handle(route: route) }
         BGTaskScheduler.shared.register(forTaskWithIdentifier: Brand.backgroundRefreshID, using: nil) { task in
             Task { @MainActor in
@@ -48,6 +49,22 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     }
 
     static weak var current: AppDelegate?
+
+    /// Outfit in navigation bars and bar buttons (sheets with a NavigationStack).
+    static func styleNavigationBars() {
+        let ink = UIColor(red: 0x2A / 255, green: 0x18 / 255, blue: 0x14 / 255, alpha: 1)
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithTransparentBackground()
+        appearance.titleTextAttributes = [.font: AppFont.uiFont(17, .semibold), .foregroundColor: ink]
+        appearance.largeTitleTextAttributes = [.font: AppFont.uiFont(30, .bold), .foregroundColor: ink]
+        let buttons = UIBarButtonItemAppearance()
+        buttons.normal.titleTextAttributes = [.font: AppFont.uiFont(17, .medium)]
+        appearance.buttonAppearance = buttons
+        appearance.doneButtonAppearance = buttons
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        UINavigationBar.appearance().compactAppearance = appearance
+    }
 
     static func scheduleBackgroundRefresh() {
         let request = BGAppRefreshTaskRequest(identifier: Brand.backgroundRefreshID)

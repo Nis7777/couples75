@@ -18,7 +18,7 @@ struct ProgressScreen: View {
                         .foregroundStyle(Color.textPrimary)
                         .accessibilityAddTraits(.isHeader)
                     Text("\(model.nameA) & \(model.nameB)")
-                        .font(.system(size: 15, weight: .medium))
+                        .font(.app(15, .medium))
                         .foregroundStyle(Color.textSecondary)
                 }
                 .padding(.top, 8)
@@ -32,7 +32,7 @@ struct ProgressScreen: View {
                 HStack(spacing: 8) {
                     Text("🏆")
                     Text("Stakes: \(round?.betText ?? model.currentBet)")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.app(15, .semibold))
                         .foregroundStyle(Color.textPrimary)
                     Spacer()
                 }
@@ -78,11 +78,11 @@ struct ProgressScreen: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("75-day grid")
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.app(15, .bold))
                     .foregroundStyle(Color.textPrimary)
                 Spacer()
                 Text("Day \(currentDay) of \(Brand.roundLengthDays)")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.app(14, .semibold))
                     .foregroundStyle(Color.textSecondary)
             }
             LazyVGrid(columns: columns, spacing: 6) {
@@ -99,7 +99,7 @@ struct ProgressScreen: View {
                 legend(.half, "One + save")
                 legend(.today, "Today")
             }
-            .font(.system(size: 11))
+            .font(.app(11))
             .foregroundStyle(Color.textSecondary)
         }
         .padding(16)
@@ -148,11 +148,11 @@ struct ProgressScreen: View {
     private var photoStrip: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Recent photos")
-                .font(.system(size: 15, weight: .bold))
+                .font(.app(15, .bold))
                 .foregroundStyle(Color.textPrimary)
             if photos.isEmpty {
                 Text("Photo check-ins from both of you show up here. Only the two of you can see them.")
-                    .font(.system(size: 14))
+                    .font(.app(14))
                     .foregroundStyle(Color.textSecondary)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -178,7 +178,7 @@ struct ProgressScreen: View {
     private func stat(_ value: String, _ label: String) -> some View {
         VStack(spacing: 4) {
             Text(value).font(.rounded(24)).foregroundStyle(Color.textPrimary)
-            Text(label).font(.system(size: 12, weight: .medium)).foregroundStyle(Color.textSecondary)
+            Text(label).font(.app(12, .medium)).foregroundStyle(Color.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
@@ -245,7 +245,7 @@ struct PhotoViewer: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text("\(model.name(of: checkIn.memberID)) · \(model.facts.rules.first { $0.id == checkIn.ruleID }?.title ?? "")")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.app(16, .semibold))
                         .foregroundStyle(.white)
                     Spacer()
                     Button { dismiss() } label: {
@@ -263,7 +263,7 @@ struct PhotoViewer: View {
                     VStack(alignment: .leading, spacing: 4) {
                         ForEach(reactions) { r in
                             Text(reactionText(r))
-                                .font(.system(size: 14, weight: .medium))
+                                .font(.app(14, .medium))
                                 .foregroundStyle(.white)
                         }
                     }

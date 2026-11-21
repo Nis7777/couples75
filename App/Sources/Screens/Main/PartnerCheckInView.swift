@@ -31,10 +31,10 @@ struct PartnerCheckInView: View {
                             .font(.rounded(24))
                             .foregroundStyle(Color.textPrimary)
                         Text(rule?.title ?? "")
-                            .font(.system(size: 17, weight: .semibold))
+                            .font(.app(17, .semibold))
                             .foregroundStyle(Color.textPrimary)
                         Text(subtitle)
-                            .font(.system(size: 14))
+                            .font(.app(14))
                             .foregroundStyle(Color.textSecondary)
                     }
 
@@ -56,7 +56,7 @@ struct PartnerCheckInView: View {
                     if !isMine { reactSection }
 
                     Button("Report") { report() }
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.app(13, .medium))
                         .foregroundStyle(Color.textSecondary)
                         .frame(maxWidth: .infinity)
                         .padding(.top, 8)
@@ -108,7 +108,7 @@ struct PartnerCheckInView: View {
             HStack(spacing: 10) {
                 Image(systemName: "hand.raised.fill").foregroundStyle(Color.sage)
                 Text(checkIn.honourFallback ? "Honour tap (iCloud was full)" : "Honour tap: \"I stuck to it today\"")
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.app(15, .medium))
                     .foregroundStyle(Color.textPrimary)
             }
             .padding(16)
@@ -120,7 +120,7 @@ struct PartnerCheckInView: View {
     private var reactSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("React")
-                .font(.system(size: 15, weight: .bold))
+                .font(.app(15, .bold))
                 .foregroundStyle(Color.textPrimary)
             HStack(spacing: 10) {
                 ForEach(emojis, id: \.self) { e in
@@ -129,7 +129,7 @@ struct PartnerCheckInView: View {
                         Task { await model.react(to: checkIn, kind: .emoji, emoji: e) }
                     } label: {
                         Text(e)
-                            .font(.system(size: 26))
+                            .font(.app(26))
                             .frame(width: 52, height: 52)
                             .background(Circle().fill(Color.white))
                             .overlay(Circle().stroke(Color.cardBorder, lineWidth: 1))
@@ -139,14 +139,14 @@ struct PartnerCheckInView: View {
             }
             HStack(spacing: 8) {
                 TextField("Add a comment…", text: $comment)
-                    .font(.system(size: 15))
+                    .font(.app(15))
                     .submitLabel(.send)
                     .onSubmit { sendComment() }
                     .onChange(of: comment) { _, new in if new.count > 80 { comment = String(new.prefix(80)) } }
                     .accessibilityLabel("Comment, up to 80 characters")
                 if !comment.trimmingCharacters(in: .whitespaces).isEmpty {
                     Button("Send") { sendComment() }
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.app(15, .bold))
                         .foregroundStyle(Color.coral)
                 }
             }
@@ -177,7 +177,7 @@ struct PartnerCheckInView: View {
         case .seen: text = "\(who) saw it"
         }
         return Text(text)
-            .font(.system(size: 14))
+            .font(.app(14))
             .foregroundStyle(Color.textPrimary)
     }
 

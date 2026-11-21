@@ -21,7 +21,7 @@ struct InvitedView: View {
                         .accessibilityLabel(model.nameA)
                     VStack(alignment: .leading, spacing: 12) {
                         Text("\(model.nameA) picked this plan for you both")
-                            .font(.system(size: 15, weight: .bold))
+                            .font(.app(15, .bold))
                             .foregroundStyle(Color.textPrimary)
                         RulesColumnsCard(title: "Daily rules",
                                          leftName: model.nameA,
@@ -31,7 +31,7 @@ struct InvitedView: View {
                                          rightNote: nil)
                         HStack {
                             Text(model.currentMode == .hard ? "Hard mode · no saves" : "\(Brand.savesPerRound) saves, shared")
-                                .font(.system(size: 15, weight: .semibold))
+                                .font(.app(15, .semibold))
                                 .foregroundStyle(Color.textPrimary)
                             Spacer()
                             if model.currentMode != .hard {
@@ -48,7 +48,7 @@ struct InvitedView: View {
         } actions: {
             PrimaryButton("See the plan") { next() }
             Text("You can swap one rule and change the bet. \(Brand.appName) is \(model.purchases.monthlyPrice ?? "…") a month each, so you'll subscribe before Day 1.")
-                .font(.system(size: 12))
+                .font(.app(12))
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -62,13 +62,13 @@ struct BetBox: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Text("🏆").font(.system(size: 22))
+            Text("🏆").font(.app(22))
             VStack(alignment: .leading, spacing: 2) {
                 Text("The bet")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.app(12, .semibold))
                     .foregroundStyle(Color.textSecondary)
                 Text(bet)
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.app(16, .bold))
                     .foregroundStyle(Color.textPrimary)
             }
             Spacer()

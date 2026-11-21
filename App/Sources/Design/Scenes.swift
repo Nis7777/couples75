@@ -6,109 +6,344 @@ struct SceneCharacter: Equatable {
     var name: String
 }
 
-/// Two single-person images composed side by side: A on the left, slightly overlapping,
-/// bottoms aligned, scaled to the available height (never cropped at the head).
-/// `right == nil` shows the dashed partner outline.
+// MARK: - Couple composition
+
+/// Two single-person images composed side by side: A on the left, slightly overlapping, bottoms aligned,
+/// scaled to the available height. `crop` shows only the top part of each figure (1 = full body,
+/// ~0.6 = cut at the hips, like the mockups); heads are never cropped. `right == nil` shows the dashed outline.
+/// `overlap` is a fraction of the pair's width; negative values leave a gap between the two.
 struct CoupleScene: View {
     var left: SceneCharacter
     var right: SceneCharacter?
     var leftPose: CharacterPose = .stand
     var rightPose: CharacterPose = .stand
+    var crop: CGFloat = 1
+    var overlap: CGFloat = 0.06
+
+    private var leftAsset: String { Characters.assetName(left.characterID, leftPose) }
+    private var rightAsset: String { right.map { Characters.assetName($0.characterID, rightPose) } ?? "partner_outline" }
 
     var body: some View {
         GeometryReader { geo in
-            let h = geo.size.height
-            let figureWidth = min(h * 0.46, geo.size.width * 0.52)
-            HStack(alignment: .bottom, spacing: -figureWidth * 0.14) {
-                CharacterImage(characterID: left.characterID, pose: leftPose)
-                    .frame(width: figureWidth, height: h, alignment: .bottom)
+            let aL = Characters.aspect(of: leftAsset)
+            let aR = Characters.aspect(of: rightAsset)
+            let c = max(0.2, min(1, crop))
+            let full = max(1, min(geo.size.height / c, geo.size.width / ((aL + aR) * (1 - overlap))))
+            HStack(alignment: .top, spacing: -(aL + aR) * full * overlap) {
+                Image(leftAsset)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: aL * full, height: full)
+                    .frame(height: full * c, alignment: .top)
+                    .clipped()
                     .zIndex(1)
-                Group {
-                    if let right {
-                        CharacterImage(characterID: right.characterID, pose: rightPose)
-                    } else {
-                        PartnerOutlineImage()
-                    }
-                }
-                .frame(width: figureWidth, height: h, alignment: .bottom)
+                Image(rightAsset)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: aR * full, height: full)
+                    .frame(height: full * c, alignment: .top)
+                    .clipped()
             }
-            .frame(width: geo.size.width, height: h, alignment: .bottom)
+            .frame(width: geo.size.width, height: geo.size.height, alignment: .bottom)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(right.map { "\(left.name) and \($0.name)" } ?? "\(left.name) and a partner who hasn't joined yet")
     }
 }
 
-/// Gold circular ring with "DAY n / 75" and the two characters overlapping it.
-struct DayRing: View {
-    var day: Int?
-    var total: Int = Brand.roundLengthDays
-    var caption: String?
-    var lineWidth: CGFloat = 14
-
-    var progress: Double { Double(day ?? 0) / Double(total) }
+/// Two busts side by side, bottoms flat (05, 30).
+struct CoupleBusts: View {
+    var left: SceneCharacter
+    var right: SceneCharacter?
 
     var body: some View {
-        ZStack {
-            Circle().stroke(Color.peach, lineWidth: lineWidth)
-            Circle()
-                .trim(from: 0, to: max(0.001, progress))
-                .stroke(Color.gold, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-                .animation(.easeInOut(duration: 0.6), value: progress)
-            VStack(spacing: 0) {
-                if let day {
-                    Text("DAY \(day)")
-                        .font(.rounded(26, .heavy))
-                        .foregroundStyle(Color.textPrimary)
-                    Text("/ \(total)")
-                        .font(.rounded(15, .semibold))
-                        .foregroundStyle(Color.textSecondary)
-                } else if let caption {
-                    Text(caption)
-                        .font(.rounded(16, .bold))
-                        .foregroundStyle(Color.textPrimary)
-                        .multilineTextAlignment(.center)
+        GeometryReader { geo in
+            let h = geo.size.height
+            let a = Characters.aspect(of: Characters.assetName(left.characterID, .bust), fallback: 0.8)
+            HStack(alignment: .bottom, spacing: -h * a * 0.16) {
+                Image(Characters.assetName(left.characterID, .bust))
+                    .resizable().scaledToFit()
+                    .frame(height: h * 0.9)
+                    .zIndex(1)
+                if let right {
+                    Image(Characters.assetName(right.characterID, .bust))
+                        .resizable().scaledToFit()
+                        .frame(height: h)
+                } else {
+                    Image("partner_outline")
+                        .resizable().scaledToFit()
+                        .frame(height: h * 1.6, alignment: .top)
+                        .frame(height: h, alignment: .top)
+                        .clipped()
                 }
             }
-            .padding(lineWidth * 2)
+            .frame(width: geo.size.width, height: h, alignment: .bottom)
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(day.map { "Day \($0) of \(total)" } ?? (caption ?? "Not started"))
-        .accessibilityValue("\(Int(progress * 100)) percent")
+        .accessibilityHidden(true)
     }
 }
 
-/// The ring scene (15_today / 11_plan_reveal): a ring behind and above, both characters in front.
-struct RingScene: View {
+// MARK: - Peach backdrops
+
+/// A soft organic blob behind illustrations (01).
+struct PeachBlob: Shape {
+    func path(in r: CGRect) -> Path {
+        let w = r.width, h = r.height
+        func p(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: r.minX + x * w, y: r.minY + y * h) }
+        var path = Path()
+        path.move(to: p(0.06, 0.62))
+        path.addCurve(to: p(0.22, 0.08), control1: p(0.0, 0.35), control2: p(0.08, 0.12))
+        path.addCurve(to: p(0.62, 0.10), control1: p(0.36, 0.03), control2: p(0.50, 0.14))
+        path.addCurve(to: p(0.96, 0.32), control1: p(0.76, 0.05), control2: p(0.95, 0.12))
+        path.addCurve(to: p(0.94, 0.86), control1: p(0.98, 0.52), control2: p(1.0, 0.74))
+        path.addCurve(to: p(0.45, 1.0), control1: p(0.86, 1.0), control2: p(0.62, 1.0))
+        path.addCurve(to: p(0.06, 0.62), control1: p(0.22, 1.0), control2: p(0.10, 0.84))
+        path.closeSubpath()
+        return path
+    }
+}
+
+/// Peach fill used for full-width illustration panels (08, 11, 15).
+struct PeachPanelFill: View {
+    var radius: CGFloat = 0
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: radius, style: .continuous)
+            .fill(LinearGradient(colors: [Color.peach.opacity(0.75), Color.peach],
+                                 startPoint: .top, endPoint: .bottom))
+    }
+}
+
+// MARK: - Ring
+
+/// Gold progress arc on a light track.
+struct RingArc: View {
+    var progress: Double
+    var lineWidth: CGFloat
+
+    var body: some View {
+        ZStack {
+            Circle().stroke(Color.ivory.opacity(0.9), lineWidth: lineWidth)
+            Circle()
+                .trim(from: 0, to: max(0.02, min(1, progress)))
+                .stroke(Color.gold, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .animation(.easeInOut(duration: 0.6), value: progress)
+        }
+    }
+}
+
+struct StatusChip: Equatable {
+    var text: String
+    var color: Color
+}
+
+/// The hero of Today (15) and the plan reveal (11): a peach panel, a big gold ring behind the couple,
+/// the day in the middle, status chips under each character and an optional speech bubble.
+struct RingHero: View {
     var left: SceneCharacter
     var right: SceneCharacter?
-    var day: Int?
-    var caption: String?
+    var progress: Double
+    var centerTitle: String
+    var centerSubtitle: String?
+    var topLabel: String? = nil
+    var leftChip: StatusChip? = nil
+    var rightChip: StatusChip? = nil
+    var bubble: String? = nil
+    var bubbleFromLeft = true
+    var panelRadius: CGFloat = 24
     var leftPose: CharacterPose = .stand
     var rightPose: CharacterPose = .stand
 
     var body: some View {
         GeometryReader { geo in
-            let ringSize = min(geo.size.width * 0.62, geo.size.height * 0.62)
+            let w = geo.size.width, h = geo.size.height
+            let ring = min(w * 0.78, h * 0.86)
+            let hasChips = leftChip != nil || rightChip != nil
+            let chipSpace: CGFloat = hasChips ? 22 : 0
             ZStack(alignment: .top) {
-                DayRing(day: day, caption: caption, lineWidth: max(8, ringSize * 0.07))
-                    .frame(width: ringSize, height: ringSize)
-                    .offset(y: 0)
-                CoupleScene(left: left, right: right, leftPose: leftPose, rightPose: rightPose)
-                    .frame(height: geo.size.height * 0.78)
+                PeachPanelFill(radius: panelRadius)
+                if let topLabel {
+                    Text(topLabel.uppercased())
+                        .font(.app(13, .semibold))
+                        .tracking(0.6)
+                        .foregroundStyle(Color.textPrimary)
+                        .padding(.top, 10)
+                }
+                RingArc(progress: progress, lineWidth: max(10, ring * 0.075))
+                    .frame(width: ring, height: ring)
+                    .padding(.top, topLabel == nil ? h * 0.05 : 34)
+                VStack(spacing: 0) {
+                    Text(centerTitle)
+                        .font(.app(min(30, ring * 0.12), .bold))
+                        .foregroundStyle(Color.textPrimary)
+                    if let centerSubtitle {
+                        Text(centerSubtitle)
+                            .font(.app(min(22, ring * 0.085), .semibold))
+                            .foregroundStyle(Color.textPrimary)
+                    }
+                }
+                .multilineTextAlignment(.center)
+                .frame(width: ring * 0.36)
+                .minimumScaleFactor(0.6)
+                .padding(.top, (topLabel == nil ? h * 0.05 : 34) + ring * 0.34)
+                CoupleScene(left: left, right: right, leftPose: leftPose, rightPose: rightPose,
+                            crop: 0.56, overlap: -0.42)
+                    .frame(height: h * 0.74)
                     .frame(maxHeight: .infinity, alignment: .bottom)
+                    .padding(.bottom, chipSpace)
                     .accessibilityHidden(true)
+                if hasChips {
+                    HStack(spacing: w * 0.08) {
+                        chip(leftChip)
+                        chip(rightChip)
+                    }
+                    .padding(.horizontal, w * 0.1)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
+                    .padding(.bottom, 12)
+                }
+                if let bubble {
+                    SpeechBubble(text: bubble, tailOnLeft: bubbleFromLeft)
+                        .frame(maxWidth: w * 0.42)
+                        .frame(maxWidth: .infinity, alignment: bubbleFromLeft ? .leading : .trailing)
+                        .padding(.horizontal, w * 0.06)
+                        .padding(.top, h * 0.2)
+                }
             }
-            .frame(width: geo.size.width, height: geo.size.height)
+            .frame(width: w, height: h)
+            .clipShape(RoundedRectangle(cornerRadius: panelRadius, style: .continuous))
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel([centerTitle, centerSubtitle].compactMap { $0 }.joined(separator: " "))
+        .accessibilityValue([leftChip.map { "\(left.name): \($0.text)" }, rightChip.map { "\(right?.name ?? ""): \($0.text)" }]
+            .compactMap { $0 }.joined(separator: ", "))
+    }
+
+    @ViewBuilder
+    private func chip(_ c: StatusChip?) -> some View {
+        if let c {
+            Text(c.text)
+                .font(.app(17, .semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .frame(maxWidth: .infinity)
+                .frame(height: 42)
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(c.color))
+        } else {
+            Color.clear.frame(maxWidth: .infinity).frame(height: 42)
         }
     }
 }
 
-/// Simple confetti burst for Day 75.
+/// White bubble with a small tail.
+struct SpeechBubble: View {
+    var text: String
+    var tailOnLeft = true
+
+    var body: some View {
+        Text(text)
+            .font(.app(14, .medium))
+            .foregroundStyle(Color.textPrimary)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.white)
+                    .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
+            )
+            .overlay(alignment: tailOnLeft ? .bottomTrailing : .bottomLeading) {
+                BubbleTail()
+                    .fill(Color.white)
+                    .frame(width: 14, height: 12)
+                    .offset(x: tailOnLeft ? -26 : 26, y: 10)
+            }
+    }
+}
+
+struct BubbleTail: Shape {
+    func path(in r: CGRect) -> Path {
+        var p = Path()
+        p.move(to: CGPoint(x: r.minX, y: r.minY))
+        p.addLine(to: CGPoint(x: r.maxX, y: r.minY))
+        p.addLine(to: CGPoint(x: r.midX, y: r.maxY))
+        p.closeSubpath()
+        return p
+    }
+}
+
+// MARK: - Trophy
+
+/// Both characters cheering, the trophy in front, optionally a gold ribbon and a "Day 75" ring badge (13a, 19).
+struct TrophyScene: View {
+    var left: SceneCharacter
+    var right: SceneCharacter?
+    var ribbon = true
+    var badge = true
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width, h = geo.size.height
+            ZStack(alignment: .bottom) {
+                CoupleScene(left: left, right: right, leftPose: .cheer, rightPose: .cheer, crop: 0.7, overlap: -0.12)
+                    .frame(height: h * 0.96)
+                if ribbon {
+                    RibbonShape()
+                        .fill(LinearGradient(colors: [Color(hex: 0xE2A03F), Color(hex: 0xF2C470), Color(hex: 0xE2A03F)],
+                                             startPoint: .leading, endPoint: .trailing))
+                        .frame(width: w * 1.1, height: h * 0.07)
+                        .shadow(color: .black.opacity(0.08), radius: 3, y: 2)
+                        .padding(.bottom, h * 0.12)
+                }
+                Ellipse()
+                    .fill(Color.peachDeep.opacity(0.7))
+                    .frame(width: w * 0.36, height: h * 0.03)
+                TrophyImage()
+                    .frame(width: w * 0.36, height: h * 0.38)
+                    .padding(.bottom, h * 0.01)
+                if badge {
+                    VStack(spacing: -4) {
+                        Text("Day").font(.app(h * 0.06, .semibold))
+                        Text("75").font(.app(h * 0.08, .bold))
+                    }
+                    .foregroundStyle(Color.textPrimary)
+                    .frame(width: h * 0.24, height: h * 0.24)
+                    .background(Circle().fill(Color.ivory.opacity(0.85)))
+                    .overlay(Circle().stroke(Color.gold, lineWidth: max(3, h * 0.014)))
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    .padding(.top, h * 0.08)
+                }
+            }
+            .frame(width: w, height: h)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("You both cheering with a trophy")
+    }
+}
+
+/// A gently curved band across the scene.
+struct RibbonShape: Shape {
+    func path(in r: CGRect) -> Path {
+        var p = Path()
+        p.move(to: CGPoint(x: r.minX, y: r.minY + r.height * 0.25))
+        p.addQuadCurve(to: CGPoint(x: r.maxX, y: r.minY + r.height * 0.25),
+                       control: CGPoint(x: r.midX, y: r.minY + r.height * 0.9))
+        p.addLine(to: CGPoint(x: r.maxX, y: r.maxY - r.height * 0.05))
+        p.addQuadCurve(to: CGPoint(x: r.minX, y: r.maxY - r.height * 0.05),
+                       control: CGPoint(x: r.midX, y: r.maxY + r.height * 0.6))
+        p.closeSubpath()
+        return p
+    }
+}
+
+// MARK: - Confetti
+
+/// Gold confetti for Day 75.
 struct ConfettiView: View {
     @State private var animate = false
-    private let pieces: [ConfettiPiece] = (0..<70).map { _ in ConfettiPiece() }
+    @State private var pieces: [ConfettiPiece] = (0..<60).map { _ in ConfettiPiece() }
 
     var body: some View {
         GeometryReader { geo in
@@ -116,11 +351,11 @@ struct ConfettiView: View {
                 ForEach(pieces) { p in
                     RoundedRectangle(cornerRadius: 2)
                         .fill(p.color)
-                        .frame(width: p.size, height: p.size * 1.8)
-                        .rotationEffect(.degrees(animate ? p.spin : 0))
+                        .frame(width: p.size * 1.8, height: p.size)
+                        .rotationEffect(.degrees(animate ? p.spin : p.startAngle))
                         .position(x: p.x * geo.size.width,
-                                  y: animate ? geo.size.height + 40 : -40 - p.delay * 300)
-                        .animation(.easeIn(duration: 2.4 + p.delay * 1.5).delay(p.delay), value: animate)
+                                  y: animate ? geo.size.height * p.endY : -30 - p.delay * 200)
+                        .animation(.easeOut(duration: 2.6 + p.delay * 1.4).delay(p.delay), value: animate)
                 }
             }
         }
@@ -132,14 +367,18 @@ struct ConfettiView: View {
 
 private struct ConfettiPiece: Identifiable {
     let id = UUID()
-    let x = Double.random(in: 0...1)
-    let delay = Double.random(in: 0...0.8)
-    let size = CGFloat.random(in: 6...11)
-    let spin = Double.random(in: 180...720)
-    let color = [Color.coral, Color.gold, Color.sage, Color.peach].randomElement() ?? Color.gold
+    let x = Double.random(in: 0.02...0.98)
+    let endY = Double.random(in: 0.08...0.98)
+    let delay = Double.random(in: 0...0.7)
+    let size = CGFloat.random(in: 9...15)
+    let startAngle = Double.random(in: 0...90)
+    let spin = Double.random(in: 120...420)
+    let color = [Color(hex: 0xE8A54B), Color(hex: 0xF2C470), Color(hex: 0xD9952F), Color(hex: 0xF6D58E)]
+        .randomElement() ?? Color.gold
 }
 
-/// Floating tab bar (not the system bar): Today, Progress, Profile.
+// MARK: - Floating tab bar
+
 enum MainTab: String, CaseIterable, Identifiable {
     case today, progress, profile
     var id: String { rawValue }
@@ -161,33 +400,41 @@ enum MainTab: String, CaseIterable, Identifiable {
     }
 }
 
+/// White rounded bar with a shadow, sitting above the bottom edge; the active item is coral.
 struct FloatingTabBar: View {
     @Binding var selection: MainTab
 
     var body: some View {
-        HStack {
+        HStack(spacing: 0) {
             ForEach(MainTab.allCases) { tab in
+                let active = selection == tab
                 Button {
                     Haptics.tap()
                     selection = tab
                 } label: {
-                    VStack(spacing: 4) {
-                        Image(systemName: selection == tab ? tab.icon + ".fill" : tab.icon)
-                            .font(.system(size: 20, weight: .semibold))
-                        Text(tab.title).font(.system(size: 11, weight: .semibold))
+                    VStack(spacing: 5) {
+                        Image(systemName: active ? tab.icon + ".fill" : tab.icon)
+                            .font(.system(size: 21, weight: .semibold))
+                            .frame(height: 24)
+                        Text(tab.title).font(.app(13, .semibold))
                     }
-                    .foregroundStyle(selection == tab ? Color.coral : Color.textSecondary)
+                    .foregroundStyle(active ? Color.coral : Color.textPrimary)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
+                    .padding(.vertical, 12)
                     .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
                 .accessibilityLabel(tab.title)
-                .accessibilityAddTraits(selection == tab ? .isSelected : [])
+                .accessibilityAddTraits(active ? .isSelected : [])
             }
         }
-        .padding(.horizontal, 8)
-        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(Color.white)
-            .shadow(color: Color.black.opacity(0.08), radius: 16, y: 6))
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.08), radius: 18, y: 6)
+        )
+        .overlay(RoundedRectangle(cornerRadius: 30, style: .continuous).stroke(Color.cardBorder, lineWidth: 1))
+        .padding(.horizontal, Metrics.side)
     }
 }

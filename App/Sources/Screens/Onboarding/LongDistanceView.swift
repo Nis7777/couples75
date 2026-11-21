@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Step 6 (05): "Long distance?"
+/// Step 6 (05): the couple's busts, "Long distance?", two tall cards side by side
+/// (selected: peach, coral border, check in the top-right corner).
 struct LongDistanceView: View {
     @Environment(AppModel.self) private var model
     var next: () -> Void
@@ -8,21 +9,23 @@ struct LongDistanceView: View {
 
     var body: some View {
         OnboardingPage(step: model.draft.stepNumber, back: back) {
-            VStack(spacing: 14) {
-                CoupleScene(left: SceneCharacter(characterID: model.draft.characterID, name: model.draft.myName),
-                            right: nil)
-                    .frame(maxHeight: 200)
-                    .padding(.top, 8)
-                TitleText("Long distance?")
-                    .padding(.bottom, 8)
-                HStack(spacing: 12) {
+            VStack(spacing: 18) {
+                CoupleBusts(left: SceneCharacter(characterID: model.draft.characterID, name: model.draft.myName),
+                            right: SceneCharacter(characterID: Characters.partnerPreview(for: model.draft.characterID),
+                                                  name: model.draft.partnerName))
+                    .frame(height: 140)
+                    .padding(.top, 18)
+                TitleText("Long distance?", size: 30)
+                HStack(spacing: 14) {
                     choice("Yes", value: true)
                     choice("No", value: false)
                 }
+                .frame(maxHeight: 260)
                 Text("Different time zones are fine. Each of you gets your own local days.")
-                    .font(.system(size: 14))
+                    .font(.app(14))
                     .foregroundStyle(Color.textSecondary)
                     .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 0)
             }
         } actions: {
@@ -36,16 +39,23 @@ struct LongDistanceView: View {
             Haptics.tap()
             withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) { model.draft.longDistance = value }
         } label: {
-            VStack(spacing: 12) {
-                CheckCircle(isOn: selected)
+            ZStack(alignment: .topTrailing) {
+                RoundedRectangle(cornerRadius: Metrics.optionRadius, style: .continuous)
+                    .fill(selected ? Color.peach : Color.white)
                 Text(title)
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.app(24, .semibold))
                     .foregroundStyle(Color.textPrimary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                if selected {
+                    CheckCircle(isOn: true, size: 26)
+                        .padding(14)
+                        .transition(.scale.combined(with: .opacity))
+                }
             }
-            .frame(maxWidth: .infinity, minHeight: 130)
-            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(selected ? Color.peach : Color.white))
-            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous)
+            .frame(maxWidth: .infinity, minHeight: 150)
+            .overlay(RoundedRectangle(cornerRadius: Metrics.optionRadius, style: .continuous)
                 .stroke(selected ? Color.coral : Color.cardBorder, lineWidth: selected ? 1.5 : 1))
+            .contentShape(RoundedRectangle(cornerRadius: Metrics.optionRadius, style: .continuous))
         }
         .buttonStyle(PressableStyle())
         .accessibilityLabel(title)

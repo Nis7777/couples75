@@ -31,7 +31,7 @@ struct QuitSliderView: View {
                     HStack {
                         ForEach(labels, id: \.self) { l in
                             Text(l)
-                                .font(.system(size: 12, weight: .medium))
+                                .font(.app(12, .medium))
                                 .foregroundStyle(Color.textSecondary)
                                 .frame(maxWidth: .infinity)
                         }

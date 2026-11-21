@@ -43,7 +43,7 @@ struct RulesColumnsCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
-                .font(.system(size: 15, weight: .bold))
+                .font(.app(15, .bold))
                 .foregroundStyle(Color.textPrimary)
             HStack(alignment: .top, spacing: 14) {
                 column(name: leftName, rules: leftRules, color: .coral, note: nil)
@@ -59,20 +59,20 @@ struct RulesColumnsCard: View {
     private func column(name: String, rules: [String], color: Color, note: String?) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(name)
-                .font(.system(size: 14, weight: .bold))
+                .font(.app(14, .bold))
                 .foregroundStyle(color)
             ForEach(Array(rules.enumerated()), id: \.offset) { _, r in
                 HStack(alignment: .top, spacing: 6) {
                     Circle().fill(color).frame(width: 6, height: 6).padding(.top, 6)
                     Text(r)
-                        .font(.system(size: 14))
+                        .font(.app(14))
                         .foregroundStyle(Color.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
             if let note {
                 Text(note)
-                    .font(.system(size: 12))
+                    .font(.app(12))
                     .foregroundStyle(Color.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -91,10 +91,10 @@ struct SavesCard: View {
         HStack(spacing: 14) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(mode == .hard ? "No saves" : "\(Brand.savesPerRound) saves")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.app(16, .bold))
                     .foregroundStyle(Color.textPrimary)
                 Text(mode == .hard ? "One miss restarts the round" : "Shared. Each one covers a missed day.")
-                    .font(.system(size: 14))
+                    .font(.app(14))
                     .foregroundStyle(Color.textSecondary)
             }
             Spacer()

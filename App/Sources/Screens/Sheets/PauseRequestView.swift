@@ -55,7 +55,7 @@ struct PauseRequestView: View {
                                     reason = p
                                 } label: {
                                     Text(p)
-                                        .font(.system(size: 15, weight: .semibold))
+                                        .font(.app(15, .semibold))
                                         .foregroundStyle(reason == p ? .white : Color.textPrimary)
                                         .padding(.horizontal, 14)
                                         .padding(.vertical, 9)
@@ -100,7 +100,7 @@ struct PauseRequestView: View {
 
     private func label(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 15, weight: .bold))
+            .font(.app(15, .bold))
             .foregroundStyle(Color.textPrimary)
     }
 }

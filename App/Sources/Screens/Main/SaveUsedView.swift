@@ -22,7 +22,7 @@ struct SaveUsedView: View {
                     row("Score", scoreText)
                     Divider()
                     Text("Whoever has more misses at Day 75 owes the bet.")
-                        .font(.system(size: 13))
+                        .font(.app(13))
                         .foregroundStyle(Color.textSecondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -43,9 +43,9 @@ struct SaveUsedView: View {
 
     private func row(_ label: String, _ value: String) -> some View {
         HStack {
-            Text(label).font(.system(size: 15)).foregroundStyle(Color.textSecondary)
+            Text(label).font(.app(15)).foregroundStyle(Color.textSecondary)
             Spacer()
-            Text(value).font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.textPrimary)
+            Text(value).font(.app(15, .semibold)).foregroundStyle(Color.textPrimary)
         }
         .accessibilityElement(children: .combine)
     }

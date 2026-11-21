@@ -141,11 +141,11 @@ struct TodayView: View {
     private func actionCard(title: String, button: String, action: @escaping () -> Void) -> some View {
         HStack {
             Text(title)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.app(15, .semibold))
                 .foregroundStyle(Color.textPrimary)
             Spacer()
             Button(button, action: action)
-                .font(.system(size: 15, weight: .bold))
+                .font(.app(15, .bold))
                 .foregroundStyle(Color.coral)
         }
         .padding(14)
@@ -234,17 +234,17 @@ struct TodayView: View {
         HStack(spacing: 10) {
             if (round?.mode ?? model.currentMode) == .hard {
                 Text("Hard mode · no saves")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.app(14, .semibold))
                     .foregroundStyle(Color.textPrimary)
             } else {
                 Text("Saves")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.app(14, .semibold))
                     .foregroundStyle(Color.textPrimary)
                 SaveSquares(left: round?.savesLeft ?? Brand.savesPerRound, total: Brand.savesPerRound)
             }
             Spacer()
             Text(scoreText)
-                .font(.system(size: 13, weight: .medium))
+                .font(.app(13, .medium))
                 .foregroundStyle(Color.textSecondary)
         }
         .padding(14)
@@ -263,7 +263,7 @@ struct TodayView: View {
     private var rulesSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Today's rules")
-                .font(.system(size: 17, weight: .bold))
+                .font(.app(17, .bold))
                 .foregroundStyle(Color.textPrimary)
             HStack(alignment: .top, spacing: 12) {
                 rulesCard(member: model.memberA, today: model.todayA, color: .coral)
@@ -276,7 +276,7 @@ struct TodayView: View {
         let isMe = member?.id == model.meID
         return VStack(alignment: .leading, spacing: 10) {
             Text(member?.name ?? "")
-                .font(.system(size: 15, weight: .bold))
+                .font(.app(15, .bold))
                 .foregroundStyle(color)
             ForEach(today?.items ?? []) { item in
                 Button {
@@ -286,21 +286,21 @@ struct TodayView: View {
                         CheckCircle(isOn: item.isChecked, color: color, size: 22)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(item.rule.title)
-                                .font(.system(size: 14, weight: .medium))
+                                .font(.app(14, .medium))
                                 .foregroundStyle(Color.textPrimary)
                                 .multilineTextAlignment(.leading)
                                 .fixedSize(horizontal: false, vertical: true)
                             if isMe, !item.isChecked, item.rule.type == .honour, hour < 18 {
                                 Text("Tap tonight")
-                                    .font(.system(size: 12))
+                                    .font(.app(12))
                                     .foregroundStyle(Color.textSecondary)
                             } else if item.state == .notSent {
                                 Text("Not sent yet")
-                                    .font(.system(size: 12))
+                                    .font(.app(12))
                                     .foregroundStyle(Color.coral)
                             } else if let c = item.checkIn, let status = model.partnerStatus(of: c), isMe {
                                 Text(status)
-                                    .font(.system(size: 12, weight: .semibold))
+                                    .font(.app(12, .semibold))
                                     .foregroundStyle(Color.sage)
                             }
                         }
@@ -356,7 +356,7 @@ struct TodayView: View {
     private var checkInButton: some View {
         if model.myToday?.isComplete == true {
             Label("All done today", systemImage: "checkmark.seal.fill")
-                .font(.system(size: 16, weight: .semibold))
+                .font(.app(16, .semibold))
                 .foregroundStyle(Color.sage)
                 .frame(height: 58)
         } else {
@@ -370,7 +370,7 @@ struct TodayView: View {
         HStack(spacing: 8) {
             Text("🏆")
             Text("Stakes: \(round?.betText ?? model.currentBet)")
-                .font(.system(size: 15, weight: .semibold))
+                .font(.app(15, .semibold))
                 .foregroundStyle(Color.textPrimary)
             Spacer()
         }
@@ -385,7 +385,7 @@ struct SpeechBubble: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 13, weight: .semibold))
+            .font(.app(13, .semibold))
             .foregroundStyle(Color.textPrimary)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
@@ -413,7 +413,7 @@ struct WeekDotsView: View {
             ForEach(Array(days.enumerated()), id: \.element.id) { i, d in
                 VStack(spacing: 6) {
                     Text(letters[i % 7])
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.app(12, .semibold))
                         .foregroundStyle(Color.textSecondary)
                     dot(d)
                 }
@@ -435,7 +435,7 @@ struct WeekDotsView: View {
             Circle().fill(Color.gold).frame(width: size, height: size)
         case .save:
             Circle().fill(Color.coral).frame(width: size, height: size)
-                .overlay(Text("S").font(.system(size: 11, weight: .bold)).foregroundStyle(.white))
+                .overlay(Text("S").font(.app(11, .bold)).foregroundStyle(.white))
         case .miss:
             Circle().stroke(Color.coral, lineWidth: 2).frame(width: size, height: size)
                 .overlay(Image(systemName: "xmark").font(.system(size: 9, weight: .bold)).foregroundStyle(Color.coral))

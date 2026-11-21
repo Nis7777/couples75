@@ -34,7 +34,7 @@ struct TweakAnswerView: View {
                         changeRow(title: "The bet", from: RulesEngine.config(for: 1, facts: model.facts)?.betText ?? "", to: bet)
                     }
                     Text("If you don't answer by \(info.autoAcceptAt.formatted(date: .omitted, time: .shortened)), \(proposer)'s version is used.")
-                        .font(.system(size: 13))
+                        .font(.app(13))
                         .foregroundStyle(Color.textSecondary)
                 }
                 .padding(16)
@@ -63,13 +63,13 @@ struct TweakAnswerView: View {
 
     private func changeRow(title: String, from: String, to: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(Color.textSecondary)
+            Text(title).font(.app(13, .semibold)).foregroundStyle(Color.textSecondary)
             HStack(spacing: 6) {
                 Text(from).strikethrough().foregroundStyle(Color.textSecondary)
                 Image(systemName: "arrow.right").foregroundStyle(Color.coral)
                 Text(to).fontWeight(.semibold).foregroundStyle(Color.textPrimary)
             }
-            .font(.system(size: 15))
+            .font(.app(15))
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(title): \(from) changes to \(to)")

@@ -40,7 +40,7 @@ struct WarmupView: View {
                     .frame(height: 240)
 
                 Text("Today's practice")
-                    .font(.system(size: 17, weight: .bold))
+                    .font(.app(17, .bold))
                     .foregroundStyle(Color.textPrimary)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -83,7 +83,7 @@ struct WarmupView: View {
         let items = member.flatMap { model.state.today[$0.id]?.items } ?? []
         return VStack(alignment: .leading, spacing: 10) {
             Text(name)
-                .font(.system(size: 15, weight: .bold))
+                .font(.app(15, .bold))
                 .foregroundStyle(color)
             ForEach(rules) { r in
                 let checked = items.first { $0.rule.id == r.id }?.isChecked ?? false
@@ -93,7 +93,7 @@ struct WarmupView: View {
                     HStack(spacing: 8) {
                         CheckCircle(isOn: checked, color: color, size: 20)
                         Text(r.title)
-                            .font(.system(size: 14))
+                            .font(.app(14))
                             .foregroundStyle(Color.textPrimary)
                             .multilineTextAlignment(.leading)
                         Spacer(minLength: 0)
