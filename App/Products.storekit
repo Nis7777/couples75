@@ -1,0 +1,70 @@
+{
+  "identifier" : "C0175C75",
+  "nonRenewingSubscriptions" : [ ],
+  "products" : [ ],
+  "settings" : {
+    "_applicationInternalID" : "",
+    "_developerTeamID" : "",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "pt_PT",
+    "_storefront" : "PRT",
+    "_storeKitErrors" : [ ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "C75GROUP",
+      "localizations" : [ ],
+      "name" : "Couples 75",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [ ],
+          "codeOffers" : [ ],
+          "displayPrice" : "3.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "C75MONTH",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Couples 75 for one person, billed monthly.",
+              "displayName" : "Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.dinismagina.couples75.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Couples 75 Monthly",
+          "subscriptionGroupID" : "C75GROUP",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [ ]
+        },
+        {
+          "adHocOffers" : [ ],
+          "codeOffers" : [ ],
+          "displayPrice" : "29.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "C75YEAR",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Couples 75 for one person, billed yearly.",
+              "displayName" : "Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.dinismagina.couples75.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Couples 75 Yearly",
+          "subscriptionGroupID" : "C75GROUP",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [ ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
