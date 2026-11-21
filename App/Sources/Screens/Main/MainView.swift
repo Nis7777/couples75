@@ -18,14 +18,15 @@ struct MainView: View {
             Group {
                 switch model.tab {
                 case .today: TodayTab()
+                case .proof: ProofScreen()
                 case .progress: ProgressScreen()
                 case .profile: ProfileView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 84) }
+            .safeAreaInset(edge: .bottom) { Color.clear.frame(height: FloatingTabBar.height + 22) }
 
-            FloatingTabBar(selection: $model.tab)
+            FloatingTabBar(selection: $model.tab, proofBadge: model.proofBadge)
                 .padding(.bottom, 6)
         }
         .screenBackground()
@@ -63,8 +64,10 @@ struct MainView: View {
         case .progress:
             model.tab = .progress
         case .checkIn(let id):
-            model.tab = .today
-            if let c = model.facts.checkIns.first(where: { $0.id == id }) { openedCheckIn = c }
+            // "{name} finished {rule}. React?" opens that exact check-in in Proof.
+            if let c = model.facts.checkIns.first(where: { $0.id == id }) {
+                if c.memberID == model.meID { openedCheckIn = c } else { model.openInProof(id) }
+            }
         case .pause:
             model.tab = .today
             if model.pauseForMeToAnswer != nil { showPauseAnswer = true }

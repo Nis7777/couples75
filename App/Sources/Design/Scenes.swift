@@ -374,12 +374,13 @@ private struct ConfettiPiece: Identifiable {
 // MARK: - Floating tab bar
 
 enum MainTab: String, CaseIterable, Identifiable {
-    case today, progress, profile
+    case today, proof, progress, profile
     var id: String { rawValue }
 
     var title: String {
         switch self {
         case .today: return "Today"
+        case .proof: return "Proof"
         case .progress: return "Progress"
         case .profile: return "Profile"
         }
@@ -388,15 +389,20 @@ enum MainTab: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .today: return "sun.max"
+        case .proof: return "checkmark.seal"
         case .progress: return "circle.grid.2x2"
         case .profile: return "person"
         }
     }
 }
 
-/// White rounded bar with a shadow, sitting above the bottom edge; the active item is coral.
+/// Plain white rounded bar with a soft shadow, floating above the bottom edge; the active item is coral.
+/// Proof shows a coral number badge.
 struct FloatingTabBar: View {
     @Binding var selection: MainTab
+    var proofBadge: Int = 0
+
+    static let height: CGFloat = 66
 
     var body: some View {
         HStack(spacing: 0) {
@@ -406,19 +412,31 @@ struct FloatingTabBar: View {
                     Haptics.tap()
                     selection = tab
                 } label: {
-                    VStack(spacing: 5) {
+                    VStack(spacing: 4) {
                         Image(systemName: active ? tab.icon + ".fill" : tab.icon)
-                            .font(.system(size: 21, weight: .semibold))
+                            .font(.system(size: 20, weight: .semibold))
                             .frame(height: 24)
-                        Text(tab.title).font(.app(13, .semibold))
+                            .overlay(alignment: .topTrailing) {
+                                if tab == .proof && proofBadge > 0 {
+                                    Text("\(min(proofBadge, 99))")
+                                        .font(.app(11, .bold))
+                                        .foregroundStyle(.white)
+                                        .padding(.horizontal, 5)
+                                        .frame(minWidth: 18, minHeight: 18)
+                                        .background(Capsule().fill(Color.coral))
+                                        .overlay(Capsule().stroke(Color.white, lineWidth: 1.5))
+                                        .offset(x: 12, y: -6)
+                                }
+                            }
+                        Text(tab.title).font(.app(12, .semibold))
                     }
                     .foregroundStyle(active ? Color.coral : Color.textPrimary)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                    .frame(height: Self.height)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(tab.title)
+                .accessibilityLabel(tab == .proof && proofBadge > 0 ? "Proof, \(proofBadge) to react" : tab.title)
                 .accessibilityAddTraits(active ? .isSelected : [])
             }
         }
@@ -426,9 +444,8 @@ struct FloatingTabBar: View {
         .background(
             RoundedRectangle(cornerRadius: 30, style: .continuous)
                 .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.08), radius: 18, y: 6)
+                .shadow(color: Color.black.opacity(0.10), radius: 16, y: 6)
         )
-        .overlay(RoundedRectangle(cornerRadius: 30, style: .continuous).stroke(Color.cardBorder, lineWidth: 1))
         .padding(.horizontal, Metrics.side)
     }
 }

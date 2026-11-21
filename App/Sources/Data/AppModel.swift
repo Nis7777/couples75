@@ -147,6 +147,8 @@ final class AppModel {
 
     var tab: MainTab = .today
     var deepLink: DeepLink?
+    /// A check-in to open in the Proof tab (notification or Today's "New from" row).
+    var proofFocus: String?
     var errorMessage: String?
     var toast: String?
     /// The error from the last failed save (e.g. iCloud full).

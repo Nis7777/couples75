@@ -28,6 +28,7 @@ struct TodayView: View {
                 hero
                 WeekDotsView(days: weekDays, streak: model.state.streak)
                 savesRow
+                newFromPartnerRow
                 rulesSection
                 checkInButton
                 stakesRow
@@ -249,6 +250,42 @@ struct TodayView: View {
         return "Score: \(model.nameA) \(a) · \(model.nameB) \(b)"
     }
 
+    // MARK: New from partner
+
+    @ViewBuilder
+    private var newFromPartnerRow: some View {
+        if let latest = model.unreactedPartnerCheckIns.first {
+            Button {
+                Haptics.tap()
+                model.openInProof(latest.id)
+            } label: {
+                HStack(spacing: 12) {
+                    if latest.hasPhoto {
+                        CheckInThumb(checkIn: latest, size: 46, radius: 12)
+                    } else {
+                        IconBadge(systemName: "hand.raised.fill", color: .sage, size: 46)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("New from \(model.partnerName)")
+                            .font(.app(16, .bold))
+                            .foregroundStyle(Color.textPrimary)
+                        Text(model.ruleTitle(for: latest))
+                            .font(.app(14))
+                            .foregroundStyle(Color.textSecondary)
+                    }
+                    Spacer(minLength: 6)
+                    Text("Tap to react ›")
+                        .font(.app(15, .semibold))
+                        .foregroundStyle(Color.coral)
+                }
+                .padding(12)
+                .peachBox(radius: 18)
+            }
+            .buttonStyle(PressableStyle())
+            .accessibilityLabel("New from \(model.partnerName): \(model.ruleTitle(for: latest)). Tap to react")
+        }
+    }
+
     // MARK: Rules
 
     private var rulesSection: some View {
@@ -266,16 +303,37 @@ struct TodayView: View {
 
     private func rulesCard(member: MemberFact?, today: MemberToday?, color: Color) -> some View {
         let isMe = member?.id == model.meID
+        let toReact = isMe ? 0 : (today?.items ?? []).filter { $0.checkIn.map { !model.hasReacted(to: $0) } ?? false }.count
         return VStack(alignment: .leading, spacing: 10) {
-            Text(member?.name ?? "")
-                .font(.app(18, .bold))
-                .foregroundStyle(color)
+            HStack(alignment: .firstTextBaseline) {
+                Text(member?.name ?? "")
+                    .font(.app(18, .bold))
+                    .foregroundStyle(color)
+                Spacer(minLength: 4)
+                if toReact > 0 {
+                    Text("\(toReact) to react")
+                        .font(.app(12, .semibold))
+                        .foregroundStyle(Color.coral)
+                        .lineLimit(1)
+                }
+            }
             ForEach(today?.items ?? []) { item in
                 Button {
                     tap(item, isMe: isMe, today: today)
                 } label: {
                     HStack(alignment: .top, spacing: 9) {
-                        CheckCircle(isOn: item.isChecked, color: .coral, size: 22)
+                        if !isMe, let c = item.checkIn, c.hasPhoto {
+                            CheckInThumb(checkIn: c, size: 26, radius: 7)
+                                .overlay(alignment: .topTrailing) {
+                                    if !model.hasReacted(to: c) {
+                                        Circle().fill(Color.coral).frame(width: 9, height: 9)
+                                            .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
+                                            .offset(x: 3, y: -3)
+                                    }
+                                }
+                        } else {
+                            CheckCircle(isOn: item.isChecked, color: .coral, size: 22)
+                        }
                         VStack(alignment: .leading, spacing: 1) {
                             Text(item.rule.title)
                                 .font(.app(15, .medium))
@@ -312,7 +370,11 @@ struct TodayView: View {
     }
 
     private func tap(_ item: ChecklistItem, isMe: Bool, today: MemberToday?) {
-        if let c = item.checkIn, (!isMe || item.isChecked) {
+        if let c = item.checkIn, !isMe {
+            model.openInProof(c.id)
+            return
+        }
+        if let c = item.checkIn, item.isChecked {
             openedCheckIn = c
             return
         }

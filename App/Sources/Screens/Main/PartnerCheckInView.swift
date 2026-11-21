@@ -8,6 +8,8 @@ struct PartnerCheckInView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     var checkIn: CheckInFact
+    /// Used when shown inside the Proof pager.
+    var onClose: (() -> Void)? = nil
 
     @State private var photo: UIImage?
     @State private var comment = ""
@@ -29,7 +31,7 @@ struct PartnerCheckInView: View {
                     .font(.app(17, .semibold))
                     .foregroundStyle(Color.textPrimary)
                 HStack {
-                    CloseButton { dismiss() }
+                    CloseButton { if let onClose { onClose() } else { dismiss() } }
                     Spacer()
                 }
             }
