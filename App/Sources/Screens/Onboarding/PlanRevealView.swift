@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Step 14 (11): "{A} & {B}'s 75-day plan".
+/// Step 14 (11): "{A} & {B}'s 75-day plan": a peach panel with the gold Day 1 → 75 ring behind the
+/// couple, the rules card in two coloured columns, the saves card with three gold squares.
 struct PlanRevealView: View {
     @Environment(AppModel.self) private var model
     var next: () -> Void
@@ -10,12 +11,16 @@ struct PlanRevealView: View {
         let d = model.draft
         OnboardingPage(step: d.stepNumber, back: back) {
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 14) {
-                    TitleText("\(d.myName) & \(d.partnerName)'s 75-day plan", size: 26)
-                        .padding(.top, 8)
-                    RingScene(left: SceneCharacter(characterID: d.characterID, name: d.myName),
-                              right: nil, day: nil, caption: "Day 1\n→ 75")
-                        .frame(height: 230)
+                VStack(spacing: 12) {
+                    TitleText("\(d.myName) & \(d.partnerName)'s 75-day plan", size: 28)
+                        .padding(.top, 10)
+                        .padding(.bottom, 4)
+                    RingHero(left: SceneCharacter(characterID: d.characterID, name: d.myName),
+                             right: SceneCharacter(characterID: Characters.partnerPreview(for: d.characterID),
+                                                   name: d.partnerName),
+                             progress: 0.62, centerTitle: "Day 1", centerSubtitle: "→ 75", panelRadius: 0)
+                        .frame(height: 300)
+                        .padding(.horizontal, -Metrics.side)
                     RulesColumnsCard(
                         leftName: d.myName, leftRules: PlanGenerator.titles(keys: d.ruleKeys, intensity: d.myIntensity),
                         rightName: d.partnerName,
@@ -43,29 +48,28 @@ struct RulesColumnsCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
-                .font(.app(15, .bold))
+                .font(.app(20, .bold))
                 .foregroundStyle(Color.textPrimary)
-            HStack(alignment: .top, spacing: 14) {
+            HStack(alignment: .top, spacing: 16) {
                 column(name: leftName, rules: leftRules, color: .coral, note: nil)
-                Divider()
                 column(name: rightName, rules: rightRules, color: .sage, note: rightNote)
             }
         }
-        .padding(16)
+        .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .card()
     }
 
     private func column(name: String, rules: [String], color: Color, note: String?) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 9) {
             Text(name)
-                .font(.app(14, .bold))
+                .font(.app(16, .bold))
                 .foregroundStyle(color)
             ForEach(Array(rules.enumerated()), id: \.offset) { _, r in
-                HStack(alignment: .top, spacing: 6) {
-                    Circle().fill(color).frame(width: 6, height: 6).padding(.top, 6)
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Circle().fill(color).frame(width: 8, height: 8)
                     Text(r)
-                        .font(.app(14))
+                        .font(.app(15, .medium))
                         .foregroundStyle(Color.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -75,6 +79,7 @@ struct RulesColumnsCard: View {
                     .font(.app(12))
                     .foregroundStyle(Color.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 2)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -82,16 +87,17 @@ struct RulesColumnsCard: View {
     }
 }
 
-/// "3 saves · Shared. Each one covers a missed day." or the Hard mode version.
+/// "3 saves · Shared. Each one covers a missed day." (peach, thin coral border, gold squares on the right),
+/// or the Hard mode version.
 struct SavesCard: View {
     var mode: RoundMode
     var savesLeft: Int? = nil
 
     var body: some View {
         HStack(spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(mode == .hard ? "No saves" : "\(Brand.savesPerRound) saves")
-                    .font(.app(16, .bold))
+                    .font(.app(18, .bold))
                     .foregroundStyle(Color.textPrimary)
                 Text(mode == .hard ? "One miss restarts the round" : "Shared. Each one covers a missed day.")
                     .font(.app(14))
@@ -99,11 +105,12 @@ struct SavesCard: View {
             }
             Spacer()
             if mode != .hard {
-                SaveSquares(left: savesLeft ?? Brand.savesPerRound, total: Brand.savesPerRound, size: 16)
+                SaveSquares(left: savesLeft ?? Brand.savesPerRound, total: Brand.savesPerRound, size: 22)
             }
         }
-        .padding(16)
-        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.peach))
+        .padding(.horizontal, 18)
+        .padding(.vertical, 14)
+        .peachBox(radius: 18)
         .accessibilityElement(children: .combine)
     }
 }
@@ -112,14 +119,15 @@ struct SavesCard: View {
 struct SaveSquares: View {
     var left: Int
     var total: Int
-    var size: CGFloat = 12
+    var size: CGFloat = 14
 
     var body: some View {
-        HStack(spacing: size * 0.35) {
+        HStack(spacing: size * 0.3) {
             ForEach(0..<total, id: \.self) { i in
-                RoundedRectangle(cornerRadius: size * 0.25)
-                    .fill(i < left ? Color.gold : Color.clear)
-                    .overlay(RoundedRectangle(cornerRadius: size * 0.25).stroke(Color.gold, lineWidth: 1.5))
+                RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
+                    .fill(i < left ? Color.gold : Color.gold.opacity(0.18))
+                    .overlay(RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
+                        .stroke(Color.gold, lineWidth: i < left ? 0 : 1.2))
                     .frame(width: size, height: size)
             }
         }

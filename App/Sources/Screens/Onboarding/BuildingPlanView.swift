@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Step 13 (10): animated checklist, ~3 seconds, auto-advances.
+/// Step 13 (10): a big stretching couple, then a checklist card with green checks and a spinner on the active line.
+/// ~3 seconds, auto-advances.
 struct BuildingPlanView: View {
     @Environment(AppModel.self) private var model
     var next: () -> Void
@@ -10,39 +11,51 @@ struct BuildingPlanView: View {
     var body: some View {
         OnboardingPage(step: model.draft.stepNumber, back: nil) {
             VStack(spacing: 24) {
-                CoupleScene(left: SceneCharacter(characterID: model.draft.characterID, name: model.draft.myName),
-                            right: SceneCharacter(characterID: "m1", name: model.draft.partnerName),
-                            leftPose: .stretch, rightPose: .stretch)
-                    .frame(maxHeight: .infinity)
-                    .padding(.top, 12)
-                VStack(alignment: .leading, spacing: 16) {
+                ZStack(alignment: .bottom) {
+                    Ellipse()
+                        .fill(Color.peachDeep.opacity(0.6))
+                        .frame(height: 22)
+                        .padding(.horizontal, 24)
+                    CoupleScene(left: SceneCharacter(characterID: model.draft.characterID, name: model.draft.myName),
+                                right: SceneCharacter(characterID: Characters.partnerPreview(for: model.draft.characterID),
+                                                      name: model.draft.partnerName),
+                                leftPose: .stretch, rightPose: .stretch, crop: 1, overlap: 0.08)
+                        .padding(.bottom, 8)
+                }
+                .frame(maxHeight: .infinity)
+                .padding(.top, 20)
+
+                VStack(alignment: .leading, spacing: 18) {
                     ForEach(Array(items.enumerated()), id: \.offset) { i, text in
-                        HStack(spacing: 12) {
+                        HStack(spacing: 14) {
                             ZStack {
                                 if i < done {
-                                    CheckCircle(isOn: true, color: .sage)
+                                    CheckCircle(isOn: true, color: .sage, size: 28)
                                         .transition(.scale.combined(with: .opacity))
                                 } else if i == done {
-                                    ProgressView().tint(.coral).frame(width: 24, height: 24)
+                                    ProgressView().tint(.gold).scaleEffect(1.1)
                                 } else {
-                                    CheckCircle(isOn: false)
+                                    Circle().stroke(Color.radio, lineWidth: 1.8)
                                 }
                             }
-                            .frame(width: 24, height: 24)
+                            .frame(width: 28, height: 28)
                             Text(text)
-                                .font(.system(size: 16, weight: i <= done ? .semibold : .regular))
-                                .foregroundStyle(i <= done ? Color.textPrimary : Color.textSecondary)
+                                .font(.app(18, i < done ? .semibold : .medium))
+                                .foregroundStyle(i < done ? Color.textPrimary : Color.textSecondary.opacity(0.8))
                         }
                     }
                 }
-                .padding(20)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 22)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .card()
+                .padding(.horizontal, 10)
+                .padding(.bottom, 24)
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("Building your plan")
             }
         } actions: {
-            Color.clear.frame(height: 58)
+            Color.clear.frame(height: 30)
         }
         .task {
             for i in 1...items.count {

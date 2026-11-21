@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// "When do you usually wake up?" (A step 9, B joining step 4): a time wheel, default 07:30.
+/// "When do you usually wake up?" (A step 9, B joining): a time wheel in a card, default 07:30.
 struct WakeTimePickerView: View {
     @Binding var wakeTime: String
     var step: Int?
@@ -11,21 +11,30 @@ struct WakeTimePickerView: View {
 
     var body: some View {
         OnboardingPage(step: step, total: total, back: back) {
-            VStack(spacing: 14) {
-                TitleText("When do you usually wake up?")
-                    .padding(.top, 24)
+            VStack(spacing: 10) {
+                TitleText("When do you usually wake up?", size: 30)
+                    .padding(.top, 26)
                 Text("We'll remind you when your day starts.")
-                    .font(.app(15))
+                    .font(.app(17))
                     .foregroundStyle(Color.textSecondary)
-                DatePicker("Wake-up time",
-                           selection: Binding(get: { ClockTime.date(from: wakeTime) },
-                                              set: { wakeTime = ClockTime.string(from: $0) }),
-                           displayedComponents: .hourAndMinute)
-                    .datePickerStyle(.wheel)
-                    .labelsHidden()
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .card()
+                    .multilineTextAlignment(.center)
+                Spacer(minLength: 12)
+                VStack(spacing: 0) {
+                    Image(systemName: "sunrise.fill")
+                        .font(.system(size: 30))
+                        .foregroundStyle(Color.gold)
+                        .padding(.top, 18)
+                        .accessibilityHidden(true)
+                    DatePicker("Wake-up time",
+                               selection: Binding(get: { ClockTime.date(from: wakeTime) },
+                                                  set: { wakeTime = ClockTime.string(from: $0) }),
+                               displayedComponents: .hourAndMinute)
+                        .datePickerStyle(.wheel)
+                        .labelsHidden()
+                }
+                .frame(maxWidth: .infinity)
+                .card()
+                Spacer(minLength: 12)
                 Spacer(minLength: 0)
             }
         } actions: {

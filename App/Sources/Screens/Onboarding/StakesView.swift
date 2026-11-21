@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Step 15 (12): "Set the stakes" + hold to sign.
+/// Step 15 (12): "Set the stakes": option cards, then "Hold to sign" with the fingerprint inside
+/// concentric coral rings.
 struct StakesView: View {
     @Environment(AppModel.self) private var model
     var next: () -> Void
@@ -11,26 +12,26 @@ struct StakesView: View {
         OnboardingPage(step: model.draft.stepNumber, back: back) {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 12) {
-                    TitleText("Set the stakes")
-                        .padding(.top, 12)
+                    TitleText("Set the stakes", size: 30)
+                        .padding(.top, 22)
                     Text("\(model.draft.partnerName) accepts this when they join.")
                         .font(.app(15))
                         .foregroundStyle(Color.textSecondary)
-                        .padding(.bottom, 8)
+                        .padding(.bottom, 10)
                     BetPicker(bet: $model.draft.bet, customBet: $model.draft.customBet)
-                    VStack(spacing: 6) {
+                    VStack(spacing: 4) {
                         Text("Hold to sign")
-                            .font(.app(16, .bold))
+                            .font(.app(20, .bold))
                             .foregroundStyle(Color.textPrimary)
                         Text("We finish this together")
-                            .font(.app(14))
+                            .font(.app(15))
                             .foregroundStyle(Color.textSecondary)
                         HoldToSignButton(enabled: !model.draft.betText.isEmpty) { next() }
-                            .padding(.top, 8)
+                            .padding(.top, 14)
                     }
-                    .padding(.top, 16)
+                    .padding(.top, 34)
                 }
-                .padding(.bottom, 12)
+                .padding(.bottom, 18)
             }
             .scrollDismissesKeyboard(.interactively)
         } actions: {
@@ -48,17 +49,17 @@ struct BetPicker: View {
     var body: some View {
         VStack(spacing: 10) {
             ForEach(BetOption.allCases) { o in
-                OptionCard(title: o.title, isSelected: bet == o) {
+                OptionCard(title: o.title, isSelected: bet == o, minHeight: 56) {
                     bet = o
                     customFocused = o == .custom
                 }
             }
             if bet == .custom {
                 TextField("Loser…", text: $customBet)
-                    .font(.app(17))
+                    .font(.app(17, .medium))
                     .focused($customFocused)
                     .padding(16)
-                    .card(radius: 14)
+                    .card(radius: 16, shadow: false)
                     .onChange(of: customBet) { _, new in
                         if new.count > BetOption.customMaxLength {
                             customBet = String(new.prefix(BetOption.customMaxLength))
@@ -74,7 +75,8 @@ struct BetPicker: View {
     }
 }
 
-/// Fingerprint button: hold for 1.5 s with a filling coral ring, success haptic, then advance.
+/// Fingerprint inside concentric coral rings: hold for 1.5 s while a coral ring fills,
+/// success haptic, then advance.
 struct HoldToSignButton: View {
     var enabled: Bool
     var onSigned: () -> Void
@@ -85,18 +87,23 @@ struct HoldToSignButton: View {
 
     var body: some View {
         ZStack {
-            Circle().fill(Color.white)
-            Circle().stroke(Color.peach, lineWidth: 6)
+            Circle().fill(Color.peach)
+            Circle().fill(Color.white).padding(9)
+            Circle()
+                .stroke(Color.coral.opacity(0.25), lineWidth: 5)
+                .padding(16)
             Circle()
                 .trim(from: 0, to: progress)
-                .stroke(Color.coral, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                .stroke(Color.coral, style: StrokeStyle(lineWidth: 5, lineCap: .round))
                 .rotationEffect(.degrees(-90))
+                .padding(16)
             Image(systemName: signed ? "checkmark" : "touchid")
-                .font(.system(size: 38, weight: .regular))
+                .font(.system(size: 52, weight: .light))
                 .foregroundStyle(enabled ? Color.coral : Color.coral.opacity(0.4))
+                .contentTransition(.symbolEffect(.replace))
         }
-        .frame(width: 96, height: 96)
-        .scaleEffect(holding ? 0.94 : 1)
+        .frame(width: 124, height: 124)
+        .scaleEffect(holding ? 0.95 : 1)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: holding)
         .contentShape(Circle())
         .gesture(

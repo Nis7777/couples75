@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Step 16 (13a): the cheer + trophy scene.
+/// Step 16 (13a): the cheering couple with the trophy, a gold ribbon across and a gold "Day 75" ring badge.
 struct OutcomeView: View {
     @Environment(AppModel.self) private var model
     var next: () -> Void
@@ -8,35 +8,19 @@ struct OutcomeView: View {
 
     var body: some View {
         OnboardingPage(step: model.draft.stepNumber, back: back) {
-            VStack(spacing: 18) {
-                TitleText("In 75 days, you'll be the couple who finished.", size: 28)
-                    .padding(.top, 12)
+            VStack(spacing: 10) {
+                TitleText("In 75 days, you'll be the couple who finished.", size: 30)
+                    .padding(.top, 28)
+                    .padding(.horizontal, 8)
                 TrophyScene(left: SceneCharacter(characterID: model.draft.characterID, name: model.draft.myName),
-                            right: SceneCharacter(characterID: "m1", name: model.draft.partnerName))
+                            right: SceneCharacter(characterID: Characters.partnerPreview(for: model.draft.characterID),
+                                                  name: model.draft.partnerName))
+                    .padding(.horizontal, -Metrics.side)
                     .frame(maxHeight: .infinity)
+                    .padding(.top, 8)
             }
         } actions: {
             PrimaryButton("Continue") { next() }
         }
-    }
-}
-
-/// Both characters cheering with the trophy in front (separate layers).
-struct TrophyScene: View {
-    var left: SceneCharacter
-    var right: SceneCharacter?
-
-    var body: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .bottom) {
-                CoupleScene(left: left, right: right, leftPose: .cheer, rightPose: .cheer)
-                TrophyImage()
-                    .frame(width: geo.size.width * 0.26, height: geo.size.height * 0.3)
-                    .padding(.bottom, 4)
-            }
-            .frame(width: geo.size.width, height: geo.size.height)
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("You both cheering with a trophy")
     }
 }
