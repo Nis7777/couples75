@@ -23,7 +23,7 @@ struct PartnerLeftView: View {
                 Spacer(minLength: 0)
             }
         } actions: {
-            PrimaryButton("Start over with a new partner") { model.startOver() }
+            PrimaryButton("Start over with a new partner") { Task { await model.startOver() } }
         }
     }
 }

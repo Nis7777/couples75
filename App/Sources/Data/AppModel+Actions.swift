@@ -417,7 +417,9 @@ extension AppModel {
     }
 
     /// After the partner left: start over with a new partner.
-    func startOver() {
+    func startOver() async {
+        // The owner also deletes the old zone in iCloud; a participant leaves the share.
+        if let m = me { try? await store.leaveCouple(me: m) }
         store.wipeLocalData()
         resetLocalCoupleState()
     }
