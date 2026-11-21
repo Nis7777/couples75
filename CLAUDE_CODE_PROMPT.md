@@ -68,7 +68,7 @@ When the device has no iCloud account (for example a Simulator that isn't signed
 
 ### 1.3 Characters (important)
 The mockups always show the same two people, "Maya" and "Joao". In the real app each user picks a character, so every scene must be **composed from two separate single-person images**, never one combined picture.
-- v1 avatar = **pick one of 8 preset characters** (4 women `w1`–`w4`, 4 men `m1`–`m4`, varied skin tones and hair). Either partner can pick any character (same-sex couples work automatically). `w1` = Maya's look, `m1` = Joao's look. **Replace the mockup's face/hair/outfit avatar builder (02) with a simple character picker in the same style** (big character preview on top, a 4×2 grid of character busts below).
+- v1 avatar = **pick one of 12 preset characters** (6 women `w1`–`w6`, 6 men `m1`–`m6`), covering Black, East Asian, South Asian, Latina/Latino, Middle Eastern/North African and White people, one woman and one man each. Either partner can pick any character (same-sex couples work automatically). `w1` = Maya's look, `m1` = Joao's look. **Replace the mockup's face/hair/outfit avatar builder (02) with a simple character picker in the same style** (big character preview on top, a 4×3 grid of character busts below, women and men mixed, no labels for ethnicity).
 - Asset names: `char_{id}_{pose}` with poses `stand` (hands on hips), `crossed` (arms crossed, serious), `cheer` (one fist up), `stretch` (lunge/stretch), `bust` (head and shoulders for circles), all transparent PNGs. Plus `partner_outline` (the dashed "not joined yet" figure, used for any partner) and `trophy`.
 - Compose scenes in SwiftUI: two characters side by side, partner A on the left, slightly overlapping, bottoms aligned, scaled to fit the available height (never cropped at the head). The gold ring, trophy and confetti are separate layers.
 - Partner A's accent is `coral`, partner B's is `sage` (rule list headers, progress rings).
@@ -132,7 +132,7 @@ The mockups always show the same two people, "Maya" and "Joao". In the real app 
 
 ### 3.1 Person A onboarding (steps that show "Step X of N")
 1. **Hook** (01): TAGLINE as the headline, the couple standing, "Let's start ›".
-2. **Pick your character** (replaces 02): "Pick your character", big preview, 4×2 grid, "Looks like me ›".
+2. **Pick your character** (replaces 02): "Pick your character", big preview, 4×3 grid, "Looks like me ›".
 3. **Names** (03): "Who's in this with you?", your name field and your partner's name field. The partner card shows `partner_outline` and "Picks their character later".
 4. **Is {partner} on iPhone?** (30, moved here from just before the paywall): two option cards "Yes, iPhone" and "No, Android", **nothing preselected**, Continue disabled until one is picked. Remove the footnote from this screen. "No, Android" → the Android waitlist screen (3.4) and nothing else.
 5. **How long have you been together?** (04): <1 yr, 1–3 yrs, 3+ yrs.
