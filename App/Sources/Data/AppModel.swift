@@ -277,6 +277,17 @@ final class AppModel {
         if iCloudAvailable { await refresh() }
     }
 
+    #if DEBUG
+    /// SwiftUI previews: load facts and act as `me` without touching iCloud.
+    func loadPreview(facts newFacts: Facts, me: MemberID, onboardingDone done: Bool = true) {
+        meID = me
+        isBootstrapped = true
+        onboardingDone = done
+        facts = newFacts
+        state = RulesEngine.state(facts: newFacts, now: now())
+    }
+    #endif
+
     /// Re-reads my member id (after "Act as", reset or delete).
     func meIDReset() {
         meID = Identity.memberID(isMock: isMock)
