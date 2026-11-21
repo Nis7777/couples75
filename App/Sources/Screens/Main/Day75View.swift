@@ -12,31 +12,40 @@ struct Day75View: View {
         ZStack {
             OnboardingPage(step: nil, back: nil) {
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 12) {
+                    VStack(spacing: 8) {
                         HStack {
-                            Spacer()
                             CloseButton { model.dismissDay75() }
+                            Spacer()
                         }
-                        SmallLabel(text: "Day 75")
-                        TitleText("We finished \(Brand.appName)", size: 32)
+                        .padding(.horizontal, -8)
+                        Text("Day 75")
+                            .font(.app(18, .medium))
+                            .foregroundStyle(Color.textPrimary)
+                        Text("We finished \(Brand.appName)")
+                            .font(.app(46, .heavy))
+                            .foregroundStyle(Color.textPrimary)
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(-4)
+                            .minimumScaleFactor(0.6)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityAddTraits(.isHeader)
                         Text("\(model.nameA) & \(model.nameB)")
-                            .font(.app(17, .semibold))
-                            .foregroundStyle(Color.textSecondary)
-                        TrophyScene(left: model.sceneA, right: model.sceneB)
-                            .frame(height: 280)
+                            .font(.app(20, .medium))
+                            .foregroundStyle(Color.textPrimary)
+                            .padding(.bottom, 4)
+                        TrophyScene(left: model.sceneA, right: model.sceneB, ribbon: false, badge: false)
+                            .frame(height: 380)
+                            .padding(.horizontal, -Metrics.side)
                         RecapCard(round: round)
+                            .padding(.top, 8)
                     }
+                    .padding(.bottom, 8)
                 }
             } actions: {
                 if let shareImage {
                     ShareLink(item: Image(uiImage: shareImage),
                               preview: SharePreview("We finished \(Brand.appName)", image: Image(uiImage: shareImage))) {
-                        Text("Share our card ›")
-                            .font(.app(18, .semibold))
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 58)
-                            .background(Capsule().fill(Color.coral))
+                        PrimaryButtonLabel(title: "Share our card")
                     }
                 }
                 SecondaryButton("Start round \(round.number + 1)") { showNextRound = true }
@@ -120,14 +129,14 @@ struct ShareCardView: View {
                 .foregroundStyle(Color.coral)
                 .padding(.top, 40)
             Text("We finished \(Brand.appName)")
-                .font(.rounded(34))
+                .font(.app(36, .heavy))
                 .foregroundStyle(Color.textPrimary)
                 .multilineTextAlignment(.center)
             Text("\(nameA) & \(nameB)")
                 .font(.app(18, .semibold))
                 .foregroundStyle(Color.textSecondary)
-            TrophyScene(left: a, right: b)
-                .frame(height: 300)
+            TrophyScene(left: a, right: b, ribbon: false, badge: false)
+                .frame(height: 320)
             HStack(spacing: 24) {
                 stat("\(bestStreak)", "best streak")
                 stat("\(savesUsed)", "saves used")

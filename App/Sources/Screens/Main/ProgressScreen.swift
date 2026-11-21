@@ -1,45 +1,51 @@
 import SwiftUI
 import UIKit
 
-/// 16: Progress.
+/// 16: Progress. Two characters at the top, the 75-dot gold grid in a card, rounded photo thumbnails in a row.
 struct ProgressScreen: View {
     @Environment(AppModel.self) private var model
     @State private var viewing: CheckInFact?
 
     private var round: RoundState? { model.currentRound }
-    private var columns: [GridItem] { Array(repeating: GridItem(.flexible(), spacing: 6), count: 10) }
+    private var columns: [GridItem] { Array(repeating: GridItem(.flexible(), spacing: 6), count: 12) }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 14) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Progress")
-                        .font(.rounded(30))
+                        .font(.app(34, .bold))
                         .foregroundStyle(Color.textPrimary)
                         .accessibilityAddTraits(.isHeader)
                     Text("\(model.nameA) & \(model.nameB)")
-                        .font(.app(15, .medium))
+                        .font(.app(17, .medium))
                         .foregroundStyle(Color.textSecondary)
                 }
-                .padding(.top, 8)
+                .padding(.top, 14)
 
-                CoupleScene(left: model.sceneA, right: model.sceneB)
-                    .frame(height: 200)
+                CoupleScene(left: model.sceneA, right: model.sceneB, crop: 0.56, overlap: -0.04)
+                    .frame(height: 220)
+                    .padding(.bottom, -18)
+                    .zIndex(0)
 
-                gridCard
+                gridCard.zIndex(1)
                 photoStrip
                 statsRow
-                HStack(spacing: 8) {
-                    Text("🏆")
+                HStack(spacing: 12) {
+                    Image(systemName: "trophy.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(Color.gold)
                     Text("Stakes: \(round?.betText ?? model.currentBet)")
-                        .font(.app(15, .semibold))
+                        .font(.app(16, .semibold))
                         .foregroundStyle(Color.textPrimary)
                     Spacer()
                 }
-                .padding(14)
-                .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.peach))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 15)
+                .card(radius: 16)
+                .accessibilityElement(children: .combine)
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, Metrics.side)
             .padding(.bottom, 24)
         }
         .refreshable { await model.refresh() }
@@ -75,17 +81,11 @@ struct ProgressScreen: View {
     }
 
     private var gridCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("75-day grid")
-                    .font(.app(15, .bold))
-                    .foregroundStyle(Color.textPrimary)
-                Spacer()
-                Text("Day \(currentDay) of \(Brand.roundLengthDays)")
-                    .font(.app(14, .semibold))
-                    .foregroundStyle(Color.textSecondary)
-            }
-            LazyVGrid(columns: columns, spacing: 6) {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("75-day grid")
+                .font(.app(20, .semibold))
+                .foregroundStyle(Color.textPrimary)
+            LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(1...Brand.roundLengthDays, id: \.self) { n in
                     cellView(cell(n))
                         .aspectRatio(1, contentMode: .fit)
@@ -94,15 +94,20 @@ struct ProgressScreen: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("75-day grid")
             .accessibilityValue(gridSummary)
+            Text("Day \(currentDay) of \(Brand.roundLengthDays)")
+                .font(.app(18, .semibold))
+                .foregroundStyle(Color.textPrimary)
+                .frame(maxWidth: .infinity)
             HStack(spacing: 14) {
                 legend(.both, "Both done")
                 legend(.half, "One + save")
                 legend(.today, "Today")
             }
-            .font(.app(11))
+            .font(.app(12))
             .foregroundStyle(Color.textSecondary)
+            .frame(maxWidth: .infinity)
         }
-        .padding(16)
+        .padding(18)
         .card()
     }
 
@@ -118,22 +123,22 @@ struct ProgressScreen: View {
         case .both:
             Circle().fill(Color.gold)
         case .half:
-            Circle().fill(Color.faint)
+            Circle().stroke(Color.gold, lineWidth: 1.4)
                 .overlay(HalfCircle().fill(Color.gold))
         case .saves:
-            Circle().fill(Color.peach).overlay(Circle().stroke(Color.coral.opacity(0.5), lineWidth: 1))
+            Circle().fill(Color.peach).overlay(Circle().stroke(Color.coral.opacity(0.6), lineWidth: 1.4))
         case .miss:
-            Circle().stroke(Color.coral.opacity(0.6), lineWidth: 1.5)
+            Circle().stroke(Color.coral.opacity(0.6), lineWidth: 1.4)
         case .today:
-            Circle().stroke(Color.coral, lineWidth: 2)
+            Circle().stroke(Color.coral, lineWidth: 2.2)
         case .future:
-            Circle().stroke(Color.cardBorder, lineWidth: 1)
+            Circle().stroke(Color.gold.opacity(0.75), lineWidth: 1.3)
         }
     }
 
     private func legend(_ c: Cell, _ text: String) -> some View {
-        HStack(spacing: 4) {
-            cellView(c).frame(width: 10, height: 10)
+        HStack(spacing: 5) {
+            cellView(c).frame(width: 11, height: 11)
             Text(text)
         }
     }
@@ -144,19 +149,19 @@ struct ProgressScreen: View {
         Array(model.facts.checkIns.filter { $0.hasPhoto }.sorted { $0.capturedAt > $1.capturedAt }.prefix(30))
     }
 
-    @ViewBuilder
     private var photoStrip: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("Recent photos")
-                .font(.app(15, .bold))
+                .font(.app(20, .semibold))
                 .foregroundStyle(Color.textPrimary)
             if photos.isEmpty {
                 Text("Photo check-ins from both of you show up here. Only the two of you can see them.")
-                    .font(.app(14))
+                    .font(.app(15))
                     .foregroundStyle(Color.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
+                    HStack(spacing: 12) {
                         ForEach(photos) { c in
                             Button { viewing = c } label: { PhotoThumb(checkIn: c) }
                                 .accessibilityLabel("\(model.name(of: c.memberID))'s photo, \(c.stampText)")
@@ -165,6 +170,9 @@ struct ProgressScreen: View {
                 }
             }
         }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .card()
     }
 
     private var statsRow: some View {
@@ -176,13 +184,13 @@ struct ProgressScreen: View {
     }
 
     private func stat(_ value: String, _ label: String) -> some View {
-        VStack(spacing: 4) {
-            Text(value).font(.rounded(24)).foregroundStyle(Color.textPrimary)
-            Text(label).font(.app(12, .medium)).foregroundStyle(Color.textSecondary)
+        VStack(spacing: 2) {
+            Text(value).font(.app(28, .bold)).foregroundStyle(Color.textPrimary)
+            Text(label).font(.app(13, .medium)).foregroundStyle(Color.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
-        .card(radius: 14)
+        .card(radius: 16)
         .accessibilityElement(children: .combine)
     }
 }
@@ -205,17 +213,22 @@ struct PhotoThumb: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 12).fill(Color.peach)
+            RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.peach)
             if let image {
                 Image(uiImage: image).resizable().scaledToFill()
             } else {
                 ProgressView().tint(.coral)
             }
         }
-        .frame(width: 84, height: 112)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12)
-            .stroke(checkIn.memberID == model.memberA?.id ? Color.coral : Color.sage, lineWidth: 2))
+        .frame(width: 76, height: 76)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(alignment: .bottomTrailing) {
+            Circle()
+                .fill(checkIn.memberID == model.memberA?.id ? Color.coral : Color.sage)
+                .frame(width: 10, height: 10)
+                .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                .padding(5)
+        }
         .task(id: checkIn.id) {
             if let data = model.cachedPhoto(checkIn.id) { image = UIImage(data: data); return }
             if let data = await model.photoData(for: checkIn) { image = UIImage(data: data) }

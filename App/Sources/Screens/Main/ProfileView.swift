@@ -19,22 +19,40 @@ struct ProfileView: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 16) {
                 Text("Profile")
-                    .font(.rounded(30))
+                    .font(.app(34, .bold))
                     .foregroundStyle(Color.textPrimary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, 8)
+                    .padding(.top, 14)
                     .accessibilityAddTraits(.isHeader)
 
                 if let me = model.me {
-                    CharacterImage(characterID: me.characterID, pose: .stand)
-                        .frame(height: 220)
-                        .accessibilityHidden(true)
+                    ZStack(alignment: .bottom) {
+                        Ellipse()
+                            .fill(Color.peach.opacity(0.8))
+                            .frame(width: 230, height: 230)
+                            .offset(y: -10)
+                        Image(Characters.assetName(me.characterID, .stand))
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 440)
+                            .frame(height: 250, alignment: .top)
+                            .clipped()
+                    }
+                    .frame(height: 250)
+                    .accessibilityHidden(true)
                     Text(me.name)
-                        .font(.rounded(26))
+                        .font(.app(40, .bold))
                         .foregroundStyle(Color.textPrimary)
+                        .padding(.top, 2)
                 }
-                Pill(text: partnerLinked ? "Partner linked" : "Waiting for \(model.partnerName)",
-                     fill: partnerLinked ? .sage : .peach, foreground: partnerLinked ? .white : .coral)
+                Text(partnerLinked ? "Partner linked" : "Waiting for \(model.partnerName)")
+                    .font(.app(17, .medium))
+                    .foregroundStyle(partnerLinked ? Color.white : Color.coral)
+                    .padding(.horizontal, 22)
+                    .frame(height: 38)
+                    .background(Capsule().fill(partnerLinked ? Color.sage : Color.peach))
+                    .fixedSize()
+                    .padding(.bottom, 6)
 
                 section {
                     row("Mode", value: (round?.mode ?? model.currentMode) == .hard
@@ -47,11 +65,13 @@ struct ProfileView: View {
                     }
                     Toggle(isOn: $eveningOn) {
                         Text("Evening warning (\(Brand.eveningWarning))")
-                            .font(.app(16))
+                            .font(.app(17, .medium))
                             .foregroundStyle(Color.textPrimary)
                     }
                     .tint(.coral)
-                    .padding(.vertical, 4)
+                    .padding(.horizontal, 18)
+                    .frame(minHeight: 58)
+                    .card(radius: 16, shadow: false)
                     .onChange(of: eveningOn) { _, on in Task { await model.setEveningWarning(on) } }
                     row("Partner", value: model.partnerName)
                 }
@@ -74,19 +94,21 @@ struct ProfileView: View {
                     Button { openURL(Brand.privacyURL) } label: { row("Privacy", chevron: true) }
                     Button { contactSupport() } label: { row("Contact support", chevron: true) }
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("About").font(.app(16)).foregroundStyle(Color.textPrimary)
+                        Text("About").font(.app(17, .medium)).foregroundStyle(Color.textPrimary)
                         Text(Brand.disclaimer).font(.app(13)).foregroundStyle(Color.textSecondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, 6)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 14)
+                    .card(radius: 16, shadow: false)
                     if AppEnvironment.isDebug {
                         Button { showDebug = true } label: { row("Debug menu", chevron: true) }
                     }
                 }
 
-                VStack(spacing: 4) {
-                    TextLinkButton("Leave couple", color: .red) { showLeave = true }
-                    TextLinkButton("Delete my data", color: .red) { confirmDelete = true }
+                VStack(spacing: 0) {
+                    TextLinkButton("Leave couple", color: .textSecondary) { showLeave = true }
+                    TextLinkButton("Delete my data", color: .textSecondary) { confirmDelete = true }
                 }
                 .padding(.top, 4)
             }
@@ -116,23 +138,21 @@ struct ProfileView: View {
         return p.isSubscribed(at: model.now()) ? "Active" : "Ended"
     }
 
+    /// Settings rows as separate white cards.
     private func section<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        VStack(spacing: 0) { content() }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .card()
+        VStack(spacing: 10) { content() }
     }
 
     private func row(_ title: String, value: String? = nil, chevron: Bool = false) -> some View {
         HStack(spacing: 8) {
             Text(title)
-                .font(.app(16))
+                .font(.app(17, .medium))
                 .foregroundStyle(Color.textPrimary)
             Spacer(minLength: 8)
             if let value {
                 Text(value)
-                    .font(.app(15))
-                    .foregroundStyle(Color.textSecondary)
+                    .font(.app(16, .semibold))
+                    .foregroundStyle(Color.textPrimary)
                     .multilineTextAlignment(.trailing)
             }
             if chevron {
@@ -141,7 +161,9 @@ struct ProfileView: View {
                     .foregroundStyle(Color.textSecondary)
             }
         }
-        .padding(.vertical, 10)
+        .padding(.horizontal, 18)
+        .frame(minHeight: 58)
+        .card(radius: 16, shadow: false)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
