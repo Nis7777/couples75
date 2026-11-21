@@ -294,6 +294,18 @@ extension AppModel {
         return nil
     }
 
+    /// Day N of a check-in (from the settled days, or today's number).
+    func dayNumber(of checkIn: CheckInFact) -> Int? {
+        if checkIn.isWarmup { return nil }
+        for round in state.rounds.reversed() {
+            if let day = round.member(checkIn.memberID)?.days.first(where: { $0.date.string == checkIn.localDate }) {
+                return day.dayNumber
+            }
+        }
+        if let t = state.today[checkIn.memberID], t.localDate.string == checkIn.localDate { return t.dayNumber }
+        return nil
+    }
+
     func photoData(for checkIn: CheckInFact) async -> Data? {
         await store.photoData(for: checkIn)
     }

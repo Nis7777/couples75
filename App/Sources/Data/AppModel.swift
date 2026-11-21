@@ -149,6 +149,8 @@ final class AppModel {
     var deepLink: DeepLink?
     var errorMessage: String?
     var toast: String?
+    /// The error from the last failed save (e.g. iCloud full).
+    var lastSaveError: StoreError?
 
     // Shown once (section 6.1).
     var presentedSave: SaveEvent?
@@ -340,6 +342,7 @@ final class AppModel {
     /// Save facts, then recompute and refresh dependants.
     @discardableResult
     func save(_ records: [FactRecord]) async -> Bool {
+        lastSaveError = nil
         do {
             let new = try await store.save(records)
             apply(new)
@@ -347,6 +350,9 @@ final class AppModel {
             return true
         } catch let e as StoreError {
             apply(store.cachedFacts())
+            lastSaveError = e
+            // iCloud full is handled by the camera (honour-tap fallback), not by a generic alert.
+            if case .quotaExceeded = e { return false }
             errorMessage = e.errorDescription
             return false
         } catch {

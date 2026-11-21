@@ -1,0 +1,292 @@
+import SwiftUI
+import UIKit
+
+/// 16: Progress.
+struct ProgressScreen: View {
+    @Environment(AppModel.self) private var model
+    @State private var viewing: CheckInFact?
+
+    private var round: RoundState? { model.currentRound }
+    private var columns: [GridItem] { Array(repeating: GridItem(.flexible(), spacing: 6), count: 10) }
+
+    var body: some View {
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Progress")
+                        .font(.rounded(30))
+                        .foregroundStyle(Color.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
+                    Text("\(model.nameA) & \(model.nameB)")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(Color.textSecondary)
+                }
+                .padding(.top, 8)
+
+                CoupleScene(left: model.sceneA, right: model.sceneB)
+                    .frame(height: 200)
+
+                gridCard
+                photoStrip
+                statsRow
+                HStack(spacing: 8) {
+                    Text("🏆")
+                    Text("Stakes: \(round?.betText ?? model.currentBet)")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Color.textPrimary)
+                    Spacer()
+                }
+                .padding(14)
+                .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.peach))
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24)
+        }
+        .refreshable { await model.refresh() }
+        .fullScreenCover(item: $viewing) { c in PhotoViewer(checkIn: c) }
+    }
+
+    // MARK: 75-day grid
+
+    private enum Cell { case both, half, saves, miss, today, future }
+
+    private var todayNumber: Int? { model.myToday?.dayNumber }
+
+    private func cell(_ n: Int) -> Cell {
+        guard let r = round, r.members.count == 2 else { return n == 1 && todayNumber == 1 ? .today : .future }
+        let a = r.members[0].days.first { $0.dayNumber == n }
+        let b = r.members[1].days.first { $0.dayNumber == n }
+        if let a, let b {
+            switch (a.outcome, b.outcome) {
+            case (.complete, .complete): return .both
+            case (.complete, .miss), (.miss, .complete):
+                return (a.coveredBySave || b.coveredBySave) ? .half : .miss
+            default:
+                return (a.coveredBySave && b.coveredBySave) ? .saves : .miss
+            }
+        }
+        if n == todayNumber { return .today }
+        if a != nil || b != nil { return .half }
+        return .future
+    }
+
+    private var currentDay: Int {
+        todayNumber ?? round?.members.map { $0.countedDays }.max() ?? 0
+    }
+
+    private var gridCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("75-day grid")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(Color.textPrimary)
+                Spacer()
+                Text("Day \(currentDay) of \(Brand.roundLengthDays)")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.textSecondary)
+            }
+            LazyVGrid(columns: columns, spacing: 6) {
+                ForEach(1...Brand.roundLengthDays, id: \.self) { n in
+                    cellView(cell(n))
+                        .aspectRatio(1, contentMode: .fit)
+                }
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("75-day grid")
+            .accessibilityValue(gridSummary)
+            HStack(spacing: 14) {
+                legend(.both, "Both done")
+                legend(.half, "One + save")
+                legend(.today, "Today")
+            }
+            .font(.system(size: 11))
+            .foregroundStyle(Color.textSecondary)
+        }
+        .padding(16)
+        .card()
+    }
+
+    private var gridSummary: String {
+        let cells = (1...Brand.roundLengthDays).map(cell)
+        let both = cells.filter { if case .both = $0 { return true } else { return false } }.count
+        return "Day \(currentDay) of 75. \(both) days complete for both."
+    }
+
+    @ViewBuilder
+    private func cellView(_ c: Cell) -> some View {
+        switch c {
+        case .both:
+            Circle().fill(Color.gold)
+        case .half:
+            Circle().fill(Color.faint)
+                .overlay(HalfCircle().fill(Color.gold))
+        case .saves:
+            Circle().fill(Color.peach).overlay(Circle().stroke(Color.coral.opacity(0.5), lineWidth: 1))
+        case .miss:
+            Circle().stroke(Color.coral.opacity(0.6), lineWidth: 1.5)
+        case .today:
+            Circle().stroke(Color.coral, lineWidth: 2)
+        case .future:
+            Circle().stroke(Color.cardBorder, lineWidth: 1)
+        }
+    }
+
+    private func legend(_ c: Cell, _ text: String) -> some View {
+        HStack(spacing: 4) {
+            cellView(c).frame(width: 10, height: 10)
+            Text(text)
+        }
+    }
+
+    // MARK: Photos
+
+    private var photos: [CheckInFact] {
+        Array(model.facts.checkIns.filter { $0.hasPhoto }.sorted { $0.capturedAt > $1.capturedAt }.prefix(30))
+    }
+
+    @ViewBuilder
+    private var photoStrip: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Recent photos")
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(Color.textPrimary)
+            if photos.isEmpty {
+                Text("Photo check-ins from both of you show up here. Only the two of you can see them.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.textSecondary)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(photos) { c in
+                            Button { viewing = c } label: { PhotoThumb(checkIn: c) }
+                                .accessibilityLabel("\(model.name(of: c.memberID))'s photo, \(c.stampText)")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var statsRow: some View {
+        HStack(spacing: 12) {
+            stat("\(model.state.bestStreak)", "Best streak")
+            stat("\(max(model.state.roundsPlayed, 1))", "Rounds")
+            stat("\(round?.savesLeft ?? Brand.savesPerRound)", "Saves left")
+        }
+    }
+
+    private func stat(_ value: String, _ label: String) -> some View {
+        VStack(spacing: 4) {
+            Text(value).font(.rounded(24)).foregroundStyle(Color.textPrimary)
+            Text(label).font(.system(size: 12, weight: .medium)).foregroundStyle(Color.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 14)
+        .card(radius: 14)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+struct HalfCircle: Shape {
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        p.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        p.addArc(center: CGPoint(x: rect.midX, y: rect.midY), radius: min(rect.width, rect.height) / 2,
+                 startAngle: .degrees(-90), endAngle: .degrees(90), clockwise: true)
+        p.closeSubpath()
+        return p
+    }
+}
+
+struct PhotoThumb: View {
+    @Environment(AppModel.self) private var model
+    var checkIn: CheckInFact
+    @State private var image: UIImage?
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 12).fill(Color.peach)
+            if let image {
+                Image(uiImage: image).resizable().scaledToFill()
+            } else {
+                ProgressView().tint(.coral)
+            }
+        }
+        .frame(width: 84, height: 112)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12)
+            .stroke(checkIn.memberID == model.memberA?.id ? Color.coral : Color.sage, lineWidth: 2))
+        .task(id: checkIn.id) {
+            if let data = model.cachedPhoto(checkIn.id) { image = UIImage(data: data); return }
+            if let data = await model.photoData(for: checkIn) { image = UIImage(data: data) }
+        }
+    }
+}
+
+/// Full-screen photo with the burned-in stamp and the reactions.
+struct PhotoViewer: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    var checkIn: CheckInFact
+    @State private var image: UIImage?
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            Color.black.ignoresSafeArea()
+            if let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityLabel("Photo, \(checkIn.stampText)")
+            } else {
+                ProgressView().tint(.white).frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("\(model.name(of: checkIn.memberID)) · \(model.facts.rules.first { $0.id == checkIn.ruleID }?.title ?? "")")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                    Spacer()
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 40, height: 40)
+                            .background(Circle().fill(.white.opacity(0.2)))
+                    }
+                    .accessibilityLabel("Close")
+                }
+                Spacer()
+                let reactions = model.reactions(for: checkIn.id).filter { $0.kind != .seen }
+                if !reactions.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(reactions) { r in
+                            Text(reactionText(r))
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(.white)
+                        }
+                    }
+                    .padding(12)
+                    .background(RoundedRectangle(cornerRadius: 12).fill(.black.opacity(0.55)))
+                }
+            }
+            .padding(20)
+        }
+        .task {
+            if let data = model.cachedPhoto(checkIn.id) { image = UIImage(data: data) }
+            if image == nil, let data = await model.photoData(for: checkIn) { image = UIImage(data: data) }
+        }
+    }
+
+    private func reactionText(_ r: ReactionFact) -> String {
+        let who = r.memberID == model.meID ? "You" : model.name(of: r.memberID)
+        switch r.kind {
+        case .approve: return "\(who) approved ❤️"
+        case .emoji: return "\(who) \(r.emoji ?? "")"
+        case .comment: return "\(who): \(r.comment ?? "")"
+        case .sus: return "\(who) 🤨"
+        case .seen: return ""
+        }
+    }
+}
