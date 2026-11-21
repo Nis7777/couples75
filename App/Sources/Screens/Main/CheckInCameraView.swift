@@ -69,7 +69,7 @@ struct CheckInCameraView: View {
             Text(model.lastSaveError?.errorDescription ?? "")
         }
         .sheet(isPresented: $showHonourFallback, onDismiss: { dismiss() }) {
-            HonourSheet(rule: rule, fallback: true).presentationDetents([.height(340)])
+            HonourSheet(rule: rule, fallback: true).presentationDetents([.height(430)])
         }
     }
 

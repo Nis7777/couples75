@@ -59,7 +59,7 @@ struct WarmupView: View {
         }
         .refreshable { await model.refresh() }
         .fullScreenCover(item: $cameraRule) { r in CheckInCameraView(rule: r) }
-        .sheet(item: $honourRule) { r in HonourSheet(rule: r).presentationDetents([.height(340)]) }
+        .sheet(item: $honourRule) { r in HonourSheet(rule: r).presentationDetents([.height(430)]) }
     }
 
     private var rulesA: [RuleFact] { model.memberA.map { model.rules(for: $0.id) } ?? [] }

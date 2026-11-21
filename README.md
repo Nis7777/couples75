@@ -126,3 +126,9 @@ Couples 75 is not affiliated with 44Seven Media or the 75 HARD program.
 `Shared/Assets.xcassets` contains one image set per PNG in `ArtSource/` (`char_{w1…w6,m1…m6}_{stand,crossed,cheer,stretch,bust}`,
 `partner_outline`, `trophy`) and `AppIcon.png` as the single-size app icon. If the art changes, replace the files
 in `ArtSource/` and run `python3 scripts/import_art.py` (optional helper; the imported art is committed).
+
+## Font
+
+All text uses **Outfit** (SIL Open Font License, from google/fonts `ofl/outfit`), bundled as static weights in
+`Shared/Fonts/` (Regular, Medium, SemiBold, Bold, ExtraBold) and registered with `UIAppFonts` in both Info.plists.
+The licence is in `Shared/Fonts/Outfit-OFL.txt`. If the font can't load, the app falls back to SF Pro Rounded.

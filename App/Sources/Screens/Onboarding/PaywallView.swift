@@ -77,7 +77,8 @@ struct PaywallView: View {
                           showExit = false
                           onClose?()
                       })
-                .presentationDetents([.height(360)])
+                .presentationDetents([.height(380)])
+                .presentationCornerRadius(28)
                 .presentationDragIndicator(.visible)
         }
         .task {
@@ -282,8 +283,8 @@ struct ExitSheet: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            TitleText("Not ready to start?", size: 24)
-                .padding(.top, 28)
+            TitleText("Not ready to start?", size: 26)
+                .padding(.top, 30)
             BodyText("It's \(monthlyPrice) a month each. Cancel anytime.")
             Spacer(minLength: 0)
             PrimaryButton("Start monthly") { startMonthly() }

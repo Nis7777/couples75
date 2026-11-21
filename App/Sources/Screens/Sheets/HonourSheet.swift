@@ -20,8 +20,10 @@ struct HonourSheet: View {
     var body: some View {
         VStack(spacing: 16) {
             Capsule().fill(Color.cardBorder).frame(width: 40, height: 5).padding(.top, 10)
+            IconBadge(systemName: fallback ? "icloud.slash" : "hand.raised.fill",
+                      color: fallback ? .coral : .sage, size: 70)
+                .padding(.top, 4)
             TitleText("Did you stick to \(rule.title.lowercasedFirst) today?", size: 24)
-                .padding(.top, 8)
             if !enabled {
                 BodyText("Come back after 18:00 to confirm. Tap tonight.")
             } else if fallback {

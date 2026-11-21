@@ -9,10 +9,7 @@ struct ICloudRequiredView: View {
         OnboardingPage(step: nil, back: nil) {
             VStack(spacing: 18) {
                 Spacer(minLength: 0)
-                Image(systemName: "icloud.slash")
-                    .font(.system(size: 60))
-                    .foregroundStyle(Color.coral)
-                    .accessibilityHidden(true)
+                IconBadge(systemName: "icloud.slash", color: Color.coral)
                 TitleText("Turn on iCloud to use \(Brand.appName)")
                 BodyText("Your iCloud account is your \(Brand.appName) account. Open Settings → [your name] → iCloud and sign in, then come back.")
                 Spacer(minLength: 0)

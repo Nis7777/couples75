@@ -452,3 +452,22 @@ struct BottomActions<Content: View>: View {
             .padding(.top, 10)
     }
 }
+
+/// A large SF Symbol on a soft peach disc (notification priming, Android, iCloud, honour tap).
+struct IconBadge: View {
+    var systemName: String
+    var color: Color = .coral
+    var size: CGFloat = 132
+
+    var body: some View {
+        ZStack {
+            Circle().fill(Color.peach)
+            Circle().fill(Color.white.opacity(0.55)).padding(size * 0.14)
+            Image(systemName: systemName)
+                .font(.system(size: size * 0.36, weight: .semibold))
+                .foregroundStyle(color)
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
+    }
+}

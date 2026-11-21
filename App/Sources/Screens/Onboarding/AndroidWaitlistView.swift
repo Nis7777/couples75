@@ -18,10 +18,7 @@ struct AndroidWaitlistView: View {
         OnboardingPage(step: nil, back: sent ? nil : back) {
             VStack(spacing: 18) {
                 Spacer(minLength: 0)
-                Image(systemName: sent ? "checkmark.circle.fill" : "iphone")
-                    .font(.system(size: 60))
-                    .foregroundStyle(sent ? Color.sage : Color.coral)
-                    .accessibilityHidden(true)
+                IconBadge(systemName: sent ? "checkmark.circle.fill" : "iphone", color: sent ? Color.sage : Color.coral)
                 if sent {
                     TitleText("Thanks! We'll be in touch.")
                 } else {

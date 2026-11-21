@@ -37,7 +37,7 @@ struct TodayView: View {
         }
         .refreshable { await model.refresh() }
         .fullScreenCover(item: $cameraRule) { r in CheckInCameraView(rule: r) }
-        .sheet(item: $honourRule) { r in HonourSheet(rule: r).presentationDetents([.height(340)]) }
+        .sheet(item: $honourRule) { r in HonourSheet(rule: r).presentationDetents([.height(430)]) }
         .sheet(item: $openedCheckIn) { c in PartnerCheckInView(checkIn: c) }
         .sheet(isPresented: $showPauseRequest) { PauseRequestView() }
         .sheet(isPresented: $showPauseAnswer) {
