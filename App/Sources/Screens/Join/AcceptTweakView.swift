@@ -17,30 +17,35 @@ struct AcceptTweakView: View {
         OnboardingPage(step: 4, total: JoinSteps.total, back: back) {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 14) {
-                    TitleText("Your plan")
-                        .padding(.top, 8)
-                    BodyText("Set from your fitness level. You can swap one rule and change the bet.")
-                    VStack(alignment: .leading, spacing: 10) {
+                    BustCircle(avatar: jd.avatar, size: 96, ring: Color.peachDeep, ringWidth: 4,
+                               fill: Color.peach.opacity(0.6))
+                        .padding(.top, 10)
+                        .accessibilityHidden(true)
+                    TitleText("Your plan", size: 30)
+                    BodyText("Set from your fitness level. You can swap one rule and change the bet.", size: 15)
+                    VStack(alignment: .leading, spacing: 12) {
                         Text("Your daily rules")
-                            .font(.app(15, .bold))
+                            .font(.app(18, .bold))
                             .foregroundStyle(Color.sage)
                         ForEach(rules) { r in
-                            HStack(spacing: 10) {
+                            HStack(spacing: 12) {
                                 Image(systemName: r.type == .photo ? "camera.fill" : "hand.raised.fill")
+                                    .font(.system(size: 15))
                                     .foregroundStyle(Color.sage)
-                                    .frame(width: 22)
+                                    .frame(width: 32, height: 32)
+                                    .background(Circle().fill(Color.sage.opacity(0.12)))
                                 Text(r.title)
-                                    .font(.app(16))
+                                    .font(.app(16, .medium))
                                     .foregroundStyle(Color.textPrimary)
                                 Spacer()
                                 if r.position == jd.swappedPosition {
-                                    Pill(text: "Swapped", fill: .peach, foreground: .coral)
+                                    Pill(text: "Swapped", fill: .peach, foreground: .coral, size: 12)
                                 }
                             }
                             .accessibilityElement(children: .combine)
                         }
                     }
-                    .padding(16)
+                    .padding(18)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .card()
                     BetBox(bet: jd.changeBet && !jd.betText.isEmpty ? jd.betText : model.currentBet)
@@ -55,7 +60,7 @@ struct AcceptTweakView: View {
                             .multilineTextAlignment(.center)
                     }
                 }
-                .padding(.bottom, 8)
+                .padding(.bottom, 20)
             }
         } actions: {
             PrimaryButton("Looks good", isLoading: saving) {

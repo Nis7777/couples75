@@ -11,7 +11,7 @@ struct PartnerWaitingForYouView: View {
                 TitleText("\(model.nameA) is waiting for you", size: 30)
                     .padding(.top, 24)
                 BodyText("Day 1 starts the morning after you subscribe. Each of you has your own subscription.")
-                CoupleScene(left: model.sceneA, right: nil, crop: 0.64, overlap: 0)
+                CoupleScene(left: model.sceneA, right: nil, crop: 0.6, overlap: 0, alignment: .top, fillHeight: true)
                     .padding(.horizontal, -8)
                     .frame(maxHeight: .infinity)
             }

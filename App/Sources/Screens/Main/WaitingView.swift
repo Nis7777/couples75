@@ -37,7 +37,7 @@ struct WaitingView: View {
                 }
 
                 CoupleScene(left: model.sceneA, right: model.sceneB, crop: 0.64, overlap: 0)
-                    .frame(height: 330)
+                    .frame(height: 340)
                     .padding(.horizontal, -8)
 
                 if model.isOwner {
