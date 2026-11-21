@@ -73,19 +73,18 @@ struct SmallWidgetView: View {
         let progress = Double(s.dayNumber ?? 0) / Double(max(s.roundLength, 1))
         VStack(spacing: 6) {
             ZStack {
-                Circle().stroke(Color.peach, lineWidth: 8)
+                Circle().stroke(Color.track, lineWidth: 7)
                 Circle()
-                    .trim(from: 0, to: max(0.001, progress))
-                    .stroke(Color.gold, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                    .trim(from: 0, to: max(0.02, progress))
+                    .stroke(Color.gold, style: StrokeStyle(lineWidth: 7, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                HStack(spacing: -10) {
-                    bust(s.characterA)
-                    if !s.characterB.isEmpty { bust(s.characterB) }
-                }
+                WidgetBusts(a: s.characterA, b: s.characterB)
+                    .padding(10)
+                    .clipShape(Circle())
+                    .padding(6)
             }
-            .padding(4)
             Text(dayText(s))
-                .font(.app(14, .bold))
+                .font(.app(17, .bold))
                 .foregroundStyle(Color.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -94,13 +93,31 @@ struct SmallWidgetView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(s.nameA) and \(s.nameB), \(dayText(s))")
     }
+}
 
-    private func bust(_ id: String) -> some View {
-        CharacterImage(characterID: id, pose: .bust)
-            .frame(width: 42, height: 42)
-            .background(Circle().fill(Color.white))
-            .clipShape(Circle())
-            .overlay(Circle().stroke(Color.white, lineWidth: 2))
+/// Two busts side by side with flat bottoms.
+struct WidgetBusts: View {
+    var a: String
+    var b: String
+
+    var body: some View {
+        GeometryReader { geo in
+            HStack(alignment: .bottom, spacing: -geo.size.width * 0.14) {
+                Image(Characters.assetName(a, .bust)).resizable().scaledToFit()
+                    .frame(height: geo.size.height * 0.88)
+                    .zIndex(1)
+                if b.isEmpty {
+                    Image("partner_outline").resizable().scaledToFit()
+                        .frame(height: geo.size.height * 1.7, alignment: .top)
+                        .frame(height: geo.size.height, alignment: .top)
+                        .clipped()
+                } else {
+                    Image(Characters.assetName(b, .bust)).resizable().scaledToFit()
+                        .frame(height: geo.size.height)
+                }
+            }
+            .frame(width: geo.size.width, height: geo.size.height, alignment: .bottom)
+        }
     }
 }
 
@@ -109,27 +126,24 @@ struct MediumWidgetView: View {
 
     var body: some View {
         let s = entry.snapshot
-        HStack(spacing: 12) {
-            HStack(alignment: .bottom, spacing: -14) {
-                CharacterImage(characterID: s.characterA, pose: .stand)
-                if !s.characterB.isEmpty {
-                    CharacterImage(characterID: s.characterB, pose: .stand)
-                }
-            }
-            .frame(maxWidth: 130, maxHeight: .infinity)
-            VStack(alignment: .leading, spacing: 8) {
+        HStack(spacing: 14) {
+            WidgetBusts(a: s.characterA, b: s.characterB)
+                .frame(width: 150)
+                .padding(.top, 6)
+                .padding(.bottom, -16)
+            VStack(alignment: .leading, spacing: 10) {
                 Text(dayText(s))
-                    .font(.app(22, .heavy))
+                    .font(.app(26, .bold))
                     .foregroundStyle(Color.textPrimary)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                Text("\(s.nameA) \(s.doneA ? "✓" : "…") · \(s.nameB) \(s.doneB ? "✓" : "…")")
-                    .font(.app(15, .semibold))
-                    .foregroundStyle(Color.textSecondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                HStack(spacing: 4) {
-                    Image(systemName: "flame.fill").foregroundStyle(Color.gold)
+                    .minimumScaleFactor(0.6)
+                HStack(spacing: 6) {
+                    Text("\(s.nameA) \(s.doneA ? "✓" : "…")  \(s.nameB) \(s.doneB ? "✓" : "…")")
+                        .font(.app(15, .semibold))
+                        .foregroundStyle(Color.textPrimary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                    Image(systemName: "flame.fill").foregroundStyle(Color(hex: 0xE07A2E))
                     Text("\(s.streak)")
                         .font(.app(15, .bold))
                         .foregroundStyle(Color.textPrimary)

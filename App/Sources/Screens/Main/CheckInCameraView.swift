@@ -22,36 +22,40 @@ struct CheckInCameraView: View {
     }
 
     var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            if let captured {
-                Image(uiImage: captured)
-                    .resizable()
-                    .scaledToFit()
+        VStack(spacing: 0) {
+            topBar
+            ZStack(alignment: .bottomLeading) {
+                Color(hex: 0x1A1412)
+                if let captured {
+                    Image(uiImage: captured)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .clipped()
+                        .accessibilityLabel("Your photo for \(rule.title)")
+                } else if useSimulatedCamera {
+                    VStack(spacing: 12) {
+                        Image(systemName: "camera.metering.unknown")
+                            .font(.system(size: 44))
+                        Text("No camera here. The shutter makes a sample photo.")
+                            .font(.app(15))
+                            .multilineTextAlignment(.center)
+                    }
+                    .foregroundStyle(.white.opacity(0.7))
+                    .padding(40)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityLabel("Your photo for \(rule.title)")
-            } else if useSimulatedCamera {
-                VStack(spacing: 12) {
-                    Image(systemName: "camera.metering.unknown")
-                        .font(.system(size: 48))
-                    Text("No camera here. The shutter makes a sample photo.")
-                        .font(.app(14))
-                        .multilineTextAlignment(.center)
+                } else {
+                    CameraPreview(session: camera.session)
+                        .accessibilityLabel("Camera preview")
                 }
-                .foregroundStyle(.white.opacity(0.7))
-                .padding(40)
-            } else {
-                CameraPreview(session: camera.session)
-                    .ignoresSafeArea()
-                    .accessibilityLabel("Camera preview")
+                StampPill(text: stamp)
+                    .padding(16)
             }
-
-            VStack(spacing: 0) {
-                topBar
-                Spacer()
-                bottomBar
-            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipped()
+            bottomBar
         }
+        .background(Color(hex: 0x14100E).ignoresSafeArea())
         .statusBarHidden()
         .task {
             guard !useSimulatedCamera else { return }
@@ -65,88 +69,92 @@ struct CheckInCameraView: View {
             Text(model.lastSaveError?.errorDescription ?? "")
         }
         .sheet(isPresented: $showHonourFallback, onDismiss: { dismiss() }) {
-            HonourSheet(rule: rule, fallback: true).presentationDetents([.height(320)])
+            HonourSheet(rule: rule, fallback: true).presentationDetents([.height(340)])
         }
     }
 
     private var topBar: some View {
-        VStack(spacing: 6) {
-            HStack {
-                Pill(text: "LIVE", fill: .coral)
-                Spacer()
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(rule.title)
+                    .font(.app(24, .bold))
+                    .foregroundStyle(.white)
+                Text("Live photo · not from your camera roll")
+                    .font(.app(13, .medium))
+                    .foregroundStyle(.white.opacity(0.85))
+                Text(RuleLibrary.photoPrompt(for: rule.libraryKey))
+                    .font(.app(13))
+                    .foregroundStyle(.white.opacity(0.7))
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            Text(rule.title)
-                .font(.rounded(22))
+            Spacer(minLength: 8)
+            Text("LIVE")
+                .font(.app(15, .bold))
                 .foregroundStyle(.white)
-            Text("Live photo · not from your camera roll")
-                .font(.app(13, .medium))
-                .foregroundStyle(.white.opacity(0.8))
-            Text(RuleLibrary.photoPrompt(for: rule.libraryKey))
-                .font(.app(13))
-                .foregroundStyle(.white.opacity(0.75))
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
+                .padding(.leading, 16)
+                .padding(.trailing, 44)
+                .frame(height: 32)
+                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.coral))
+                .accessibilityLabel("Live camera")
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 12)
+        .padding(.horizontal, 22)
+        .padding(.top, 18)
         .padding(.bottom, 14)
-        .background(LinearGradient(colors: [.black.opacity(0.75), .clear], startPoint: .top, endPoint: .bottom))
     }
 
-    @ViewBuilder
     private var bottomBar: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 18) {
             if captured != nil {
                 HStack(spacing: 12) {
                     Button {
                         captured = nil
                     } label: {
                         Text("Retake")
-                            .font(.app(17, .semibold))
+                            .font(.app(18, .semibold))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 58)
+                            .frame(height: Metrics.buttonHeight)
                             .overlay(Capsule().stroke(.white.opacity(0.6), lineWidth: 1))
                     }
                     PrimaryButton("Send", isLoading: sending) { Task { await send() } }
                 }
+                .padding(.top, 18)
             } else {
                 Text("Snap proof for \(model.partnerName)")
-                    .font(.app(15, .semibold))
-                    .foregroundStyle(.white)
-                HStack {
-                    Button("Cancel") { dismiss() }
-                        .font(.app(17, .medium))
-                        .foregroundStyle(.white)
-                        .frame(width: 80, alignment: .leading)
-                    Spacer()
+                    .font(.app(16, .medium))
+                    .foregroundStyle(Color(hex: 0xF3E6DC))
+                    .padding(.top, 16)
+                ZStack {
+                    HStack {
+                        Button("Cancel") { dismiss() }
+                            .font(.app(18, .medium))
+                            .foregroundStyle(Color(hex: 0xF3E6DC))
+                        Spacer()
+                        Button {
+                            camera.flip()
+                        } label: {
+                            Image(systemName: "arrow.triangle.2.circlepath.camera")
+                                .font(.system(size: 22, weight: .regular))
+                                .foregroundStyle(.white.opacity(useSimulatedCamera ? 0.3 : 0.9))
+                                .frame(width: 44, height: 44)
+                        }
+                        .disabled(useSimulatedCamera)
+                        .accessibilityLabel("Flip camera")
+                    }
                     Button {
                         shutter()
                     } label: {
                         ZStack {
-                            Circle().stroke(.white, lineWidth: 4).frame(width: 78, height: 78)
-                            Circle().fill(.white).frame(width: 64, height: 64)
+                            Circle().stroke(.white, lineWidth: 4).frame(width: 84, height: 84)
+                            Circle().fill(.white).frame(width: 68, height: 68)
                         }
                     }
                     .accessibilityLabel("Take photo")
-                    Spacer()
-                    Button {
-                        camera.flip()
-                    } label: {
-                        Image(systemName: "arrow.triangle.2.circlepath.camera")
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 80, alignment: .trailing)
-                    }
-                    .disabled(useSimulatedCamera)
-                    .accessibilityLabel("Flip camera")
                 }
             }
         }
         .padding(.horizontal, 24)
-        .padding(.bottom, 16)
-        .padding(.top, 20)
-        .background(LinearGradient(colors: [.clear, .black.opacity(0.75)], startPoint: .top, endPoint: .bottom))
+        .padding(.bottom, 20)
     }
 
     private func shutter() {
@@ -172,6 +180,21 @@ struct CheckInCameraView: View {
         } else if case .quotaExceeded = model.lastSaveError {
             showQuotaAlert = true
         }
+    }
+}
+
+/// The dark stamp pill shown on the viewfinder (the same text is burned into the photo).
+struct StampPill: View {
+    var text: String
+
+    var body: some View {
+        Text(text)
+            .font(.app(15, .bold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 12)
+            .frame(height: 30)
+            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color(hex: 0x14100E).opacity(0.92)))
+            .accessibilityLabel("Stamp: \(text)")
     }
 }
 

@@ -23,20 +23,30 @@ struct PartnerCheckInView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+        VStack(spacing: 0) {
+            ZStack {
+                Text(isMine ? "Your check-in" : "\(name) checked in")
+                    .font(.app(17, .semibold))
+                    .foregroundStyle(Color.textPrimary)
+                HStack {
+                    CloseButton { dismiss() }
+                    Spacer()
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.top, 10)
+
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 14) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(isMine ? "Your check-in" : "\(name) checked in")
-                            .font(.rounded(24))
-                            .foregroundStyle(Color.textPrimary)
                         Text(rule?.title ?? "")
-                            .font(.app(17, .semibold))
+                            .font(.app(28, .bold))
                             .foregroundStyle(Color.textPrimary)
                         Text(subtitle)
-                            .font(.app(14))
+                            .font(.app(15, .medium))
                             .foregroundStyle(Color.textSecondary)
                     }
+                    .padding(.top, 6)
 
                     photoView
 
@@ -48,28 +58,24 @@ struct PartnerCheckInView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             ForEach(reactions) { r in reactionRow(r) }
                         }
-                        .padding(14)
+                        .padding(16)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .card(radius: 14)
+                        .card(radius: 16, shadow: false)
                     }
 
                     if !isMine { reactSection }
 
                     Button("Report") { report() }
-                        .font(.app(13, .medium))
+                        .font(.app(14, .medium))
                         .foregroundStyle(Color.textSecondary)
                         .frame(maxWidth: .infinity)
-                        .padding(.top, 8)
+                        .padding(.top, 10)
                 }
-                .padding(20)
-            }
-            .screenBackground()
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
-                }
+                .padding(.horizontal, Metrics.side)
+                .padding(.bottom, 20)
             }
         }
+        .screenBackground()
         .task {
             if let data = model.cachedPhoto(checkIn.id) { photo = UIImage(data: data) }
             if photo == nil, checkIn.hasPhoto, let data = await model.photoData(for: checkIn) {
@@ -90,12 +96,12 @@ struct PartnerCheckInView: View {
     private var photoView: some View {
         if checkIn.hasPhoto {
             ZStack {
-                RoundedRectangle(cornerRadius: 20, style: .continuous).fill(Color.peach)
+                RoundedRectangle(cornerRadius: 22, style: .continuous).fill(Color.peach)
                 if let photo {
                     Image(uiImage: photo)
                         .resizable()
                         .scaledToFit()
-                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                         .accessibilityLabel("Photo for \(rule?.title ?? "the rule"), \(checkIn.stampText)")
                 } else if loadingPhoto {
                     ProgressView().tint(.coral)
@@ -120,7 +126,7 @@ struct PartnerCheckInView: View {
     private var reactSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("React")
-                .font(.app(15, .bold))
+                .font(.app(15, .semibold))
                 .foregroundStyle(Color.textPrimary)
             HStack(spacing: 10) {
                 ForEach(emojis, id: \.self) { e in
@@ -129,10 +135,13 @@ struct PartnerCheckInView: View {
                         Task { await model.react(to: checkIn, kind: .emoji, emoji: e) }
                     } label: {
                         Text(e)
-                            .font(.app(26))
-                            .frame(width: 52, height: 52)
-                            .background(Circle().fill(Color.white))
-                            .overlay(Circle().stroke(Color.cardBorder, lineWidth: 1))
+                            .font(.system(size: 26))
+                            .frame(maxWidth: .infinity)
+                            .aspectRatio(1, contentMode: .fit)
+                            .frame(maxWidth: 64)
+                            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.white))
+                            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .stroke(Color.cardBorder, lineWidth: 1))
                     }
                     .accessibilityLabel("React \(e)")
                 }
@@ -150,8 +159,9 @@ struct PartnerCheckInView: View {
                         .foregroundStyle(Color.coral)
                 }
             }
-            .padding(14)
-            .card(radius: 14)
+            .padding(.horizontal, 18)
+            .frame(height: 56)
+            .card(radius: 18, shadow: false)
             HStack(spacing: 12) {
                 SecondaryButton("Sus 🤨") {
                     Task { await model.react(to: checkIn, kind: .sus) }

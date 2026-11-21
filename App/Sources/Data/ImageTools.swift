@@ -32,7 +32,7 @@ enum ImageTools {
         let size = image.size
         let fontSize = max(14, size.width * 0.032)
         let attrs: [NSAttributedString.Key: Any] = [
-            .font: UIFont.monospacedDigitSystemFont(ofSize: fontSize, weight: .bold),
+            .font: AppFont.uiFont(fontSize, .bold),
             .foregroundColor: UIColor.white,
         ]
         let textSize = (text as NSString).size(withAttributes: attrs)
@@ -44,8 +44,8 @@ enum ImageTools {
         format.scale = 1
         return UIGraphicsImageRenderer(size: size, format: format).image { _ in
             image.draw(in: CGRect(origin: .zero, size: size))
-            UIColor.black.withAlphaComponent(0.62).setFill()
-            UIBezierPath(roundedRect: pill, cornerRadius: pill.height / 2).fill()
+            UIColor(red: 0.08, green: 0.06, blue: 0.05, alpha: 0.9).setFill()
+            UIBezierPath(roundedRect: pill, cornerRadius: pill.height * 0.28).fill()
             (text as NSString).draw(at: CGPoint(x: pill.minX + padH, y: pill.minY + padV), withAttributes: attrs)
         }
     }
