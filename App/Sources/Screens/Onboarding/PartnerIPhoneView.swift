@@ -9,9 +9,8 @@ struct PartnerIPhoneView: View {
     var body: some View {
         OnboardingPage(step: model.draft.stepNumber, back: back) {
             VStack(spacing: 14) {
-                CoupleBusts(left: SceneCharacter(characterID: model.draft.characterID, name: model.draft.myName),
-                            right: SceneCharacter(characterID: Characters.partnerPreview(for: model.draft.characterID),
-                                                  name: model.draft.partnerName))
+                CoupleBusts(left: model.draftScene,
+                            right: nil)
                     .frame(height: 140)
                     .padding(.top, 18)
                 TitleText("Is \(model.draft.partnerName) on iPhone?", size: 30)
@@ -29,12 +28,5 @@ struct PartnerIPhoneView: View {
                 next(model.draft.partnerOnIPhone ?? true)
             }
         }
-    }
-}
-
-extension Characters {
-    /// A stand-in look for the partner before they pick (the opposite preset of A's, or m1/w1).
-    static func partnerPreview(for mine: String) -> String {
-        mine.hasPrefix("w") ? "m1" : "w1"
     }
 }

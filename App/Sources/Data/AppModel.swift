@@ -202,9 +202,11 @@ final class AppModel {
         facts.member(id)?.name ?? (id == PendingPartner.id ? nameB : "Partner")
     }
 
-    var sceneA: SceneCharacter { SceneCharacter(characterID: memberA?.characterID ?? draft.characterID, name: nameA) }
-    /// nil until B has picked a character.
-    var sceneB: SceneCharacter? { memberB.map { SceneCharacter(characterID: $0.characterID, name: $0.name) } }
+    var sceneA: SceneCharacter { SceneCharacter(avatar: memberA?.avatar ?? draft.avatar, name: nameA) }
+    /// nil until B has built their avatar: draw the dashed partner outline instead.
+    var sceneB: SceneCharacter? { memberB.map { SceneCharacter(avatar: $0.avatar, name: $0.name) } }
+    /// A's avatar while onboarding.
+    var draftScene: SceneCharacter { SceneCharacter(avatar: draft.avatar, name: draft.myName) }
     /// B shown only once fully joined.
     var sceneBJoined: SceneCharacter? { memberB?.joinedAt == nil ? nil : sceneB }
 
@@ -437,7 +439,8 @@ final class AppModel {
                                   characterA: a.characterID, characterB: memberB?.characterID ?? "",
                                   dayNumber: day, roundLength: Brand.roundLengthDays,
                                   doneA: ta?.isComplete ?? false, doneB: tb?.isComplete ?? false,
-                                  streak: state.streak, statusLine: status, updatedAt: Date())
+                                  streak: state.streak, statusLine: status, updatedAt: Date(),
+                                  avatarA: a.avatar, avatarB: memberB?.avatar)
         snap.save()
         WidgetCenter.shared.reloadAllTimelines()
     }

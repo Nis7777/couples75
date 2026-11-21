@@ -79,6 +79,20 @@ struct MemberFact: Codable, Equatable, Identifiable {
     var subscriptionProduct: String?
     var subscriptionPeriods: [SubscriptionPeriod]
     var leftAt: Date?
+    /// Avatar colour overrides ("#RRGGBB"); nil = the character's original colour.
+    var skinColor: String?
+    var hairColor: String?
+    var jacketColor: String?
+
+    var avatar: Avatar {
+        get { Avatar(characterID: characterID, skin: skinColor, hair: hairColor, jacket: jacketColor) }
+        set {
+            characterID = newValue.characterID
+            skinColor = newValue.skin
+            hairColor = newValue.hair
+            jacketColor = newValue.jacket
+        }
+    }
 
     var tz: TimeZone { TimeZone(identifier: timeZone) ?? .current }
 

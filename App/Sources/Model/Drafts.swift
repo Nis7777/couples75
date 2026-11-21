@@ -12,7 +12,8 @@ struct OnboardingDraft: Codable, Equatable {
     var step: Step = .hook
     var myName = ""
     var partnerName = ""
-    var characterID = "w1"
+    var avatar = Avatar(characterID: "w1")
+    var characterID: String { avatar.characterID }
     var partnerOnIPhone: Bool?
     var together: String?
     var longDistance: Bool?
@@ -64,7 +65,8 @@ struct JoinDraft: Codable, Equatable {
 
     var step: Step = .invited
     var code: String = ""
-    var characterID = "m1"
+    var avatar = Avatar(characterID: "m1")
+    var characterID: String { avatar.characterID }
     var fitness: FitnessLevel?
     var wakeTime = "07:30"
     var swappedPosition: Int?

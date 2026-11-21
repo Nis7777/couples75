@@ -27,7 +27,8 @@ enum CloudKitSchema {
         fields: ["role": "String", "name": "String", "characterID": "String", "timeZone": "String",
                  "wakeTime": "String", "fitnessLevel": "String", "joinedAt": "Date/Time",
                  "subscribedUntil": "Date/Time", "subscriptionProduct": "String",
-                 "subscriptionPeriods": "String (JSON)", "leftAt": "Date/Time"],
+                 "subscriptionPeriods": "String (JSON)", "leftAt": "Date/Time",
+                 "skinColor": "String", "hairColor": "String", "jacketColor": "String"],
         dateKeys: ["joinedAt", "subscribedUntil", "leftAt"], boolKeys: [], jsonKeys: ["subscriptionPeriods"])
 
     static let roundConfig = RecordType(

@@ -15,9 +15,7 @@ struct PlanRevealView: View {
                     TitleText("\(d.myName) & \(d.partnerName)'s 75-day plan", size: 28)
                         .padding(.top, 10)
                         .padding(.bottom, 4)
-                    RingHero(left: SceneCharacter(characterID: d.characterID, name: d.myName),
-                             right: SceneCharacter(characterID: Characters.partnerPreview(for: d.characterID),
-                                                   name: d.partnerName),
+                    RingHero(left: SceneCharacter(avatar: d.avatar, name: d.myName), right: nil,
                              progress: 0.62, centerTitle: "Day 1", centerSubtitle: "→ 75", panelRadius: 0)
                         .frame(height: 300)
                         .padding(.horizontal, -Metrics.side)

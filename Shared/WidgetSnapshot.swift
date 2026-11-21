@@ -13,6 +13,9 @@ struct WidgetSnapshot: Codable, Equatable {
     var streak: Int
     var statusLine: String?      // e.g. "Warm-up", "Paused"
     var updatedAt: Date
+    /// Full avatars (colour overrides). characterB == "" means B hasn't joined: draw the dashed outline.
+    var avatarA: Avatar? = nil
+    var avatarB: Avatar? = nil
 
     static let fileName = "widget_snapshot.json"
 

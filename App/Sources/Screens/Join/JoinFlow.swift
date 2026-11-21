@@ -68,9 +68,9 @@ struct JoinCharacterStep: View {
     var back: () -> Void
 
     var body: some View {
-        CharacterPickerView(characterID: Binding(get: { model.joinDraft?.characterID ?? "m1" },
-                                                 set: { model.joinDraft?.characterID = $0 }),
-                            name: model.nameB, step: 1, total: JoinSteps.total, back: back, next: next)
+        AvatarBuilderView(avatar: Binding(get: { model.joinDraft?.avatar ?? Avatar(characterID: "m1") },
+                                          set: { model.joinDraft?.avatar = $0 }),
+                          step: 1, total: JoinSteps.total, back: back, next: next)
     }
 }
 

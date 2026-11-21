@@ -36,6 +36,7 @@ extension AppModel {
                            characterID: draft.characterID, timeZone: TimeZone.current.identifier,
                            wakeTime: draft.wakeTime, fitnessLevel: fitness, joinedAt: now,
                            subscribedUntil: nil, subscriptionProduct: nil, subscriptionPeriods: [], leftAt: nil)
+        a.avatar = draft.avatar
         if let ent = purchases.entitlement {
             let (s, e) = mockAdjusted(ent)
             a.recordSubscription(product: ent.productID, purchaseDate: min(s, now), expiration: e)
@@ -166,11 +167,12 @@ extension AppModel {
     func submitJoinPlan() async -> Bool {
         guard let jd = joinDraft else { return false }
         let now = self.now()
-        let b = MemberFact(id: meID, role: .b, name: facts.couple?.invitedName ?? "Partner",
+        var b = MemberFact(id: meID, role: .b, name: facts.couple?.invitedName ?? "Partner",
                            characterID: jd.characterID, timeZone: TimeZone.current.identifier,
                            wakeTime: jd.wakeTime, fitnessLevel: jd.fitness ?? .somewhatActive, joinedAt: nil,
                            subscribedUntil: me?.subscribedUntil, subscriptionProduct: me?.subscriptionProduct,
                            subscriptionPeriods: me?.subscriptionPeriods ?? [], leftAt: nil)
+        b.avatar = jd.avatar
         var base = jd
         base.swappedPosition = nil
         base.swapKey = nil

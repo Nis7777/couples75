@@ -1,11 +1,5 @@
 import SwiftUI
 
-/// Who appears in a scene.
-struct SceneCharacter: Equatable {
-    var characterID: String
-    var name: String
-}
-
 // MARK: - Couple composition
 
 /// Two single-person images composed side by side: A on the left, slightly overlapping, bottoms aligned,
@@ -30,19 +24,21 @@ struct CoupleScene: View {
             let c = max(0.2, min(1, crop))
             let full = max(1, min(geo.size.height / c, geo.size.width / ((aL + aR) * (1 - overlap))))
             HStack(alignment: .top, spacing: -(aL + aR) * full * overlap) {
-                Image(leftAsset)
-                    .resizable()
-                    .scaledToFit()
+                CharacterView(avatar: left.avatar, pose: leftPose)
                     .frame(width: aL * full, height: full)
                     .frame(height: full * c, alignment: .top)
                     .clipped()
                     .zIndex(1)
-                Image(rightAsset)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: aR * full, height: full)
-                    .frame(height: full * c, alignment: .top)
-                    .clipped()
+                Group {
+                    if let right {
+                        CharacterView(avatar: right.avatar, pose: rightPose)
+                    } else {
+                        Image("partner_outline").resizable().scaledToFit()
+                    }
+                }
+                .frame(width: aR * full, height: full)
+                .frame(height: full * c, alignment: .top)
+                .clipped()
             }
             .frame(width: geo.size.width, height: geo.size.height, alignment: .bottom)
         }
@@ -61,13 +57,11 @@ struct CoupleBusts: View {
             let h = geo.size.height
             let a = Characters.aspect(of: Characters.assetName(left.characterID, .bust), fallback: 0.8)
             HStack(alignment: .bottom, spacing: -h * a * 0.16) {
-                Image(Characters.assetName(left.characterID, .bust))
-                    .resizable().scaledToFit()
+                CharacterView(avatar: left.avatar, pose: .bust)
                     .frame(height: h * 0.9)
                     .zIndex(1)
                 if let right {
-                    Image(Characters.assetName(right.characterID, .bust))
-                        .resizable().scaledToFit()
+                    CharacterView(avatar: right.avatar, pose: .bust)
                         .frame(height: h)
                 } else {
                     Image("partner_outline")

@@ -25,7 +25,7 @@ struct NamesView: View {
                         .padding(.top, 28)
                         .padding(.bottom, 6)
                     nameCard(label: "You", text: $model.draft.myName, field: .me, hint: nil) {
-                        BustCircle(characterID: model.draft.characterID, size: 96)
+                        BustCircle(avatar: model.draft.avatar, size: 96)
                     }
                     nameCard(label: "Partner", text: $model.draft.partnerName, field: .partner,
                              hint: "Picks their character later") {

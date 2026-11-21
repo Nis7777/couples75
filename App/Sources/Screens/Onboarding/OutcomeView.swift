@@ -12,9 +12,8 @@ struct OutcomeView: View {
                 TitleText("In 75 days, you'll be the couple who finished.", size: 30)
                     .padding(.top, 28)
                     .padding(.horizontal, 8)
-                TrophyScene(left: SceneCharacter(characterID: model.draft.characterID, name: model.draft.myName),
-                            right: SceneCharacter(characterID: Characters.partnerPreview(for: model.draft.characterID),
-                                                  name: model.draft.partnerName))
+                TrophyScene(left: model.draftScene,
+                            right: nil)
                     .padding(.horizontal, -Metrics.side)
                     .frame(maxHeight: .infinity)
                     .padding(.top, 8)

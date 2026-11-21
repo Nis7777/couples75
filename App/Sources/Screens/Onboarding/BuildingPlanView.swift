@@ -16,9 +16,8 @@ struct BuildingPlanView: View {
                         .fill(Color.peachDeep.opacity(0.6))
                         .frame(height: 22)
                         .padding(.horizontal, 24)
-                    CoupleScene(left: SceneCharacter(characterID: model.draft.characterID, name: model.draft.myName),
-                                right: SceneCharacter(characterID: Characters.partnerPreview(for: model.draft.characterID),
-                                                      name: model.draft.partnerName),
+                    CoupleScene(left: model.draftScene,
+                                right: nil,
                                 leftPose: .stretch, rightPose: .stretch, crop: 1, overlap: 0.08)
                         .padding(.bottom, 8)
                 }

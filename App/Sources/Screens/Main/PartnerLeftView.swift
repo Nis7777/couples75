@@ -16,7 +16,7 @@ struct PartnerLeftView: View {
                 TitleText("\(leaverName) left the couple")
                 BodyText("The run has ended and the shared photos are gone. Your own subscription stays yours.")
                 if let me = model.me {
-                    CharacterImage(characterID: me.characterID, pose: .stand)
+                    CharacterView(avatar: me.avatar, pose: .stand)
                         .frame(maxHeight: 280)
                         .accessibilityHidden(true)
                 }

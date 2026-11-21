@@ -15,7 +15,7 @@ struct InvitedView: View {
                     SmallLabel(text: "You're in")
                         .padding(.top, 18)
                     TitleText("\(model.nameA) invited you", size: 30)
-                    BustCircle(characterID: model.sceneA.characterID, size: 150, ring: Color.peachDeep,
+                    BustCircle(avatar: model.sceneA.avatar, size: 150, ring: Color.peachDeep,
                                ringWidth: 6, fill: Color.peach.opacity(0.6))
                         .padding(.vertical, 8)
                         .accessibilityLabel(model.nameA)

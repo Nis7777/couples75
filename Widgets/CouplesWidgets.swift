@@ -78,7 +78,7 @@ struct SmallWidgetView: View {
                     .trim(from: 0, to: max(0.02, progress))
                     .stroke(Color.gold, style: StrokeStyle(lineWidth: 7, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                WidgetBusts(a: s.characterA, b: s.characterB)
+                WidgetBusts(a: s.avatarA ?? Avatar(characterID: s.characterA), b: s.characterB.isEmpty ? nil : (s.avatarB ?? Avatar(characterID: s.characterB)))
                     .padding(10)
                     .clipShape(Circle())
                     .padding(6)
@@ -97,23 +97,24 @@ struct SmallWidgetView: View {
 
 /// Two busts side by side with flat bottoms.
 struct WidgetBusts: View {
-    var a: String
-    var b: String
+    var a: Avatar
+    /// nil: B hasn't joined, draw the dashed outline.
+    var b: Avatar?
 
     var body: some View {
         GeometryReader { geo in
             HStack(alignment: .bottom, spacing: -geo.size.width * 0.14) {
-                Image(Characters.assetName(a, .bust)).resizable().scaledToFit()
+                CharacterView(avatar: a, pose: .bust)
                     .frame(height: geo.size.height * 0.88)
                     .zIndex(1)
-                if b.isEmpty {
+                if let b {
+                    CharacterView(avatar: b, pose: .bust)
+                        .frame(height: geo.size.height)
+                } else {
                     Image("partner_outline").resizable().scaledToFit()
                         .frame(height: geo.size.height * 1.7, alignment: .top)
                         .frame(height: geo.size.height, alignment: .top)
                         .clipped()
-                } else {
-                    Image(Characters.assetName(b, .bust)).resizable().scaledToFit()
-                        .frame(height: geo.size.height)
                 }
             }
             .frame(width: geo.size.width, height: geo.size.height, alignment: .bottom)
@@ -127,7 +128,7 @@ struct MediumWidgetView: View {
     var body: some View {
         let s = entry.snapshot
         HStack(spacing: 14) {
-            WidgetBusts(a: s.characterA, b: s.characterB)
+            WidgetBusts(a: s.avatarA ?? Avatar(characterID: s.characterA), b: s.characterB.isEmpty ? nil : (s.avatarB ?? Avatar(characterID: s.characterB)))
                 .frame(width: 150)
                 .padding(.top, 6)
                 .padding(.bottom, -16)
