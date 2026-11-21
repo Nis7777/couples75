@@ -16,8 +16,8 @@ struct PlanRevealView: View {
                         .padding(.top, 10)
                         .padding(.bottom, 4)
                     RingHero(left: SceneCharacter(avatar: d.avatar, name: d.myName), right: nil,
-                             progress: 0.62, centerTitle: "Day 1", centerSubtitle: "→ 75", panelRadius: 0)
-                        .frame(height: 300)
+                             progress: 0.62, centerTitle: "Day 1", centerSubtitle: "→ 75", panelRadius: 0, inset: 20)
+                        .frame(height: 310)
                         .padding(.horizontal, -Metrics.side)
                     RulesColumnsCard(
                         leftName: d.myName, leftRules: PlanGenerator.titles(keys: d.ruleKeys, intensity: d.myIntensity),
@@ -26,7 +26,7 @@ struct PlanRevealView: View {
                         rightNote: "Draft: \(d.partnerName) can adjust when they join")
                     SavesCard(mode: d.level.mode)
                 }
-                .padding(.bottom, 8)
+                .padding(.bottom, 28)
             }
         } actions: {
             PrimaryButton("See our plan") { next() }

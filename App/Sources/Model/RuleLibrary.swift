@@ -4,7 +4,7 @@ import Foundation
 struct LibraryRule: Identifiable, Equatable {
     var key: String
     var type: RuleType
-    var easy: String
+    var gentle: String
     var standard: String
     var hard: String
     /// Shown under the rule title in the camera. Keeps photos non-intimate.
@@ -14,7 +14,7 @@ struct LibraryRule: Identifiable, Equatable {
 
     func title(for intensity: Intensity) -> String {
         switch intensity {
-        case .easy: return easy
+        case .gentle: return gentle
         case .standard: return standard
         case .hard: return hard
         }
@@ -23,28 +23,28 @@ struct LibraryRule: Identifiable, Equatable {
 
 enum RuleLibrary {
     static let all: [LibraryRule] = [
-        LibraryRule(key: "workout", type: .photo, easy: "20 min walk", standard: "45 min workout",
+        LibraryRule(key: "workout", type: .photo, gentle: "20 min walk", standard: "45 min workout",
                     hard: "Two 45 min workouts",
                     photoPrompt: "Photo of where you trained, your gear or your shoes after."),
-        LibraryRule(key: "water", type: .photo, easy: "2L of water", standard: "3L of water", hard: "4L of water",
+        LibraryRule(key: "water", type: .photo, gentle: "2L of water", standard: "3L of water", hard: "4L of water",
                     photoPrompt: "Photo of your bottle or today's glasses."),
-        LibraryRule(key: "reading", type: .photo, easy: "Read 5 pages", standard: "Read 10 pages",
+        LibraryRule(key: "reading", type: .photo, gentle: "Read 5 pages", standard: "Read 10 pages",
                     hard: "Read 20 pages",
                     photoPrompt: "Photo of the page you got to."),
-        LibraryRule(key: "coldShower", type: .photo, easy: "Cold shower", standard: "Cold shower",
+        LibraryRule(key: "coldShower", type: .photo, gentle: "Cold shower", standard: "Cold shower",
                     hard: "Cold shower",
                     photoPrompt: "Photo of the running shower or your face after. Never your body."),
-        LibraryRule(key: "steps", type: .photo, easy: "6k steps", standard: "8k steps", hard: "10k steps",
+        LibraryRule(key: "steps", type: .photo, gentle: "6k steps", standard: "8k steps", hard: "10k steps",
                     photoPrompt: "Photo of your step counter."),
-        LibraryRule(key: "noSugar", type: .honour, easy: "No sugar", standard: "No sugar", hard: "No sugar",
+        LibraryRule(key: "noSugar", type: .honour, gentle: "No sugar", standard: "No sugar", hard: "No sugar",
                     photoPrompt: ""),
-        LibraryRule(key: "noAlcohol", type: .honour, easy: "No alcohol", standard: "No alcohol",
+        LibraryRule(key: "noAlcohol", type: .honour, gentle: "No alcohol", standard: "No alcohol",
                     hard: "No alcohol", photoPrompt: ""),
-        LibraryRule(key: "noPhoneInBed", type: .honour, easy: "No phone in bed", standard: "No phone in bed",
+        LibraryRule(key: "noPhoneInBed", type: .honour, gentle: "No phone in bed", standard: "No phone in bed",
                     hard: "No phone in bed", photoPrompt: ""),
-        LibraryRule(key: "noJunk", type: .honour, easy: "No junk food", standard: "No junk food",
+        LibraryRule(key: "noJunk", type: .honour, gentle: "No junk food", standard: "No junk food",
                     hard: "No junk food", photoPrompt: ""),
-        LibraryRule(key: "bedtime", type: .honour, easy: "In bed by 23:30", standard: "In bed by 23:30",
+        LibraryRule(key: "bedtime", type: .honour, gentle: "In bed by 23:30", standard: "In bed by 23:30",
                     hard: "In bed by 23:30", photoPrompt: ""),
     ]
 
@@ -94,14 +94,14 @@ enum Goal: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-/// The level picked in onboarding (step 12): shown as "Easy", "Couples 75", "Hard mode".
+/// The level picked in onboarding (step 12): shown as "Gentle", "Couples 75", "Hard mode".
 enum Level: String, Codable, CaseIterable, Identifiable {
-    case easy, couples75, hard
+    case gentle, couples75, hard
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .easy: return "Easy"
+        case .gentle: return "Gentle"
         case .couples75: return "Couples 75"
         case .hard: return "Hard mode"
         }
@@ -109,12 +109,12 @@ enum Level: String, Codable, CaseIterable, Identifiable {
 
     var mode: RoundMode { self == .hard ? .hard : .standard }
 
-    /// Easy lowers each member's intensity one step, Hard mode raises it one step.
+    /// Gentle lowers each member's intensity one step, Hard mode raises it one step.
     func adjust(_ intensity: Intensity) -> Intensity {
-        let order: [Intensity] = [.easy, .standard, .hard]
+        let order: [Intensity] = [.gentle, .standard, .hard]
         let i = order.firstIndex(of: intensity) ?? 1
         switch self {
-        case .easy: return order[max(0, i - 1)]
+        case .gentle: return order[max(0, i - 1)]
         case .couples75: return intensity
         case .hard: return order[min(2, i + 1)]
         }

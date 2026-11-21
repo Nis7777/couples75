@@ -11,7 +11,8 @@ struct InviteView: View {
             VStack(spacing: 16) {
                 TitleText("Send \(model.nameB) their invite", size: 30)
                     .padding(.top, 22)
-                CoupleScene(left: model.sceneA, right: nil, crop: 0.64, overlap: 0.0)
+                // A and the dashed outline at the same height, starting right under the title.
+                CoupleScene(left: model.sceneA, right: nil, crop: 0.6, overlap: 0.0, alignment: .top, fillHeight: true)
                     .padding(.horizontal, -8)
                     .frame(maxHeight: .infinity)
                 InviteCodeCard()

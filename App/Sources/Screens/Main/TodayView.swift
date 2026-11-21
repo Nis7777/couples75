@@ -2,8 +2,12 @@ import SwiftUI
 
 /// 15: Today. Name + gold streak pill; peach hero with the gold ring, both characters, the speech bubble and
 /// the Done / x left chips; week dots; saves row; two rule cards side by side; Check in; stakes row.
+/// The warm-up (28) uses the same layout with the warm-up banner, a "Warm-up" pill and "Practise check-in ›".
 struct TodayView: View {
     @Environment(AppModel.self) private var model
+    var warmup = false
+    /// Back to the Waiting screen (warm-up started from there).
+    var onBack: (() -> Void)? = nil
     @State private var cameraRule: RuleFact?
     @State private var honourRule: RuleFact?
     @State private var openedCheckIn: CheckInFact?
@@ -54,6 +58,15 @@ struct TodayView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
+            if let onBack {
+                Button(action: onBack) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(Color.textPrimary)
+                        .frame(width: 28, height: 38)
+                }
+                .accessibilityLabel("Back")
+            }
             Text("\(model.nameA) & \(model.nameB)")
                 .font(.app(30, .bold))
                 .foregroundStyle(Color.textPrimary)
@@ -64,7 +77,22 @@ struct TodayView: View {
                     if AppEnvironment.isDebug { showDebug = true }
                 }
             Spacer()
-            StreakPill(streak: model.state.streak)
+            if warmup {
+                Text("Warm-up")
+                    .font(.app(14, .semibold))
+                    .foregroundStyle(Color.coral)
+                    .padding(.horizontal, 18)
+                    .frame(height: 34)
+                    .background(Capsule().fill(Color.peach))
+            } else {
+                StreakPill(streak: model.state.streak)
+            }
+            if !warmup { menu }
+        }
+        .padding(.top, 10)
+    }
+
+    private var menu: some View {
             Menu {
                 Button {
                     showPauseRequest = true
@@ -87,14 +115,28 @@ struct TodayView: View {
                     .overlay(Circle().stroke(Color.cardBorder, lineWidth: 1))
             }
             .accessibilityLabel("More")
-        }
-        .padding(.top, 10)
     }
 
     // MARK: Banners
 
     @ViewBuilder
     private var banners: some View {
+        if warmup {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Warm-up day: this doesn't count")
+                    .font(.app(18, .bold))
+                    .foregroundStyle(Color.textPrimary)
+                Text(model.memberB?.joinedAt != nil
+                     ? "Practise a check-in today. Day 1 starts tomorrow morning."
+                     : "Practise a check-in while you wait for \(model.partnerName). Day 1 starts the morning after \(model.partnerName) joins.")
+                    .font(.app(15))
+                    .foregroundStyle(Color.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .peachBox(radius: 18)
+        }
         if let partner = model.partner, model.state.lapsedMembers.contains(partner.id), round?.status == .active {
             Banner(text: "\(partner.name)'s subscription ended. Your run is paused until they renew.", icon: "pause.circle.fill")
         } else if model.state.isFrozen {
@@ -159,7 +201,9 @@ struct TodayView: View {
         let day = model.myToday?.dayNumber
         let title: String
         let subtitle: String?
-        if model.myToday?.isPaused == true || model.state.isFrozen {
+        if warmup {
+            title = "Warm-up"; subtitle = model.memberB?.joinedAt != nil ? "Day 1 tomorrow" : "Day 1 soon"
+        } else if model.myToday?.isPaused == true || model.state.isFrozen {
             title = "Paused"; subtitle = nil
         } else if model.myToday?.beforeStart == true {
             title = "Day 1"; subtitle = "tomorrow"
@@ -169,23 +213,23 @@ struct TodayView: View {
             title = "DAY \(day ?? 0)"; subtitle = "/ \(Brand.roundLengthDays)"
         }
         let bubble = speechBubble(ta: ta, tb: tb)
-        return RingHero(left: model.sceneA, right: model.sceneB,
+        return RingHero(left: model.sceneA, right: model.sceneBJoined ?? (warmup ? nil : model.sceneB),
                         progress: Double(day ?? 0) / Double(Brand.roundLengthDays),
                         centerTitle: title, centerSubtitle: subtitle, topLabel: Brand.appName,
                         leftChip: chip(ta), rightChip: chip(tb),
                         bubble: bubble?.text, bubbleFromLeft: bubble?.fromA ?? true, panelRadius: 22)
-            .frame(height: 330)
+            .frame(height: 340)
     }
 
     private func speechBubble(ta: MemberToday?, tb: MemberToday?) -> (text: String, fromA: Bool)? {
-        guard let ta, let tb, ta.dayNumber != nil, tb.dayNumber != nil else { return nil }
+        guard let ta, let tb, warmup || (ta.dayNumber != nil && tb.dayNumber != nil) else { return nil }
         if ta.isComplete && !tb.isComplete { return ("\(model.nameA)'s done. Your turn.", true) }
         if tb.isComplete && !ta.isComplete { return ("\(model.nameB)'s done. Your turn.", false) }
         return nil
     }
 
     private func chip(_ t: MemberToday?) -> StatusChip? {
-        guard let t, t.dayNumber != nil else { return nil }
+        guard let t, warmup || t.dayNumber != nil else { return nil }
         return t.isComplete ? StatusChip(text: "Done", color: .sage) : StatusChip(text: "\(t.remaining) left", color: .brownChip)
     }
 
@@ -290,23 +334,25 @@ struct TodayView: View {
 
     private var rulesSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Today's rules")
+            Text(warmup ? "Today's practice" : "Today's rules")
                 .font(.app(21, .bold))
                 .foregroundStyle(Color.textPrimary)
             HStack(alignment: .top, spacing: 12) {
                 rulesCard(member: model.memberA, today: model.todayA, color: .coral)
-                rulesCard(member: model.memberB, today: model.todayB, color: .sage)
+                rulesCard(member: model.memberB, today: model.todayB, color: .sage,
+                          name: model.nameB, fallback: model.memberB == nil ? model.draftRulesForB : [])
             }
         }
         .padding(.top, 4)
     }
 
-    private func rulesCard(member: MemberFact?, today: MemberToday?, color: Color) -> some View {
+    private func rulesCard(member: MemberFact?, today: MemberToday?, color: Color,
+                           name: String? = nil, fallback: [RuleFact] = []) -> some View {
         let isMe = member?.id == model.meID
         let toReact = isMe ? 0 : (today?.items ?? []).filter { $0.checkIn.map { !model.hasReacted(to: $0) } ?? false }.count
         return VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
-                Text(member?.name ?? "")
+                Text(member?.name ?? name ?? "")
                     .font(.app(18, .bold))
                     .foregroundStyle(color)
                 Spacer(minLength: 4)
@@ -317,11 +363,11 @@ struct TodayView: View {
                         .lineLimit(1)
                 }
             }
-            ForEach(today?.items ?? []) { item in
+            ForEach(today?.items ?? fallback.map { ChecklistItem(rule: $0, checkIn: nil, state: .open) }) { item in
                 Button {
                     tap(item, isMe: isMe, today: today)
                 } label: {
-                    HStack(alignment: .top, spacing: 9) {
+                    HStack(alignment: .center, spacing: 8) {
                         if !isMe, let c = item.checkIn, c.hasPhoto {
                             CheckInThumb(checkIn: c, size: 26, radius: 7)
                                 .overlay(alignment: .topTrailing) {
@@ -338,9 +384,9 @@ struct TodayView: View {
                             Text(item.rule.title)
                                 .font(.app(15, .medium))
                                 .foregroundStyle(Color.textPrimary)
-                                .multilineTextAlignment(.leading)
-                                .fixedSize(horizontal: false, vertical: true)
-                            if isMe, !item.isChecked, item.rule.type == .honour, hour < 18 {
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                            if isMe, !warmup, !item.isChecked, item.rule.type == .honour, hour < 18 {
                                 Text("Tap tonight")
                                     .font(.app(12, .medium))
                                     .foregroundStyle(Color.textSecondary.opacity(0.85))
@@ -364,7 +410,8 @@ struct TodayView: View {
                 .accessibilityHint(isMe && !item.isChecked ? "Check in" : (item.checkIn != nil ? "Open check-in" : ""))
             }
         }
-        .padding(16)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .card(radius: 18)
     }
@@ -384,6 +431,7 @@ struct TodayView: View {
 
     private func canCheckIn(_ today: MemberToday?) -> Bool {
         guard let today else { return false }
+        if warmup { return true }
         if model.state.isFrozen || today.isPaused || today.finishedRound { return false }
         return today.dayNumber != nil || model.isWarmup
     }
@@ -402,7 +450,7 @@ struct TodayView: View {
         guard canCheckIn(model.myToday) else { return nil }
         let open = (model.myToday?.items ?? []).filter { !$0.isChecked }
         if let photo = open.first(where: { $0.rule.type == .photo }) { return photo.rule }
-        if hour >= 18 { return open.first?.rule }
+        if warmup || hour >= 18 { return open.first?.rule }
         return nil
     }
 
@@ -411,7 +459,7 @@ struct TodayView: View {
         if model.myToday?.isComplete == true {
             HStack(spacing: 8) {
                 Image(systemName: "checkmark.seal.fill")
-                Text("All done today").font(.app(18, .semibold))
+                Text(warmup ? "Practice done" : "All done today").font(.app(18, .semibold))
             }
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
@@ -419,7 +467,7 @@ struct TodayView: View {
             .background(Capsule().fill(Color.sage))
             .accessibilityElement(children: .combine)
         } else {
-            PrimaryButton("Check in", isEnabled: nextRule != nil) {
+            PrimaryButton(warmup ? "Practise check-in" : "Check in", isEnabled: nextRule != nil) {
                 if let r = nextRule { open(r) }
             }
         }

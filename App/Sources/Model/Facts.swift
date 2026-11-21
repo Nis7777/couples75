@@ -36,16 +36,16 @@ enum FitnessLevel: String, Codable, CaseIterable, Equatable {
 
     var intensity: Intensity {
         switch self {
-        case .justStarting: return .easy
+        case .justStarting: return .gentle
         case .somewhatActive: return .standard
         case .veryActive: return .hard
         }
     }
 }
 
-/// Rule intensity, shown to users as "Easy" / "Couples 75" / "Hard mode".
+/// Rule intensity, shown to users as "Gentle" / "Couples 75" / "Hard mode".
 enum Intensity: String, Codable, CaseIterable, Equatable {
-    case easy
+    case gentle
     case standard
     case hard
 }

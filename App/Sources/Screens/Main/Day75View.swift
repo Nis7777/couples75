@@ -181,7 +181,8 @@ struct StartNextRoundSheet: View {
             if step == 0 {
                 WakeTimePickerView(wakeTime: $wake, step: 1, total: 2, back: { dismiss() }) { step = 1 }
             } else {
-                LevelPickerView(level: $level, step: 2, total: 2, back: { step = 0 },
+                LevelPickerView(level: $level, left: model.sceneA, right: model.sceneB, step: 2, total: 2,
+                                back: { step = 0 },
                                 buttonTitle: "Start round \(round.number + 1)") {
                     guard !saving else { return }
                     saving = true

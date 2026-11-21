@@ -13,6 +13,10 @@ struct CoupleScene: View {
     var rightPose: CharacterPose = .stand
     var crop: CGFloat = 1
     var overlap: CGFloat = 0.06
+    /// Where the pair sits when the space is bigger than it needs (bottom by default; top for 14).
+    var alignment: VerticalAlignment = .bottom
+    /// Show as much of the figures as the height allows (at least `crop`), so there's no empty band.
+    var fillHeight = false
 
     private var leftAsset: String { Characters.assetName(left.characterID, leftPose) }
     private var rightAsset: String { right.map { Characters.assetName($0.characterID, rightPose) } ?? "partner_outline" }
@@ -21,8 +25,9 @@ struct CoupleScene: View {
         GeometryReader { geo in
             let aL = Characters.aspect(of: leftAsset)
             let aR = Characters.aspect(of: rightAsset)
-            let c = max(0.2, min(1, crop))
-            let full = max(1, min(geo.size.height / c, geo.size.width / ((aL + aR) * (1 - overlap))))
+            let byWidth = geo.size.width / ((aL + aR) * (1 - overlap))
+            let c = fillHeight ? max(min(1, geo.size.height / max(byWidth, 1)), max(0.2, crop)) : max(0.2, min(1, crop))
+            let full = max(1, min(geo.size.height / c, byWidth))
             HStack(alignment: .top, spacing: -(aL + aR) * full * overlap) {
                 CharacterView(avatar: left.avatar, pose: leftPose)
                     .frame(width: aL * full, height: full)
@@ -40,7 +45,7 @@ struct CoupleScene: View {
                 .frame(height: full * c, alignment: .top)
                 .clipped()
             }
-            .frame(width: geo.size.width, height: geo.size.height, alignment: .bottom)
+            .frame(width: geo.size.width, height: geo.size.height, alignment: alignment == .top ? .top : .bottom)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(right.map { "\(left.name) and \($0.name)" } ?? "\(left.name) and a partner who hasn't joined yet")
@@ -132,8 +137,9 @@ struct StatusChip: Equatable {
     var color: Color
 }
 
-/// The hero of Today (15) and the plan reveal (11): a peach panel, a big gold ring behind the couple,
-/// the day in the middle, status chips under each character and an optional speech bubble.
+/// The hero of Today (15) and the plan reveal (11): a peach panel, a big gold ring centred behind the couple,
+/// the day between their heads, status chips across their waists and an optional speech bubble.
+/// Both characters are shown head to waist and always fit inside the panel with at least `inset` margin.
 struct RingHero: View {
     var left: SceneCharacter
     var right: SceneCharacter?
@@ -146,27 +152,31 @@ struct RingHero: View {
     var bubble: String? = nil
     var bubbleFromLeft = true
     var panelRadius: CGFloat = 24
+    var inset: CGFloat = 16
     var leftPose: CharacterPose = .stand
     var rightPose: CharacterPose = .stand
 
     var body: some View {
         GeometryReader { geo in
             let w = geo.size.width, h = geo.size.height
-            let ring = min(w * 0.78, h * 0.86)
+            let labelSpace: CGFloat = topLabel == nil ? 0 : 26
+            let ring = min(w - inset * 2, (h - labelSpace) * 0.86)
+            let ringCenterY = labelSpace + (h - labelSpace) * 0.47
             let hasChips = leftChip != nil || rightChip != nil
-            let chipSpace: CGFloat = hasChips ? 22 : 0
-            ZStack(alignment: .top) {
+            let chipHeight: CGFloat = 40
+            ZStack(alignment: .topLeading) {
                 PeachPanelFill(radius: panelRadius)
                 if let topLabel {
                     Text(topLabel.uppercased())
                         .font(.app(13, .semibold))
-                        .tracking(0.6)
+                        .tracking(0.8)
                         .foregroundStyle(Color.textPrimary)
+                        .frame(width: w)
                         .padding(.top, 10)
                 }
                 RingArc(progress: progress, lineWidth: max(10, ring * 0.075))
                     .frame(width: ring, height: ring)
-                    .padding(.top, topLabel == nil ? h * 0.05 : 34)
+                    .position(x: w / 2, y: ringCenterY)
                 VStack(spacing: 0) {
                     Text(centerTitle)
                         .font(.app(min(30, ring * 0.12), .bold))
@@ -178,30 +188,29 @@ struct RingHero: View {
                     }
                 }
                 .multilineTextAlignment(.center)
-                .frame(width: ring * 0.36)
+                .lineLimit(1)
                 .minimumScaleFactor(0.6)
-                .padding(.top, (topLabel == nil ? h * 0.05 : 34) + ring * 0.34)
+                .frame(width: ring * 0.34)
+                .position(x: w / 2, y: ringCenterY - ring * 0.05)
+                // Head to waist, inside the panel with a margin on every side.
                 CoupleScene(left: left, right: right, leftPose: leftPose, rightPose: rightPose,
-                            crop: 0.56, overlap: -0.42)
-                    .frame(height: h * 0.74)
-                    .frame(maxHeight: .infinity, alignment: .bottom)
-                    .padding(.bottom, chipSpace)
+                            crop: 0.56, overlap: -0.46)
+                    .frame(width: w - inset * 2, height: h * 0.70)
+                    .position(x: w / 2, y: h - h * 0.35)
                     .accessibilityHidden(true)
                 if hasChips {
-                    HStack(spacing: w * 0.08) {
+                    HStack(spacing: w * 0.1) {
                         chip(leftChip)
                         chip(rightChip)
                     }
-                    .padding(.horizontal, w * 0.1)
-                    .frame(maxHeight: .infinity, alignment: .bottom)
-                    .padding(.bottom, 12)
+                    .frame(width: w - inset * 2 - w * 0.08)
+                    .position(x: w / 2, y: h - inset - chipHeight / 2)
                 }
                 if let bubble {
                     SpeechBubble(text: bubble, tailOnLeft: bubbleFromLeft)
                         .frame(maxWidth: w * 0.42)
-                        .frame(maxWidth: .infinity, alignment: bubbleFromLeft ? .leading : .trailing)
-                        .padding(.horizontal, w * 0.06)
-                        .padding(.top, h * 0.2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .position(x: bubbleFromLeft ? w * 0.27 : w * 0.73, y: labelSpace + h * 0.16)
                 }
             }
             .frame(width: w, height: h)
@@ -222,10 +231,10 @@ struct RingHero: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .frame(maxWidth: .infinity)
-                .frame(height: 42)
+                .frame(height: 40)
                 .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(c.color))
         } else {
-            Color.clear.frame(maxWidth: .infinity).frame(height: 42)
+            Color.clear.frame(maxWidth: .infinity).frame(height: 40)
         }
     }
 }

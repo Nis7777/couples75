@@ -26,6 +26,12 @@ struct MainView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .safeAreaInset(edge: .bottom) { Color.clear.frame(height: FloatingTabBar.height + 22) }
 
+            // Content scrolling under the bar fades out instead of peeking above its edge.
+            LinearGradient(colors: [Color.ivory.opacity(0), Color.ivory.opacity(0.96), Color.ivory],
+                           startPoint: .top, endPoint: .bottom)
+                .frame(height: FloatingTabBar.height + 34)
+                .ignoresSafeArea(edges: .bottom)
+                .allowsHitTesting(false)
             FloatingTabBar(selection: $model.tab, proofBadge: model.proofBadge)
                 .padding(.bottom, 6)
         }
@@ -87,12 +93,12 @@ struct TodayTab: View {
         switch model.state.phase {
         case .waitingForPartner:
             if showWarmup {
-                WarmupView(onBack: { showWarmup = false })
+                TodayView(warmup: true, onBack: { showWarmup = false })
             } else {
                 WaitingView(startWarmup: { showWarmup = true })
             }
         case .warmup:
-            WarmupView(onBack: nil)
+            TodayView(warmup: true)
         default:
             TodayView()
         }
