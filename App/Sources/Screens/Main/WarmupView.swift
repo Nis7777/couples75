@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// 28: "Warm-up day: this doesn't count". Practice check-ins are stored with isWarmup = true.
+/// 28: warm-up day. A peach banner with a coral border at the top, the couple, "Today's practice"
+/// in two columns, "Practise check-in". Practice check-ins are stored with isWarmup = true.
 struct WarmupView: View {
     @Environment(AppModel.self) private var model
     var onBack: (() -> Void)?
@@ -11,55 +12,54 @@ struct WarmupView: View {
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 16) {
-                HStack {
-                    if let onBack {
-                        Button(action: onBack) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundStyle(Color.textPrimary)
-                                .frame(width: 36, height: 36)
-                        }
-                        .accessibilityLabel("Back")
-                    }
-                    Text("\(model.nameA) & \(model.nameB)")
-                        .font(.rounded(20))
+            VStack(spacing: 14) {
+                CoupleHeader(pill: "Warm-up", onBack: onBack)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Warm-up day: this doesn't count")
+                        .font(.app(18, .bold))
                         .foregroundStyle(Color.textPrimary)
-                    Spacer()
-                    Pill(text: "Warm-up", fill: .peach, foreground: .coral)
-                }
-                .padding(.top, 8)
-
-                Banner(text: "Warm-up day: this doesn't count", fill: .peach, foreground: .coral, icon: "sun.haze")
-
-                BodyText(partnerJoined
+                    Text(partnerJoined
                          ? "Practise a check-in today. Day 1 starts tomorrow morning."
                          : "Practise a check-in while you wait. Day 1 starts the morning after \(model.nameB) joins.")
+                        .font(.app(15))
+                        .foregroundStyle(Color.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .peachBox(radius: 18)
 
-                CoupleScene(left: model.sceneA, right: model.sceneBJoined, leftPose: .stretch, rightPose: .stretch)
-                    .frame(height: 240)
+                CoupleScene(left: model.sceneA, right: model.sceneBJoined,
+                            crop: 0.56, overlap: -0.05)
+                    .frame(height: 230)
 
                 Text("Today's practice")
-                    .font(.app(17, .bold))
+                    .font(.app(21, .bold))
                     .foregroundStyle(Color.textPrimary)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 HStack(alignment: .top, spacing: 12) {
-                    practiceColumn(name: model.nameA, member: model.memberA, rules: rulesA, color: .coral)
-                    practiceColumn(name: model.nameB, member: model.memberB, rules: rulesB, color: .sage)
+                    practiceColumn(name: model.nameA, member: model.memberA, rules: rulesA)
+                    practiceColumn(name: model.nameB, member: model.memberB, rules: rulesB)
                 }
 
                 PrimaryButton("Practise check-in", isEnabled: nextRule != nil) {
                     guard let r = nextRule else { return }
                     open(r)
                 }
+                if !partnerJoined {
+                    Text("Waiting for \(model.nameB)")
+                        .font(.app(14, .medium))
+                        .foregroundStyle(Color.textSecondary)
+                }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, Metrics.side)
             .padding(.bottom, 24)
         }
         .refreshable { await model.refresh() }
         .fullScreenCover(item: $cameraRule) { r in CheckInCameraView(rule: r) }
-        .sheet(item: $honourRule) { r in HonourSheet(rule: r).presentationDetents([.height(320)]) }
+        .sheet(item: $honourRule) { r in HonourSheet(rule: r).presentationDetents([.height(340)]) }
     }
 
     private var rulesA: [RuleFact] { model.memberA.map { model.rules(for: $0.id) } ?? [] }
@@ -78,22 +78,22 @@ struct WarmupView: View {
         if r.type == .photo { cameraRule = r } else { honourRule = r }
     }
 
-    private func practiceColumn(name: String, member: MemberFact?, rules: [RuleFact], color: Color) -> some View {
+    private func practiceColumn(name: String, member: MemberFact?, rules: [RuleFact]) -> some View {
         let isMe = member?.id == model.meID
         let items = member.flatMap { model.state.today[$0.id]?.items } ?? []
-        return VStack(alignment: .leading, spacing: 10) {
+        return VStack(alignment: .leading, spacing: 14) {
             Text(name)
-                .font(.app(15, .bold))
-                .foregroundStyle(color)
+                .font(.app(18, .bold))
+                .foregroundStyle(Color.textPrimary)
             ForEach(rules) { r in
                 let checked = items.first { $0.rule.id == r.id }?.isChecked ?? false
                 Button {
                     if isMe { open(r) }
                 } label: {
-                    HStack(spacing: 8) {
-                        CheckCircle(isOn: checked, color: color, size: 20)
+                    HStack(spacing: 10) {
+                        CheckCircle(isOn: checked, color: .coral, size: 22)
                         Text(r.title)
-                            .font(.app(14))
+                            .font(.app(15, .medium))
                             .foregroundStyle(Color.textPrimary)
                             .multilineTextAlignment(.leading)
                         Spacer(minLength: 0)
@@ -103,8 +103,8 @@ struct WarmupView: View {
                 .accessibilityLabel("\(r.title), \(checked ? "practised" : "not practised")")
             }
         }
-        .padding(14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .card()
+        .padding(16)
+        .frame(maxWidth: .infinity, minHeight: 200, alignment: .topLeading)
+        .card(radius: 18)
     }
 }

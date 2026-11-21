@@ -2,7 +2,8 @@ import SwiftUI
 import UIKit
 import StoreKit
 
-/// 27: "Waiting for {B}".
+/// 27: "Waiting for {B}": header with a "Not started" pill, A standing next to the dashed outline,
+/// Remind button plus an outlined Copy invite code button.
 struct WaitingView: View {
     @Environment(AppModel.self) private var model
     var startWarmup: () -> Void
@@ -20,30 +21,24 @@ struct WaitingView: View {
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 16) {
-                HStack {
-                    Text("\(model.nameA) & \(model.nameB)")
-                        .font(.rounded(20))
-                        .foregroundStyle(Color.textPrimary)
-                    Spacer()
-                    Pill(text: "Not started", fill: .peach, foreground: .coral)
-                }
-                .padding(.top, 8)
+            VStack(spacing: 14) {
+                CoupleHeader(pill: "Not started")
 
                 if model.isOwner {
-                    TitleText(bIsJoining ? "\(model.nameB) is joining" : "Waiting for \(model.nameB)")
-                        .padding(.top, 8)
+                    TitleText(bIsJoining ? "\(model.nameB) is joining" : "Waiting for \(model.nameB)", size: 30)
+                        .padding(.top, 14)
                     BodyText(bIsJoining
                              ? "\(model.nameB) is setting up. Day 1 starts the morning after \(model.nameB) subscribes."
-                             : "Day 1 starts the morning after \(model.nameB) joins and subscribes.")
+                             : "Day 1 starts the morning after \(model.nameB) joins and subscribes.", size: 15)
                 } else {
-                    TitleText("Almost there")
-                        .padding(.top, 8)
-                    BodyText("Day 1 starts the morning after you've both subscribed.")
+                    TitleText("Almost there", size: 30)
+                        .padding(.top, 14)
+                    BodyText("Day 1 starts the morning after you've both subscribed.", size: 15)
                 }
 
-                CoupleScene(left: model.sceneA, right: model.sceneB)
-                    .frame(height: 300)
+                CoupleScene(left: model.sceneA, right: model.sceneB, crop: 0.64, overlap: 0)
+                    .frame(height: 330)
+                    .padding(.horizontal, -8)
 
                 if model.isOwner {
                     if !bIsJoining {
@@ -68,18 +63,52 @@ struct WaitingView: View {
                     }
                 }
 
-                TextLinkButton("Or start a warm-up day. It doesn't count.", color: .coral) { startWarmup() }
+                TextLinkButton("Or start a warm-up day. It doesn't count.", color: .textSecondary) { startWarmup() }
 
                 if model.isMock && model.isOwner {
-                    TextLinkButton("Mock: simulate \(model.nameB) joining") {
+                    TextLinkButton("Mock: simulate \(model.nameB) joining", color: .coral) {
                         Task { await model.debugSimulatePartnerJoin() }
                     }
                 }
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, Metrics.side)
             .padding(.bottom, 24)
         }
         .refreshable { await model.refresh() }
         .manageSubscriptionsSheet(isPresented: $showManage)
+    }
+}
+
+/// "{A} & {B}" on the left and a soft peach status pill on the right (27, 28).
+struct CoupleHeader: View {
+    @Environment(AppModel.self) private var model
+    var pill: String
+    var onBack: (() -> Void)? = nil
+
+    var body: some View {
+        HStack(spacing: 8) {
+            if let onBack {
+                Button(action: onBack) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(Color.textPrimary)
+                        .frame(width: 32, height: 36)
+                }
+                .accessibilityLabel("Back")
+            }
+            Text("\(model.nameA) & \(model.nameB)")
+                .font(.app(24, .bold))
+                .foregroundStyle(Color.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Spacer()
+            Text(pill)
+                .font(.app(13, .semibold))
+                .foregroundStyle(Color.coral)
+                .padding(.horizontal, 20)
+                .frame(height: 32)
+                .background(Capsule().fill(Color.peach))
+        }
+        .padding(.top, 12)
     }
 }

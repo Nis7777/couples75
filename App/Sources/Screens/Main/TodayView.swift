@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// 15: Today.
+/// 15: Today. Name + gold streak pill; peach hero with the gold ring, both characters, the speech bubble and
+/// the Done / x left chips; week dots; saves row; two rule cards side by side; Check in; stakes row.
 struct TodayView: View {
     @Environment(AppModel.self) private var model
     @State private var cameraRule: RuleFact?
@@ -14,30 +15,29 @@ struct TodayView: View {
     private var round: RoundState? { model.currentRound }
     private var hour: Int {
         _ = model.clockTick
-        let tz = model.me?.tz ?? .current
         var cal = Calendar(identifier: .gregorian)
-        cal.timeZone = tz
+        cal.timeZone = model.me?.tz ?? .current
         return cal.component(.hour, from: model.now())
     }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 16) {
+            VStack(spacing: 14) {
                 header
                 banners
-                ringScene
-                WeekDotsView(days: weekDays)
+                hero
+                WeekDotsView(days: weekDays, streak: model.state.streak)
                 savesRow
                 rulesSection
                 checkInButton
                 stakesRow
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, Metrics.side)
             .padding(.bottom, 24)
         }
         .refreshable { await model.refresh() }
         .fullScreenCover(item: $cameraRule) { r in CheckInCameraView(rule: r) }
-        .sheet(item: $honourRule) { r in HonourSheet(rule: r).presentationDetents([.height(320)]) }
+        .sheet(item: $honourRule) { r in HonourSheet(rule: r).presentationDetents([.height(340)]) }
         .sheet(item: $openedCheckIn) { c in PartnerCheckInView(checkIn: c) }
         .sheet(isPresented: $showPauseRequest) { PauseRequestView() }
         .sheet(isPresented: $showPauseAnswer) {
@@ -54,17 +54,16 @@ struct TodayView: View {
     private var header: some View {
         HStack(spacing: 10) {
             Text("\(model.nameA) & \(model.nameB)")
-                .font(.rounded(22))
+                .font(.app(30, .bold))
                 .foregroundStyle(Color.textPrimary)
                 .lineLimit(1)
-                .minimumScaleFactor(0.7)
+                .minimumScaleFactor(0.6)
                 .accessibilityAddTraits(.isHeader)
                 .onTapGesture(count: 3) {
                     if AppEnvironment.isDebug { showDebug = true }
                 }
             Spacer()
-            Pill(text: "🔥 \(model.state.streak)", fill: .gold)
-                .accessibilityLabel("Streak \(model.state.streak) days")
+            StreakPill(streak: model.state.streak)
             Menu {
                 Button {
                     showPauseRequest = true
@@ -80,15 +79,15 @@ struct TodayView: View {
                 }
             } label: {
                 Image(systemName: "ellipsis")
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.system(size: 17, weight: .bold))
                     .foregroundStyle(Color.textPrimary)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 38, height: 38)
                     .background(Circle().fill(Color.white))
                     .overlay(Circle().stroke(Color.cardBorder, lineWidth: 1))
             }
             .accessibilityLabel("More")
         }
-        .padding(.top, 8)
+        .padding(.top, 10)
     }
 
     // MARK: Banners
@@ -141,43 +140,40 @@ struct TodayView: View {
     private func actionCard(title: String, button: String, action: @escaping () -> Void) -> some View {
         HStack {
             Text(title)
-                .font(.app(15, .semibold))
+                .font(.app(16, .semibold))
                 .foregroundStyle(Color.textPrimary)
             Spacer()
             Button(button, action: action)
-                .font(.app(15, .bold))
+                .font(.app(16, .bold))
                 .foregroundStyle(Color.coral)
         }
-        .padding(14)
-        .card(radius: 14)
+        .padding(16)
+        .card(radius: 16)
     }
 
-    // MARK: Ring scene
+    // MARK: Hero
 
-    private var ringScene: some View {
+    private var hero: some View {
         let ta = model.todayA, tb = model.todayB
         let day = model.myToday?.dayNumber
-        let caption: String? = {
-            if model.myToday?.isPaused == true || model.state.isFrozen { return "Paused" }
-            if model.myToday?.beforeStart == true { return "Starts\ntomorrow" }
-            if model.myToday?.finishedRound == true { return "Done" }
-            return nil
-        }()
-        return VStack(spacing: 8) {
-            ZStack(alignment: .top) {
-                RingScene(left: model.sceneA, right: model.sceneB, day: day, caption: caption)
-                    .frame(height: 290)
-                if let bubble = speechBubble(ta: ta, tb: tb) {
-                    SpeechBubble(text: bubble.text)
-                        .frame(maxWidth: .infinity, alignment: bubble.fromA ? .leading : .trailing)
-                        .padding(.top, 4)
-                }
-            }
-            HStack {
-                statusChip(ta).frame(maxWidth: .infinity)
-                statusChip(tb).frame(maxWidth: .infinity)
-            }
+        let title: String
+        let subtitle: String?
+        if model.myToday?.isPaused == true || model.state.isFrozen {
+            title = "Paused"; subtitle = nil
+        } else if model.myToday?.beforeStart == true {
+            title = "Day 1"; subtitle = "tomorrow"
+        } else if model.myToday?.finishedRound == true {
+            title = "Done"; subtitle = "75 / 75"
+        } else {
+            title = "DAY \(day ?? 0)"; subtitle = "/ \(Brand.roundLengthDays)"
         }
+        let bubble = speechBubble(ta: ta, tb: tb)
+        return RingHero(left: model.sceneA, right: model.sceneB,
+                        progress: Double(day ?? 0) / Double(Brand.roundLengthDays),
+                        centerTitle: title, centerSubtitle: subtitle, topLabel: Brand.appName,
+                        leftChip: chip(ta), rightChip: chip(tb),
+                        bubble: bubble?.text, bubbleFromLeft: bubble?.fromA ?? true, panelRadius: 22)
+            .frame(height: 330)
     }
 
     private func speechBubble(ta: MemberToday?, tb: MemberToday?) -> (text: String, fromA: Bool)? {
@@ -187,17 +183,9 @@ struct TodayView: View {
         return nil
     }
 
-    @ViewBuilder
-    private func statusChip(_ t: MemberToday?) -> some View {
-        if let t, t.dayNumber != nil {
-            if t.isComplete {
-                Pill(text: "Done", fill: .sage)
-            } else {
-                Pill(text: "\(t.remaining) left", fill: .brownChip)
-            }
-        } else {
-            Color.clear.frame(height: 24)
-        }
+    private func chip(_ t: MemberToday?) -> StatusChip? {
+        guard let t, t.dayNumber != nil else { return nil }
+        return t.isComplete ? StatusChip(text: "Done", color: .sage) : StatusChip(text: "\(t.remaining) left", color: .brownChip)
     }
 
     // MARK: Week dots
@@ -220,7 +208,7 @@ struct TodayView: View {
                 case .paused, .frozen: kind = .paused
                 }
             } else if d == today {
-                kind = paused.contains(d) ? .paused : .today
+                kind = paused.contains(d) ? .paused : (model.myToday?.isComplete == true ? .complete : .today)
             } else if d > today {
                 kind = paused.contains(d) ? .paused : .future
             }
@@ -234,21 +222,24 @@ struct TodayView: View {
         HStack(spacing: 10) {
             if (round?.mode ?? model.currentMode) == .hard {
                 Text("Hard mode · no saves")
-                    .font(.app(14, .semibold))
+                    .font(.app(15, .semibold))
                     .foregroundStyle(Color.textPrimary)
             } else {
                 Text("Saves")
-                    .font(.app(14, .semibold))
+                    .font(.app(15, .semibold))
                     .foregroundStyle(Color.textPrimary)
-                SaveSquares(left: round?.savesLeft ?? Brand.savesPerRound, total: Brand.savesPerRound)
+                SaveSquares(left: round?.savesLeft ?? Brand.savesPerRound, total: Brand.savesPerRound, size: 16)
             }
             Spacer()
             Text(scoreText)
-                .font(.app(13, .medium))
+                .font(.app(14, .medium))
                 .foregroundStyle(Color.textSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
         }
-        .padding(14)
-        .card(radius: 14)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 13)
+        .card(radius: 16)
         .accessibilityElement(children: .combine)
     }
 
@@ -263,40 +254,41 @@ struct TodayView: View {
     private var rulesSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Today's rules")
-                .font(.app(17, .bold))
+                .font(.app(21, .bold))
                 .foregroundStyle(Color.textPrimary)
             HStack(alignment: .top, spacing: 12) {
                 rulesCard(member: model.memberA, today: model.todayA, color: .coral)
                 rulesCard(member: model.memberB, today: model.todayB, color: .sage)
             }
         }
+        .padding(.top, 4)
     }
 
     private func rulesCard(member: MemberFact?, today: MemberToday?, color: Color) -> some View {
         let isMe = member?.id == model.meID
         return VStack(alignment: .leading, spacing: 10) {
             Text(member?.name ?? "")
-                .font(.app(15, .bold))
+                .font(.app(18, .bold))
                 .foregroundStyle(color)
             ForEach(today?.items ?? []) { item in
                 Button {
                     tap(item, isMe: isMe, today: today)
                 } label: {
-                    HStack(alignment: .top, spacing: 8) {
-                        CheckCircle(isOn: item.isChecked, color: color, size: 22)
-                        VStack(alignment: .leading, spacing: 2) {
+                    HStack(alignment: .top, spacing: 9) {
+                        CheckCircle(isOn: item.isChecked, color: .coral, size: 22)
+                        VStack(alignment: .leading, spacing: 1) {
                             Text(item.rule.title)
-                                .font(.app(14, .medium))
+                                .font(.app(15, .medium))
                                 .foregroundStyle(Color.textPrimary)
                                 .multilineTextAlignment(.leading)
                                 .fixedSize(horizontal: false, vertical: true)
                             if isMe, !item.isChecked, item.rule.type == .honour, hour < 18 {
                                 Text("Tap tonight")
-                                    .font(.app(12))
-                                    .foregroundStyle(Color.textSecondary)
+                                    .font(.app(12, .medium))
+                                    .foregroundStyle(Color.textSecondary.opacity(0.85))
                             } else if item.state == .notSent {
                                 Text("Not sent yet")
-                                    .font(.app(12))
+                                    .font(.app(12, .semibold))
                                     .foregroundStyle(Color.coral)
                             } else if let c = item.checkIn, let status = model.partnerStatus(of: c), isMe {
                                 Text(status)
@@ -314,9 +306,9 @@ struct TodayView: View {
                 .accessibilityHint(isMe && !item.isChecked ? "Check in" : (item.checkIn != nil ? "Open check-in" : ""))
             }
         }
-        .padding(14)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .card()
+        .card(radius: 18)
     }
 
     private func tap(_ item: ChecklistItem, isMe: Bool, today: MemberToday?) {
@@ -355,10 +347,15 @@ struct TodayView: View {
     @ViewBuilder
     private var checkInButton: some View {
         if model.myToday?.isComplete == true {
-            Label("All done today", systemImage: "checkmark.seal.fill")
-                .font(.app(16, .semibold))
-                .foregroundStyle(Color.sage)
-                .frame(height: 58)
+            HStack(spacing: 8) {
+                Image(systemName: "checkmark.seal.fill")
+                Text("All done today").font(.app(18, .semibold))
+            }
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: Metrics.buttonHeight)
+            .background(Capsule().fill(Color.sage))
+            .accessibilityElement(children: .combine)
         } else {
             PrimaryButton("Check in", isEnabled: nextRule != nil) {
                 if let r = nextRule { open(r) }
@@ -367,31 +364,37 @@ struct TodayView: View {
     }
 
     private var stakesRow: some View {
-        HStack(spacing: 8) {
-            Text("🏆")
+        HStack(spacing: 12) {
+            Image(systemName: "trophy.fill")
+                .font(.system(size: 20))
+                .foregroundStyle(Color.gold)
             Text("Stakes: \(round?.betText ?? model.currentBet)")
-                .font(.app(15, .semibold))
+                .font(.app(16, .semibold))
                 .foregroundStyle(Color.textPrimary)
             Spacer()
         }
-        .padding(14)
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.peach))
+        .padding(.horizontal, 16)
+        .padding(.vertical, 15)
+        .card(radius: 16)
         .accessibilityElement(children: .combine)
     }
 }
 
-struct SpeechBubble: View {
-    var text: String
+/// Gold "🔥 14" pill.
+struct StreakPill: View {
+    var streak: Int
 
     var body: some View {
-        Text(text)
-            .font(.app(13, .semibold))
-            .foregroundStyle(Color.textPrimary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.white)
-                .shadow(color: .black.opacity(0.08), radius: 6, y: 2))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Color.cardBorder, lineWidth: 1))
+        HStack(spacing: 5) {
+            Text("🔥").font(.system(size: 16))
+            Text("\(streak)").font(.app(18, .semibold))
+        }
+        .foregroundStyle(Color.textPrimary)
+        .padding(.horizontal, 14)
+        .frame(height: 38)
+        .background(Capsule().fill(Color.gold.opacity(0.55)))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Streak \(streak) days")
     }
 }
 
@@ -403,48 +406,56 @@ struct WeekDot: Identifiable {
     var id: Int { date.ordinal }
 }
 
-/// S M T W T F S for the current week.
+/// S M T W T F S for the current week: big dots, letters below, "{n}-day streak" under the row.
 struct WeekDotsView: View {
     var days: [WeekDot]
+    var streak: Int
     private let letters = ["S", "M", "T", "W", "T", "F", "S"]
 
     var body: some View {
-        HStack {
-            ForEach(Array(days.enumerated()), id: \.element.id) { i, d in
-                VStack(spacing: 6) {
-                    Text(letters[i % 7])
-                        .font(.app(12, .semibold))
-                        .foregroundStyle(Color.textSecondary)
-                    dot(d)
+        VStack(spacing: 8) {
+            HStack {
+                ForEach(Array(days.enumerated()), id: \.element.id) { i, d in
+                    VStack(spacing: 6) {
+                        dot(d)
+                        Text(letters[i % 7])
+                            .font(.app(14, .medium))
+                            .foregroundStyle(d.isToday ? Color.coral : Color.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("\(letters[i % 7]): \(label(d))")
                 }
-                .frame(maxWidth: .infinity)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel("\(letters[i % 7]): \(label(d))")
             }
+            Text("\(streak)-day streak")
+                .font(.app(16, .semibold))
+                .foregroundStyle(Color.textPrimary)
         }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 8)
-        .card(radius: 14)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 4)
     }
 
     @ViewBuilder
     private func dot(_ d: WeekDot) -> some View {
-        let size: CGFloat = 22
+        let size: CGFloat = 32
         switch d.kind {
         case .complete:
             Circle().fill(Color.gold).frame(width: size, height: size)
         case .save:
-            Circle().fill(Color.coral).frame(width: size, height: size)
-                .overlay(Text("S").font(.app(11, .bold)).foregroundStyle(.white))
+            Circle().fill(Color.gold.opacity(0.35)).frame(width: size, height: size)
+                .overlay(Circle().fill(Color.coral).frame(width: 16, height: 16)
+                    .overlay(Text("S").font(.app(10, .bold)).foregroundStyle(.white)))
         case .miss:
-            Circle().stroke(Color.coral, lineWidth: 2).frame(width: size, height: size)
-                .overlay(Image(systemName: "xmark").font(.system(size: 9, weight: .bold)).foregroundStyle(Color.coral))
+            Circle().stroke(Color.coral.opacity(0.7), lineWidth: 2).frame(width: size, height: size)
+                .overlay(Image(systemName: "xmark").font(.system(size: 11, weight: .bold)).foregroundStyle(Color.coral))
         case .paused:
-            Circle().fill(Color.gray.opacity(0.35)).frame(width: size, height: size)
+            Circle().fill(Color.gray.opacity(0.3)).frame(width: size, height: size)
         case .today:
-            Circle().stroke(Color.coral, lineWidth: 2.5).frame(width: size, height: size)
+            Circle().fill(Color.white).frame(width: size, height: size)
+                .overlay(Circle().stroke(Color.coral, lineWidth: 2.5))
         case .future, .empty:
-            Circle().fill(Color.faint).frame(width: size, height: size)
+            Circle().fill(Color.white.opacity(0.7)).frame(width: size, height: size)
+                .overlay(Circle().stroke(Color.cardBorder, lineWidth: 1.5))
         }
     }
 

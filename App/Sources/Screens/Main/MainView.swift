@@ -23,10 +23,10 @@ struct MainView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 76) }
+            .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 84) }
 
             FloatingTabBar(selection: $model.tab)
-                .padding(.bottom, 4)
+                .padding(.bottom, 6)
         }
         .screenBackground()
         .fullScreenCover(item: $model.presentedSave) { event in
