@@ -9,9 +9,10 @@ struct InviteView: View {
     var body: some View {
         OnboardingPage(step: nil, back: nil) {
             VStack(spacing: 16) {
-                TitleText("Send \(model.nameB) their invite")
-                    .padding(.top, 8)
-                CoupleScene(left: model.sceneA, right: nil)
+                TitleText("Send \(model.nameB) their invite", size: 30)
+                    .padding(.top, 22)
+                CoupleScene(left: model.sceneA, right: nil, crop: 0.64, overlap: 0.0)
+                    .padding(.horizontal, -8)
                     .frame(maxHeight: .infinity)
                 InviteCodeCard()
             }
@@ -27,15 +28,15 @@ struct InviteCodeCard: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             Text("Invite code")
-                .font(.app(13, .semibold))
+                .font(.app(14, .medium))
                 .foregroundStyle(Color.textSecondary)
             if let code = model.invite?.code {
-                HStack(spacing: 14) {
+                HStack(spacing: 12) {
                     Text(code)
-                        .font(.app(34, .heavy))
-                        .tracking(6)
+                        .font(.app(34, .bold))
+                        .tracking(7)
                         .foregroundStyle(Color.textPrimary)
                         .accessibilityLabel("Code \(code.map(String.init).joined(separator: " "))")
                     Button {
@@ -44,8 +45,8 @@ struct InviteCodeCard: View {
                         model.toast = "Code copied."
                     } label: {
                         Image(systemName: "doc.on.doc")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundStyle(Color.coral)
+                            .font(.system(size: 20, weight: .regular))
+                            .foregroundStyle(Color.textPrimary)
                             .frame(width: 44, height: 44)
                     }
                     .accessibilityLabel("Copy code")
@@ -59,7 +60,7 @@ struct InviteCodeCard: View {
                 .frame(height: 44)
             }
         }
-        .padding(.vertical, 16)
+        .padding(.vertical, 18)
         .frame(maxWidth: .infinity)
         .card()
     }
@@ -94,20 +95,9 @@ struct InviteShareButton: View {
     @ViewBuilder
     private var label: some View {
         if secondary {
-            Text(title)
-                .font(.app(17, .semibold))
-                .foregroundStyle(Color.textPrimary)
-                .frame(maxWidth: .infinity)
-                .frame(height: 52)
-                .background(Capsule().fill(Color.white))
-                .overlay(Capsule().stroke(Color.buttonBorder, lineWidth: 1))
+            SecondaryButtonLabel(title: title)
         } else {
-            Text("\(title) ›")
-                .font(.app(18, .semibold))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 58)
-                .background(Capsule().fill(Color.coral))
+            PrimaryButtonLabel(title: title)
         }
     }
 

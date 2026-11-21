@@ -8,10 +8,11 @@ struct PartnerWaitingForYouView: View {
     var body: some View {
         OnboardingPage(step: nil, back: nil) {
             VStack(spacing: 16) {
-                TitleText("\(model.nameA) is waiting for you")
+                TitleText("\(model.nameA) is waiting for you", size: 30)
                     .padding(.top, 24)
                 BodyText("Day 1 starts the morning after you subscribe. Each of you has your own subscription.")
-                CoupleScene(left: model.sceneA, right: nil)
+                CoupleScene(left: model.sceneA, right: nil, crop: 0.64, overlap: 0)
+                    .padding(.horizontal, -8)
                     .frame(maxHeight: .infinity)
             }
         } actions: {

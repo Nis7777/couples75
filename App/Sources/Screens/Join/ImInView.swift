@@ -11,11 +11,12 @@ struct ImInView: View {
             VStack(spacing: 16) {
                 SmallLabel(text: "All set")
                     .padding(.top, 24)
-                TitleText("\(model.nameA) & \(model.nameB)")
+                TitleText("\(model.nameA) & \(model.nameB)", size: 30)
                 BodyText("Day 1 starts tomorrow morning. Today is a free warm-up day.")
                 CoupleScene(left: model.sceneA,
                             right: SceneCharacter(characterID: model.joinDraft?.characterID ?? "m1", name: model.nameB),
-                            leftPose: .cheer, rightPose: .cheer)
+                            leftPose: .cheer, rightPose: .cheer, crop: 0.72, overlap: -0.05)
+                    .padding(.horizontal, -8)
                     .frame(maxHeight: .infinity)
             }
         } actions: {

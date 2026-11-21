@@ -32,8 +32,8 @@ struct PaywallView: View {
                 }
                 Spacer()
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
+            .padding(.horizontal, 10)
+            .padding(.top, 6)
             .frame(height: 52)
 
             ScrollView(showsIndicators: false) {
@@ -53,7 +53,7 @@ struct PaywallView: View {
                         .font(.app(14, .medium))
                         .foregroundStyle(Color.textSecondary)
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, Metrics.side)
                 .padding(.bottom, 12)
             }
 
@@ -139,18 +139,45 @@ struct PaywallView: View {
         .frame(maxWidth: .infinity, minHeight: 160)
     }
 
+    /// 13c plan card: big title, yearly peach-tinted with a centred gold pill, monthly white.
+    /// The selected one gets the coral border and a check.
     private func planCard(yearly: Bool) -> some View {
         let selected = yearlySelected == yearly
         let price = (yearly ? purchases.yearlyPrice : purchases.monthlyPrice) ?? "…"
-        return OptionCard(title: yearly ? "Yearly" : "Monthly",
-                          subtitle: yearly ? "\(price)/year per person" : "\(price)/month per person",
-                          isSelected: selected) {
-            yearlySelected = yearly
-        } trailing: {
-            if yearly, let eq = purchases.yearlyMonthlyEquivalent {
-                Pill(text: "BEST VALUE · \(eq)/month", fill: .gold)
+        return Button {
+            Haptics.tap()
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) { yearlySelected = yearly }
+        } label: {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text(yearly ? "Yearly" : "Monthly")
+                        .font(.app(26, .bold))
+                        .foregroundStyle(Color.textPrimary)
+                    Spacer()
+                    CheckCircle(isOn: selected, size: 26)
+                }
+                if yearly, let eq = purchases.yearlyMonthlyEquivalent {
+                    Pill(text: "BEST VALUE · \(eq)/month", fill: .gold, size: 15)
+                        .frame(maxWidth: .infinity)
+                }
+                (Text(price).font(.app(20, .bold)) + Text(yearly ? "/year per person" : "/month per person").font(.app(16)))
+                    .foregroundStyle(Color.textPrimary)
+                    .frame(maxWidth: .infinity, alignment: yearly ? .center : .leading)
             }
+            .padding(.horizontal, 22)
+            .padding(.vertical, 20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous)
+                .fill(yearly ? Color.peach.opacity(0.7) : Color.white)
+                .shadow(color: .black.opacity(0.05), radius: 12, y: 4))
+            .overlay(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous)
+                .stroke(selected ? Color.coral : (yearly ? Color.coral.opacity(0.35) : Color.cardBorder),
+                        lineWidth: selected ? 1.5 : 1))
+            .contentShape(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous))
         }
+        .buttonStyle(PressableStyle())
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
     }
 
     private var selectedProduct: Product? { yearlySelected ? purchases.yearly : purchases.monthly }
