@@ -26,6 +26,8 @@ struct AvatarConfig: Codable, Equatable, Hashable {
     var hairStyle: String
     var hairColor: String
     var eyes: String
+    /// Iris colour ("#RRGGBB"); nil = dark brown. Optional so looks saved before it existed still load.
+    var eyeColor: String? = nil
     var brows: String
     var mouth: String
     var facialHair: String
@@ -37,7 +39,7 @@ struct AvatarConfig: Codable, Equatable, Hashable {
     var accessory: String
 
     static let `default` = AvatarConfig(body: .feminine, skinTone: "#E0AC84", hairStyle: "wavy", hairColor: "#3B2A20",
-                                        eyes: "dot", brows: "soft", mouth: "smile", facialHair: "none",
+                                        eyes: "round", brows: "soft", mouth: "smile", facialHair: "none",
                                         top: "zip", topColor: "#F08A73", bottoms: "jeans", bottomsColor: "#2E3F66",
                                         shoes: "sneakers", accessory: "none")
 
@@ -57,7 +59,7 @@ struct AvatarConfig: Codable, Equatable, Hashable {
             skinTone: AvatarPalette.skinTones.randomElement()?.hex ?? "#E0AC84",
             hairStyle: hair,
             hairColor: natural.randomElement()?.hex ?? "#3B2A20",
-            eyes: ["dot", "almond", "wide"].randomElement() ?? "dot",
+            eyes: AvatarParts.eyes.randomElement()?.id ?? "round",
             brows: masc ? "straight" : "soft",
             mouth: ["smile", "grin", "small"].randomElement() ?? "smile",
             facialHair: masc ? ["none", "none", "stubble", "shortBeard"].randomElement() ?? "none" : "none",
@@ -73,40 +75,40 @@ struct AvatarConfig: Codable, Equatable, Hashable {
     static func migrated(from avatar: Avatar) -> AvatarConfig {
         var c: AvatarConfig
         switch avatar.characterID {
-        case "w1": c = .init(body: .feminine, skinTone: "#D9A27C", hairStyle: "wavy", hairColor: "#3B2A20", eyes: "dot",
+        case "w1": c = .init(body: .feminine, skinTone: "#D9A27C", hairStyle: "wavy", hairColor: "#3B2A20", eyes: "round",
                              brows: "soft", mouth: "smile", facialHair: "none", top: "zip", topColor: "#F08A73",
                              bottoms: "jeans", bottomsColor: "#2E3F66", shoes: "sneakers", accessory: "earrings")
-        case "w2": c = .init(body: .feminine, skinTone: "#8A5233", hairStyle: "curlyBun", hairColor: "#1E1A18", eyes: "dot",
+        case "w2": c = .init(body: .feminine, skinTone: "#8A5233", hairStyle: "curlyBun", hairColor: "#1E1A18", eyes: "round",
                              brows: "soft", mouth: "smile", facialHair: "none", top: "zip", topColor: "#E2A93B",
                              bottoms: "trousers", bottomsColor: "#4A4A4F", shoes: "sneakers", accessory: "earrings")
-        case "w3": c = .init(body: .feminine, skinTone: "#F2C9A8", hairStyle: "longFringe", hairColor: "#1E1A18", eyes: "dot",
+        case "w3": c = .init(body: .feminine, skinTone: "#F2C9A8", hairStyle: "longFringe", hairColor: "#1E1A18", eyes: "monolid",
                              brows: "soft", mouth: "small", facialHair: "none", top: "zip", topColor: "#B9A3D9",
                              bottoms: "jeans", bottomsColor: "#2E3F66", shoes: "flats", accessory: "none")
-        case "w4": c = .init(body: .feminine, skinTone: "#C68B5F", hairStyle: "sideBraid", hairColor: "#1E1A18", eyes: "dot",
+        case "w4": c = .init(body: .feminine, skinTone: "#C68B5F", hairStyle: "sideBraid", hairColor: "#1E1A18", eyes: "round",
                              brows: "soft", mouth: "smile", facialHair: "none", top: "zip", topColor: "#2F7F7C",
                              bottoms: "trousers", bottomsColor: "#4A4A4F", shoes: "sneakers", accessory: "none")
-        case "w5": c = .init(body: .feminine, skinTone: "#EBC1A0", hairStyle: "hijab", hairColor: "#D99A9A", eyes: "dot",
+        case "w5": c = .init(body: .feminine, skinTone: "#EBC1A0", hairStyle: "hijab", hairColor: "#D99A9A", eyes: "round",
                              brows: "soft", mouth: "smile", facialHair: "none", top: "zip", topColor: "#7FA38A",
                              bottoms: "trousers", bottomsColor: "#4A4A4F", shoes: "flats", accessory: "none")
-        case "w6": c = .init(body: .feminine, skinTone: "#EBC1A0", hairStyle: "ponytail", hairColor: "#8C3F24", eyes: "dot",
+        case "w6": c = .init(body: .feminine, skinTone: "#EBC1A0", hairStyle: "ponytail", hairColor: "#8C3F24", eyes: "round",
                              brows: "soft", mouth: "smile", facialHair: "none", top: "zip", topColor: "#2E3F66",
                              bottoms: "jeans", bottomsColor: "#2E3F66", shoes: "sneakers", accessory: "none")
-        case "m2": c = .init(body: .masculine, skinTone: "#8A5233", hairStyle: "fade", hairColor: "#1E1A18", eyes: "dot",
+        case "m2": c = .init(body: .masculine, skinTone: "#8A5233", hairStyle: "fade", hairColor: "#1E1A18", eyes: "round",
                              brows: "thick", mouth: "grin", facialHair: "fullBeard", top: "zip", topColor: "#2E3F66",
                              bottoms: "trousers", bottomsColor: "#4A4A4F", shoes: "sneakers", accessory: "none")
-        case "m3": c = .init(body: .masculine, skinTone: "#F2C9A8", hairStyle: "short", hairColor: "#1E1A18", eyes: "dot",
+        case "m3": c = .init(body: .masculine, skinTone: "#F2C9A8", hairStyle: "short", hairColor: "#1E1A18", eyes: "monolid",
                              brows: "straight", mouth: "smile", facialHair: "none", top: "zip", topColor: "#C9684A",
                              bottoms: "jeans", bottomsColor: "#2E3F66", shoes: "sneakers", accessory: "none")
-        case "m4": c = .init(body: .masculine, skinTone: "#C68B5F", hairStyle: "curly", hairColor: "#1E1A18", eyes: "dot",
+        case "m4": c = .init(body: .masculine, skinTone: "#C68B5F", hairStyle: "curly", hairColor: "#1E1A18", eyes: "round",
                              brows: "thick", mouth: "smile", facialHair: "fullBeard", top: "zip", topColor: "#E2A93B",
                              bottoms: "trousers", bottomsColor: "#4A4A4F", shoes: "boots", accessory: "none")
-        case "m5": c = .init(body: .masculine, skinTone: "#E0AC84", hairStyle: "curly", hairColor: "#3B2A20", eyes: "dot",
+        case "m5": c = .init(body: .masculine, skinTone: "#E0AC84", hairStyle: "curly", hairColor: "#3B2A20", eyes: "round",
                              brows: "straight", mouth: "smile", facialHair: "stubble", top: "zip", topColor: "#F08A73",
                              bottoms: "jeans", bottomsColor: "#2E3F66", shoes: "sneakers", accessory: "none")
-        case "m6": c = .init(body: .masculine, skinTone: "#F2C9A8", hairStyle: "sidePart", hairColor: "#E2B96A", eyes: "dot",
+        case "m6": c = .init(body: .masculine, skinTone: "#F2C9A8", hairStyle: "sidePart", hairColor: "#E2B96A", eyes: "round",
                              brows: "straight", mouth: "smile", facialHair: "none", top: "zip", topColor: "#B9A3D9",
                              bottoms: "jeans", bottomsColor: "#2E3F66", shoes: "sneakers", accessory: "none")
-        default:   c = .init(body: .masculine, skinTone: "#F2C9A8", hairStyle: "curly", hairColor: "#3B2A20", eyes: "dot",
+        default:   c = .init(body: .masculine, skinTone: "#F2C9A8", hairStyle: "curly", hairColor: "#3B2A20", eyes: "round",
                              brows: "straight", mouth: "smile", facialHair: "none", top: "zip", topColor: "#7FA38A",
                              bottoms: "jeans", bottomsColor: "#2E3F66", shoes: "sneakers", accessory: "none")
         }
@@ -160,10 +162,14 @@ enum AvatarParts {
         ("locs", "Locs"), ("mullet", "Mullet"), ("hijab", "Hijab"),
     ].map { AvatarPart(id: $0.0, name: $0.1, layer: .hairFront) }
 
+    /// Eye shapes, so people of every background can find their own eyes. Named by shape, never by ethnicity.
     static let eyes: [AvatarPart] = [
-        ("dot", "Round eyes"), ("almond", "Almond eyes"), ("wide", "Wide eyes"), ("smile", "Smiling eyes"),
-        ("sleepy", "Sleepy eyes"), ("lashes", "Eyes with lashes"),
+        ("round", "Round eyes"), ("almond", "Almond eyes"), ("monolid", "Monolid eyes"), ("hooded", "Hooded eyes"),
+        ("upturned", "Upturned eyes"), ("downturned", "Downturned eyes"), ("big", "Big eyes"), ("small", "Small eyes"),
     ].map { AvatarPart(id: $0.0, name: $0.1, layer: .eyes) }
+
+    /// Eye ids from before the eye-shape set.
+    static let legacyEyes = ["dot": "round", "wide": "big", "smile": "round", "sleepy": "hooded", "lashes": "round"]
 
     static let brows: [AvatarPart] = [
         ("soft", "Soft brows"), ("straight", "Straight brows"), ("thick", "Thick brows"), ("arched", "Arched brows"),
@@ -218,6 +224,14 @@ extension AvatarPalette {
         .init(name: "Platinum hair", hex: "#EFE3C8"), .init(name: "Grey hair", hex: "#A8A29E"),
         .init(name: "Pink hair", hex: "#E68AA6"), .init(name: "Blue hair", hex: "#5B7FD1"),
     ]
+    /// Eye (iris) colours.
+    static let eyeColors: [Swatch] = [
+        .init(name: "Dark brown eyes", hex: "#3B2416"), .init(name: "Brown eyes", hex: "#6B4226"),
+        .init(name: "Hazel eyes", hex: "#8A6A3B"), .init(name: "Amber eyes", hex: "#B07A2A"),
+        .init(name: "Green eyes", hex: "#5E7F4A"), .init(name: "Blue eyes", hex: "#4F79A8"),
+        .init(name: "Grey eyes", hex: "#7C8790"), .init(name: "Black eyes", hex: "#1E1A18"),
+    ]
+
     /// 10 clothing colours from the brand.
     static let clothing: [Swatch] = [
         .init(name: "Coral", hex: "#F08A73"), .init(name: "Peach", hex: "#F9C4A8"), .init(name: "Gold", hex: "#E2A93B"),

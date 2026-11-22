@@ -10,6 +10,8 @@ enum AvatarCanvas {
     static let size = CGSize(width: 200, height: 400)
     /// Head and shoulders, fitted to the art (scalp ≈ y 52, chin ≈ y 107, shoulders ≈ y 116 in points).
     static let bustRect = CGRect(x: 52, y: 38, width: 96, height: 96)
+    /// A close-up of the eyes and mouth (eye-shape thumbnails), centred between the eyes (≈ 100, 78 pt).
+    static let faceRect = CGRect(x: 80, y: 62, width: 40, height: 40)
     static let fullAspect: CGFloat = size.width / size.height   // 0.5
     static let bustAspect: CGFloat = 1
 
@@ -75,6 +77,7 @@ enum AvatarArt {
         d.top = partWithArt(c.top, in: AvatarParts.tops, layer: .top)
         d.bottoms = partWithArt(c.bottoms, in: AvatarParts.bottoms, layer: .bottoms)
         d.shoes = partWithArt(c.shoes, in: AvatarParts.shoes, layer: .shoes)
+        d.eyes = partWithArt(AvatarParts.legacyEyes[c.eyes] ?? c.eyes, in: AvatarParts.eyes, layer: .eyes)
         return d
     }
 
@@ -102,11 +105,14 @@ struct LayeredAvatarView: View {
     var pose: CharacterPose = .stand
     /// Head and shoulders only (circular thumbnails).
     var headOnly = false
+    /// A close-up of the face (eye-shape thumbnails).
+    var faceOnly = false
 
     var body: some View {
-        let bust = headOnly || pose == .bust
+        let bust = headOnly || faceOnly || pose == .bust
         Canvas { ctx, size in
-            let region = bust ? AvatarCanvas.bustRect : CGRect(origin: .zero, size: AvatarCanvas.size)
+            let region = faceOnly ? AvatarCanvas.faceRect
+                : bust ? AvatarCanvas.bustRect : CGRect(origin: .zero, size: AvatarCanvas.size)
             ctx.scaleBy(x: size.width / region.width, y: size.height / region.height)
             ctx.translateBy(x: -region.minX, y: -region.minY)
             AvatarPainter(config: config, pose: pose == .bust ? .stand : pose).draw(in: &ctx)
@@ -149,7 +155,7 @@ struct AvatarPainter {
         layer(&ctx, .hands, "skin", tint: skin)          // hands in front of the top (hands on hips, crossed arms)
         layer(&ctx, .head, "head", tint: skin)
         layer(&ctx, .brows, config.brows, tint: hair)
-        layer(&ctx, .eyes, config.eyes, tint: nil)
+        layer(&ctx, .eyes, config.eyes, tint: Color(hexString: config.eyeColor) ?? Color(hex: 0x3B2416))
         layer(&ctx, .mouth, config.mouth, tint: nil)
         layer(&ctx, .facialHair, config.facialHair, tint: hair)
         layer(&ctx, .hairFront, hairStyle, tint: hair)

@@ -67,7 +67,7 @@ struct LayeredAvatarBuilderView: View {
             case .hair: return true
             case .hairColor: return hairTint
             case .skin: return skinTint
-            case .face: return bodies || [AvatarParts.eyes, AvatarParts.brows, AvatarParts.mouths,
+            case .face: return bodies || Self.tintable(AvatarParts.eyes, .eyes) || [AvatarParts.eyes, AvatarParts.brows, AvatarParts.mouths,
                                           AvatarParts.facialHair].contains(where: Self.hasChoices)
             // Shown for a garment choice, or for its colour once the garment is a tintable shape.
             case .top: return Self.hasChoices(AvatarParts.tops) || Self.tintable(AvatarParts.tops, .top)
@@ -231,7 +231,16 @@ struct LayeredAvatarBuilderView: View {
         case .face:
             VStack(alignment: .leading, spacing: 14) {
                 if Self.hasChoices(AvatarParts.eyes) {
-                    section("Eyes") { partGrid(AvatarParts.eyes, selected: config.eyes, headOnly: true) { c, id in c.eyes = id } }
+                    section("Eye shape") {
+                        partGrid(AvatarParts.eyes, selected: config.eyes, headOnly: true, faceOnly: true) { c, id in c.eyes = id }
+                    }
+                }
+                if Self.tintable(AvatarParts.eyes, .eyes) {
+                    section("Eye colour") {
+                        swatchRow(AvatarPalette.eyeColors, selected: config.eyeColor ?? AvatarPalette.eyeColors[0].hex) { c, hex in
+                            c.eyeColor = hex
+                        }
+                    }
                 }
                 if Self.hasChoices(AvatarParts.brows) {
                     section("Brows") { partGrid(AvatarParts.brows, selected: config.brows, headOnly: true) { c, id in c.brows = id } }
@@ -312,7 +321,7 @@ struct LayeredAvatarBuilderView: View {
     }
 
     /// 4 circular thumbnails per row, each showing MY avatar with that option applied.
-    private func partGrid(_ all: [AvatarPart], selected: String, headOnly: Bool,
+    private func partGrid(_ all: [AvatarPart], selected: String, headOnly: Bool, faceOnly: Bool = false,
                           set: @escaping (inout AvatarConfig, String) -> Void) -> some View {
         let parts = all.filter(Self.available)
         return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 12) {
@@ -325,7 +334,7 @@ struct LayeredAvatarBuilderView: View {
                 }()
                 Button { apply { set(&$0, part.id) } } label: {
                     VStack(spacing: 4) {
-                        AvatarThumb(config: preview, headOnly: headOnly, size: 62,
+                        AvatarThumb(config: preview, headOnly: headOnly, size: 62, faceOnly: faceOnly,
                                     ring: isOn ? Color.gold : Color.cardBorder, ringWidth: isOn ? 3 : 1,
                                     fill: isOn ? Color.peach : Color.ivory)
                         Text(part.name)
@@ -395,6 +404,8 @@ struct AvatarThumb: View {
     var config: AvatarConfig
     var headOnly: Bool
     var size: CGFloat
+    /// A close-up of the face (eye shapes) instead of head and shoulders.
+    var faceOnly = false
     var ring: Color = .cardBorder
     var ringWidth: CGFloat = 1
     var fill: Color = .ivory
@@ -402,7 +413,10 @@ struct AvatarThumb: View {
     var body: some View {
         ZStack {
             Circle().fill(fill)
-            if let img = AvatarThumbCache.shared.image(config, headOnly: headOnly, size: size) {
+            if faceOnly, let img = AvatarThumbCache.shared.image(config, headOnly: true, faceOnly: true, size: size) {
+                Image(uiImage: img).resizable().scaledToFill()
+                    .frame(width: size, height: size)
+            } else if let img = AvatarThumbCache.shared.image(config, headOnly: headOnly, size: size) {
                 Image(uiImage: img).resizable().scaledToFit()
                     .frame(width: headOnly ? size * 0.92 : size * 0.5, height: headOnly ? size * 0.92 : size * 0.96)
                     .offset(y: headOnly ? size * 0.1 : size * 0.04)
@@ -419,12 +433,13 @@ final class AvatarThumbCache {
     static let shared = AvatarThumbCache()
     private var cache: [String: UIImage] = [:]
 
-    func image(_ config: AvatarConfig, headOnly: Bool, size: CGFloat) -> UIImage? {
-        let key = "\(config.hashValue)|\(headOnly)|\(Int(size))"
+    func image(_ config: AvatarConfig, headOnly: Bool, faceOnly: Bool = false, size: CGFloat) -> UIImage? {
+        let key = "\(config.hashValue)|\(headOnly)|\(faceOnly)|\(Int(size))"
         if let img = cache[key] { return img }
-        let w = headOnly ? size : size * 0.5
+        let w = headOnly || faceOnly ? size : size * 0.5
         let h = size
-        let renderer = ImageRenderer(content: LayeredAvatarView(config: config, pose: .stand, headOnly: headOnly)
+        let renderer = ImageRenderer(content: LayeredAvatarView(config: config, pose: .stand, headOnly: headOnly,
+                                                                faceOnly: faceOnly)
             .frame(width: w, height: h))
         renderer.scale = 3
         guard let img = renderer.uiImage else { return nil }
