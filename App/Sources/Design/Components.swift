@@ -164,17 +164,13 @@ struct TapOnlyStyle: PrimitiveButtonStyle {
 
     private struct TapOnlyBody: View {
         var configuration: PrimitiveButtonStyleConfiguration
-        @GestureState private var pressed = false
 
+        // A plain tap gesture: it fails as soon as the finger moves, so swipes never select, and it
+        // doesn't block the page's ScrollView. The selection itself animates (peach fill, coral check).
         var body: some View {
             configuration.label
-                .scaleEffect(pressed ? 0.97 : 1)
-                .opacity(pressed ? 0.92 : 1)
-                .animation(.spring(response: 0.25, dampingFraction: 0.7), value: pressed)
+                .contentShape(Rectangle())
                 .onTapGesture { configuration.trigger() }
-                .simultaneousGesture(DragGesture(minimumDistance: 0).updating($pressed) { v, state, _ in
-                    state = abs(v.translation.width) < 10 && abs(v.translation.height) < 10
-                })
         }
     }
 }
@@ -550,15 +546,13 @@ struct IconBadge: View {
 /// Single-answer questions move on by themselves about 0.3 s after a tap (after the selection animation).
 @MainActor
 /// Pending auto-advances. Any navigation (forward or back) bumps the generation, so a tap made just before
-/// leaving a step can never push a later step forward on its own.
-@MainActor
+/// leaving a step can never push a later step forward on its own. Only touched on the main thread.
 enum AutoAdvanceGate {
     static var generation = 0
     static func cancelPending() { generation += 1 }
 }
 
 /// Single-answer steps move on ~0.3 s after a tap (never on their own, never twice).
-@MainActor
 func autoAdvance(_ next: @escaping () -> Void) {
     AutoAdvanceGate.generation += 1
     let mine = AutoAdvanceGate.generation

@@ -1,4 +1,4 @@
-You are building a native iOS app, ready for the App Store, in **Swift + SwiftUI**. It is **Couples 75**: a couple does a 75-day challenge together. Each partner has 4 daily rules, proves them to the other with live photos or an evening honour tap, and the couple shares 3 "saves" that cover missed days. Whoever misses more owes a real-life bet (for example "Loser plans the date"). **One subscription covers both partners** (39,99 € / $39.99 a year with a 3-day free trial, or 7,99 € / $7.99 a month): the person who starts pays, then invites their partner, who joins free. iPhone only. Work autonomously. Make reasonable decisions without asking me, and stop only if something needs my Apple Developer account. **There is no backend server**: the two phones share data through Apple's **CloudKit** (iCloud), and every game result is computed on the phone from shared facts (section 6).
+You are building a native iOS app, ready for the App Store, in **Swift + SwiftUI**. It is **Couples 75**: a couple does a 75-day challenge together. Each partner has 4 to 6 daily rules, proves them to the other with live photos or an evening honour tap, and the couple shares 3 "saves" that cover missed days. Whoever misses more owes a real-life bet (for example "Loser plans the date"). **One subscription covers both partners** (39,99 € / $39.99 a year with a 3-day free trial, or 7,99 € / $7.99 a month): the person who starts pays, then invites their partner, who joins free. iPhone only. Work autonomously. Make reasonable decisions without asking me, and stop only if something needs my Apple Developer account. **There is no backend server**: the two phones share data through Apple's **CloudKit** (iCloud), and every game result is computed on the phone from shared facts (section 6).
 
 **Visual reference:** the folder `reference/` holds 32 mockups (`01_hook.jpg` … `30_partner_iphone.jpg`, plus `overview.jpg`). Use them for **colours, layout, illustration style, spacing and mood**. They are AI-generated at 720×1280 (9:16), so some look squashed or cropped. Build every screen properly for real iPhone sizes (iPhone SE up to Pro Max) and never copy their proportions pixel for pixel. **The mockups contain outdated copy and rules. This prompt is the source of truth. Wherever a mockup and this prompt disagree, this prompt wins.** Ignore `reference/README.txt` where it conflicts with this prompt. Section 4 lists every screen with the exact corrections.
 
@@ -68,8 +68,12 @@ In **DEBUG builds only**, the Simulator, the launch argument `-mock`, the unit t
 - Onboarding header: a 6pt gold progress bar (rounded) on a light peach track and "Step X of N" under it. N is computed from the actual steps shown (section 3); never hard-code.
 - Floating tab bar (not the system bar): a plain white rounded rectangle with a soft shadow (no top line), floating above the bottom edge, with 4 items: **Today** (`sun.max`), **Proof** (`checkmark.seal`, with a coral number badge, section 4.12), **Progress** (`circle.grid.2x2`), **Profile** (`person`). The selected item is `coral`. No Challenges tab. Every tab screen has enough bottom padding that nothing is hidden behind the bar.
 - Day ring: a gold circular progress ring (stroke 14) showing day/75, with "DAY 14 / 75" in the centre and the two characters overlapping it (see 15_today).
-- Haptics: light impact on taps, success haptic on a check-in and on Day 75, warning haptic on a save used.
-- Animations: push-style slide + fade between onboarding steps, spring animations on selections, confetti on Day 75.
+- Haptics: light impact on taps, **success** when a rule is checked off and on Day 75, **light** when a partner's approval arrives (and when the avatars meet in the opening animation), **heavy** when "Hold to sign" completes, warning on a save used.
+- Animations: push-style slide + fade between onboarding steps, spring animations on selections, confetti on Day 75. Count changes ("4 left" → "3 left") roll like a counter (`.numericText`); the checkmark pops (scale) when a rule is checked off.
+- Segmented controls (Proof "From {partner} | Mine"): a custom control on a white capsule track where a **coral pill slides** to the selected option (white text), with a cross-fade of the content. Never the default grey control.
+- Sheets: native sheets with medium/large detents, spring snapping and a grabber ("Which rule?").
+- Empty states: friendly, with both avatars (the partner's outline until they join) and one line, e.g. "No proof yet today.", "No progress photos yet. Take your first one today."
+- Onboarding pages: the content scrolls when it doesn't fit and the primary button is **pinned to the bottom safe area** on every step, so it can never be pushed off screen (iPhone SE included).
 
 ### 1.3 Characters (important)
 The mockups always show the same two people, "Maya" and "Joao". In the real app each user picks a character, so every scene must be **composed from two separate single-person images**, never one combined picture.
@@ -91,16 +95,18 @@ The mockups always show the same two people, "Maya" and "Joao". In the real app 
 ### 2.1 Couple, round and rules
 - A **couple** has exactly 2 members: A (creator) and B (joined by invite). One subscription (whoever bought it) covers both.
 - A **round** is one 75-day attempt. Fields: `mode` (`standard` with `SAVES_PER_ROUND` saves, or `hard` with 0 saves), `status` (`waiting`, `active`, `completed`, `failed`, `abandoned`), per-member start date, per-member miss count, saves used, the bet, pause used (bool).
-- Each member has exactly **4 rules** for the round. Each rule has a `type`: `photo` (proved by an in-app live photo) or `honour` (proved by an evening tap "I stuck to it today"). Every member has at least 2 photo rules. Intensity can differ per member (Maya "45 min workout", Joao "20 min walk").
-- Rule library (seed it; use these titles exactly), with Gentle / Couples 75 / Hard intensities:
-  - Workout (photo): "20 min walk" / "45 min workout" / "Two 45 min workouts"
-  - Water (photo): "2L of water" / "3L of water" / "4L of water"
-  - Reading (photo): "Read 5 pages" / "Read 10 pages" / "Read 20 pages"
+- Each member has **4 to 6 rules** for the round. Each rule has a `type`: `photo` (proved by an in-app live photo) or `honour` (proved by an evening tap "I stuck to it today"). Every member has at least 2 photo rules. Intensity can differ per member (Maya "45 min workout", Joao "20 min walk").
+- Rule titles use the short format **"Name: amount"** so they fit on Today (they may wrap to 2 lines, never cut off). Rule library (seed it; use these titles exactly), Gentle / Couples 75 / Hard:
+  - Workout (photo): "Walk: 20 min" / "Workout: 45 min" / "Workout: 2 × 45 min"
+  - Water (photo): "Water: 2L" / "Water: 3L" / "Water: 4L"
+  - Reading (photo): "Read: 5 pages" / "Read: 10 pages" / "Read: 20 pages"
   - Cold shower (photo): "Cold shower" (all levels)
-  - Steps (photo, screenshot of the in-app camera of a step counter is fine): "6k steps" / "8k steps" / "10k steps"
-  - No sugar (honour), No alcohol (honour), No phone in bed (honour), No junk food (honour), In bed by 23:30 (honour), No takeaway spending (honour)
-  - Personal rules (2.7): Learn a language (photo) "10 / 15 / 30 min language practice"; Meditate (honour) "5 / 10 / 20 min meditation"; Less social media (photo, Screen Time) "Under 1h / 45 min / 30 min social media"; Practise an instrument (photo) "10 / 20 / 30 min instrument practice"; Cook at home (photo) "Cook one meal"; Journal (photo) "Journal 3 / 5 / 10 lines"; Stretch (photo) "5 / 10 / 15 min stretch"; Study (photo) "25 / 50 / 90 min study". Read more = Reading, Save money = No takeaway spending.
-- The plan follows the quiz: each goal adds one rule (Fitness → workout, Discipline → reading, Sleep → in bed by 23:30, Diet → no junk food (or no sugar), Phone time → no phone in bed, Money → no takeaway spending), then each personal goal adds its rule, then photo fillers (reading, water, steps, cold shower, workout last) until there are 4 rules with at least 2 photo rules. The plan reveal shows the reason under each rule: "Because you picked {goal}" (fillers: "To round out your plan"). Each member's fitness level sets that member's intensity; B's rules use Gentle until B answers their own fitness question.
+  - Steps (photo): "Steps: 6k" / "Steps: 8k" / "Steps: 10k"
+  - No sugar, No alcohol, No phone in bed, No junk food, Bed by 23:30, No takeaway spending (all honour)
+  - Personal rules (Gentle **10 min**, Couples 75 **15 min**, Hard mode **30 min**, set by the level): Learn a language "Language: 10/15/30 min" (photo); Meditate "Meditate: 10/15/30 min" (honour); Practise an instrument "Instrument: …" (photo); Journal "Journal: …" (photo); Stretch "Stretch: …" (photo); Study "Study: …" (photo); Less social media "Social media: max 1h / 45 min / 30 min" (photo, Screen Time); Cook at home "Cook one meal" (photo). Read more = Reading, Save money = No takeaway spending.
+  - **Typed personal goals** ("Something else?") become rules too: a clean, short, capitalised name plus the level's minutes, e.g. "Learn to speak chinese" → **"Learn Chinese: 15 min"** (photo rule). The name comes from Apple's on-device Foundation Models when available (iOS 26+), otherwise keyword rules (languages → "Learn {Language}", instruments → "Practise {instrument}") and capitalisation. **Never put other apps' brand names in a rule title** (strip Duolingo, Instagram, TikTok, …).
+- The plan follows the quiz: each goal adds one rule (Fitness → workout, Discipline → reading, Sleep → bed by 23:30, Diet → no junk food (or no sugar), Phone time → no phone in bed, Money → no takeaway spending), then every personal goal (chips and typed), then photo fillers (reading, water, steps, cold shower, workout last) until there are at least 4 rules with at least 2 photo rules. If there are more than 6, the plan review asks the user to trim (3.1). The reason shows under each rule: "Because you picked {goal}" (fillers: "To round out your plan"). Each member's fitness level sets that member's intensity for the quiz goals; B's rules use Gentle unless B answered on A's phone.
+- **One source of truth:** the plan is generated **once** (on the Building step) and stored as rows (A's and B's version of each rule). The plan review shows the stored rows; "Set the stakes" writes exactly those as A's rules and B's draft rules; when B joins, B's rules are an **exact copy** of the stored draft rules (never regenerated). Today, the invite card, the widgets and the RulesEngine all read the stored rules. A unit test fails if the plan review and the stored/engine rules ever differ.
 
 ### 2.2 Days and time zones
 - Every member stores their IANA time zone (update it on every app launch and when it changes).
@@ -108,7 +114,7 @@ The mockups always show the same two people, "Maya" and "Joao". In the real app 
 - A member's Day N is their own Nth local calendar day of the round, not counting paused days. Long-distance couples simply have different local dates.
 - A check-in counts for the local date on which it was **taken** (`capturedAt`, the device time at the shutter or the honour tap, converted with the member's time zone). It only counts if it reached iCloud (the record's server `creationDate`) within `CHECKIN_UPLOAD_WINDOW_H` hours of `capturedAt`, so nobody can backfill old days. Nothing can be checked in for a past date in the UI.
 - A member's day is **final at their local midnight**. Nothing about a closed day ever changes.
-- A member's day is **complete** if all 4 rules have a valid check-in for that date. Otherwise it's a **miss** (at most one miss per member per day).
+- A member's day is **complete** if all of their rules have a valid check-in for that date. Otherwise it's a **miss** (at most one miss per member per day).
 
 ### 2.3 Saves, restarts and the bet
 - Each miss increments that member's miss count and uses one save from the shared pool.
@@ -151,8 +157,9 @@ The mockups always show the same two people, "Maya" and "Joao". In the real app 
 
 ## 3. Flows
 
-### 3.1 Person A onboarding (steps that show "Step X of N"; N counts only the steps actually shown)
-Single-answer screens (option cards) **auto-advance about 0.3 s after a tap**; multi-select screens and sliders keep a Continue button.
+### 3.1 Person A onboarding (steps that show "Step X of N")
+- "Step X of N": N is computed once from the steps every user sees (17). Branch-only steps (handing the phone to the partner and B's answers there, the Android waitlist) show no counter and never change N.
+- Single-answer screens (option cards) advance **only after a tap** on that step, about 0.3 s later (a pending advance is cancelled by any navigation). Option cards react to taps only: a swipe or drag across them never selects or advances. Swiping back from the left edge is allowed. Multi-select screens, sliders and steps with a preselected answer ("How hard should it be?") keep a pinned Continue button.
 1. **Hook** (01): TAGLINE as the headline, the couple standing, "Let's start ›".
 2. **Build your avatar** (02): the avatar builder from section 1.3 (the tab row scrolls and shows a half-cut tab so it's obvious there are more).
 3. **Names** (03): "Who's in this with you?", your name field and your partner's name field. The partner card shows `partner_outline` and "Picks their character later".
@@ -161,14 +168,14 @@ Single-answer screens (option cards) **auto-advance about 0.3 s after a tap**; m
 6. **How long have you been together?** (04): <1 yr, 1–3 yrs, 3+ yrs.
 7. **Long distance?** (05): Yes / No.
 8. **What do you want to fix together?** (06): multi-select, at least 2: Fitness, Money, Phone time, Discipline, Sleep, Diet.
-9. **Anything personal you want to work on?**: multi-select chips (Learn a language, Read more, Meditate, Save money, Less social media, Practise an instrument, Study, Cook at home, Journal, Stretch) plus a free-text field "Something else?" (max 60 characters). Skippable ("Skip ›" until something is picked). Picked chips become rules in the plan (2.1); the free text becomes ideas (2.7) under "Suggested for you".
+9. **Anything personal you want to work on?**: multi-select chips (Learn a language, Read more, Meditate, Save money, Less social media, Practise an instrument, Study, Cook at home, Journal, Stretch) plus a free-text field "Something else?" (max 60 characters) with "Add": a typed goal becomes its own coral pill with its clean name (tap to remove); text left in the field when continuing is added too. Skippable ("Skip ›" until something is picked). **Every picked chip and every typed goal becomes a daily rule** (2.1); the typed text also feeds ideas (2.7) under "Suggested for you".
 10. **Your fitness level**: Just starting / Somewhat active / Very active.
 11. **When do you usually wake up?**: a time wheel, default **07:30**.
 12. **How often do you start something together and quit?** (07): slider Rarely / Sometimes / Usually / Always.
 13. **Mirror moment** (08): keep exactly: "Most couples quit before it gets hard. Not because they're weak. Because no one's watching."
 14. **How hard should it be?** (09): both characters in the stretch pose above the title, then "Gentle" ("Lighter daily rules · 3 saves"), "Couples 75" ("Most popular", preselected; "The full plan · 3 shared saves") and "Hard mode" ("The full plan · no saves, one miss restarts"). Gentle lowers each member's rule intensity one step; Hard mode raises it one step and has no saves. Never show "75 Soft" or "75 Hard".
 15. **Building your plan** (10): animated checklist, ~3 seconds, auto-advances.
-16. **Plan reveal** (11): "{A} & {B}'s 75-day plan", the ring scene with both avatars (B's as built on A's phone, else `partner_outline`), the Daily rules card with a row per rule (A in coral, B in sage), "Because you picked {goal}" under each row, and a **"Change"** button per row. Change opens a sheet with "Suggested for you", "From the list" and "Write your own", and a picker for whose rule it is; changed rows show a brown "Pending" pill and the note "Changed rules are pending until {B} approves. The original rule stays until then." The saves card reads "3 saves" / "Shared. Each one covers a missed day." (Hard mode: "No saves" / "One miss restarts the round"). If B hasn't answered for themselves, label B's column "Draft: {B} can adjust when they join". Button **"Set the stakes ›"**.
+16. **Plan reveal** (11): "{A} & {B}'s 75-day plan", the ring scene with both avatars (B's as built on A's phone, else `partner_outline`), the Daily rules card with a row per rule (A in coral, B in sage), "Because you picked {goal}" under each row, and a **"Change"** button per row. **More than 6 rules:** a coral note "Up to 6 rules each. Swap or remove {n} more to continue." and **"Swap" / "Remove"** on each row (Swap replaces the row for both; Remove is disabled when it would leave fewer than 4 rules or fewer than 2 photo rules); "Set the stakes" stays disabled until there are 6. Change opens a sheet with "Suggested for you", "From the list" and "Write your own", and a picker for whose rule it is; changed rows show a brown "Pending" pill and the note "Changed rules are pending until {B} approves. The original rule stays until then." The saves card reads "3 saves" / "Shared. Each one covers a missed day." (Hard mode: "No saves" / "One miss restarts the round"). If B hasn't answered for themselves, label B's column "Draft: {B} can adjust when they join". Button **"Set the stakes ›"**.
 17. **Set the stakes** (12): "Set the stakes", subtitle "{B} accepts this when they join." Loser plans the date / Loser cooks dinner for a week / Loser plans the trip / Custom (max 40 characters). Then "Hold to sign" / "We finish this together" and the fingerprint button (hold 1.5 s with a filling coral ring and a success haptic).
 Then without a step counter:
 18. **Paywall** (13a–13d, section 3.3).
@@ -214,11 +221,13 @@ B never sees A's couple quiz and never sees a paywall.
 ### 4.1 Today (15)
 - Header: "{A} & {B}" and a gold streak pill "🔥 {streak}".
 - A peach hero card with the gold day ring centred behind both characters, shown head to waist and always fully inside the card (never cropped at the head or the sides), "DAY {n} / 75" between them. Before Day 1 the ring reads **"Day 1" / "tomorrow"** on two lines, each shrinking to fit, so it's never cut off. A speech bubble from whoever is done: "{name}'s done. Your turn." (only when exactly one of them is done for today). Status chips across their waists: "Done" (sage) or "{x} left" (brown).
+- Under the week dots: a **75-day progress bar**, "Day X of 75", coral fill, the percentage on the right, animating when the day goes up (Day 0 during warm-up).
 - Week dots (S M T W T F S) for the current week: gold = complete, coral ring = today, faint = future, and a small coral "S" dot for a day covered by a save, grey for paused.
 - **Replace "Miss a day = restart"** with a row: "Saves" + three small gold squares (filled = left) and "Score: {A} {missesA} · {B} {missesB}". In Hard mode: "Hard mode · no saves".
 - Above the rule cards, when the partner has check-ins you haven't reacted to: a peach row "New from {partner}" with the latest unreacted thumbnail and "Tap to react ›" that opens it in Proof (4.12).
-- "Today's rules": two cards side by side (A, B), rule text 15pt on one line, each rule with a check circle; in the partner's card each checked photo rule shows a small rounded thumbnail instead of the check (a coral dot if you haven't reacted) and the header shows "{n} to react"; tapping it opens Proof. **Tapping any of your own rules checks in that rule**: photo rule → camera (21); honour rule → a small sheet "Did you stick to {rule} today?" with "Yes, I did ›" (only enabled after 18:00 local; before that the row says "Tap tonight").
+- "Today's rules": two cards side by side (A, B), rule text 15pt wrapping to at most 2 lines (never cut off), each rule with a check circle; in the partner's card each checked photo rule shows a small rounded thumbnail instead of the check (a coral dot if you haven't reacted) and the header shows "{n} to react"; tapping it opens Proof. **Tapping any of your own rules checks in that rule**: photo rule → camera (21); honour rule → a small sheet "Did you stick to {rule} today?" with "Yes, I did ›" (only enabled after 18:00 local; before that the row says "Tap tonight").
 - Primary "Check in ›" (warm-up: "Practise check-in ›") first opens a small sheet **"Which rule?"** listing your unchecked rules (photo rules first); picking one opens the camera or the honour sheet. It never opens the camera directly.
+- **"Take today's progress pic"** card (optional, separate from rule proof; section 4.13): opens the progress camera; once taken it shows the thumbnail, "Progress pic done" and "Retake".
 - Bet row at the bottom: "🏆 Stakes: {bet}".
 - After 21:00, if you still have rules left, a coral banner: "{x} rules left. {hours} hours to go."
 
@@ -236,13 +245,13 @@ Shown to both members the next time they open the app after a miss. Characters `
 - Completed round: go to Day 75 (4.7) first, then this card if someone owes.
 
 ### 4.6 Progress (16)
-Title "Progress", "{A} & {B}", both avatars (busts) above the grid (B's as built on A's phone before B joins), a 75-day grid that is never empty (a small gold star "Warm-up done" marks the warm-up day; until Day 1 the line under the grid reads "Day 0 done. 75 to go."), (gold = both complete, half gold = one complete + one save, coral outline = today, grey = paused, empty = future), "Day {n} of 75", a horizontal strip of both partners' recent photos (tap → full-screen viewer with the stamp and reactions), "Best streak", "Rounds", and the bet row. Photos are visible only to the couple.
+Title "Progress", "{A} & {B}", then the **Transformation** section (4.13) at the top, both avatars (busts) above the grid (B's as built on A's phone before B joins), a 75-day grid that is never empty (a small gold star "Warm-up done" marks the warm-up day; until Day 1 the line under the grid reads "Day 0 done. 75 to go."), (gold = both complete, half gold = one complete + one save, coral outline = today, grey = paused, empty = future), "Day {n} of 75", a horizontal strip of both partners' recent photos (tap → full-screen viewer with the stamp and reactions), "Best streak", "Rounds", and the bet row. Photos are visible only to the couple. The grid legend ("Both done", "One + save", "Today") uses 13 pt dots with 13 pt labels in `textPrimary`.
 
 ### 4.7 Day 75 (19)
 Confetti, "Day 75", "We finished Couples 75" (fix the name), "{A} & {B}", the cheer + trophy scene. A recap card: saves used, final score, best streak, most sus moments, and who owes the bet (or "Nobody owes anything"). Buttons: "Share our card ›" (renders a 1080×1920 image without photos and opens the share sheet), "Start round 2" (reruns steps 9 and 13 of the quiz, offers Hard mode).
 
 ### 4.8 Profile (18)
-Your character, your name, "Partner linked" pill (sage; make sure it isn't cut off). Rows: **Mode** (Couples 75 · 3 saves / Hard mode), **Saves left** ("{x} of 3"), **Wake-up reminder** (time), **Evening warning** (21:00, on/off), **Partner** ({name}), **Our rules** (both partners' rules, pending changes, and "Request a change", section 2.7), **Subscription** ("Active · {plan} (free trial), renews {date} · covers you both", or "Covered by {payer}'s subscription", or "Not active") → Manage, **Restore purchases**, and when notifications were denied, **"Reminders are off · Turn on in Settings"** (opens the app's Settings page), **Terms**, **Privacy**, **Contact support**. Then quiet text buttons: **"Leave couple"** and **"Delete my data"** (section 6.5). Remove "Missed-day rule: Restart".
+Your character, your name, "Partner linked" pill (sage; make sure it isn't cut off). Rows: **Mode** (Couples 75 · 3 saves / Hard mode), **Saves left** ("{x} of 3"), **Wake-up reminder** (time), **Evening warning** (21:00, on/off), **Partner** ({name}), **Share progress pics with partner** (toggle, **off by default**, section 4.13), **Our rules** (both partners' rules, pending changes, and "Request a change", section 2.7), **Subscription** ("Active · {plan} (free trial), renews {date} · covers you both", or "Covered by {payer}'s subscription", or "Not active") → Manage, **Restore purchases**, and when notifications were denied, **"Reminders are off · Turn on in Settings"** (opens the app's Settings page), **Terms**, **Privacy**, **Contact support**. Then quiet text buttons: **"Leave couple"** and **"Delete my data"** (section 6.5). Remove "Missed-day rule: Restart".
 
 ### 4.9 Pause request (29)
 - Requester side (new): from Today's "…" menu → "Life happens": pick 1–3 days, start Today/Tomorrow, reason field ("Travelling", "Sick", or custom), "Send request ›". Disabled with an explanation if the round's pause is already used.
@@ -258,7 +267,7 @@ Your character, your name, "Partner linked" pill (sage; make sure it isn't cut o
 - Round frozen banner on Today: "Your run is paused until the subscription is renewed."
 
 ### 4.12 Proof (new tab)
-- Title "Proof" and a segmented control "From {partner}" | "Mine". The tab icon shows a coral number badge: how many partner check-ins you haven't reacted to (approve, emoji, Sus or comment; "Seen" doesn't count).
+- Title "Proof" and the coral sliding-pill segmented control "From {partner}" | "Mine" (1.2), with a cross-fade between the lists. The tab icon shows a coral number badge: how many partner check-ins you haven't reacted to (approve, emoji, Sus or comment; "Seen" doesn't count).
 - "From {partner}": cards grouped by day ("Today", "Yesterday", "Day 21"), newest first, unreacted ones at the top of each day with a coral dot.
   - Photo check-in card: the photo large (rounded, 4:5) with its burned-in day/time stamp, the rule name and time, then the emoji reactions (❤️ 🔥 💪 👀 😂), "Sus 🤨" and "Approve ›".
   - Honour check-in card (compact): "{partner} stuck to {rule}" with the same reactions, Sus and Approve.
@@ -268,10 +277,21 @@ Your character, your name, "Partner linked" pill (sage; make sure it isn't cut o
 - **Plan changes** (shown above the list only when there are any): the partner's pending rule proposals as peach cards "{name} wants to add: {rule}" ("Instead of {old rule}") with "Approve ›" and "Suggest a change", and your own as "Waiting for {partner} to approve". They count in the tab badge.
 - Works in Mock mode: Debug menu → "Act as {partner}" → "Simulate partner check-in" shows the new check-in, the badge and the dot.
 
+### 4.13 Daily progress photos and Transformation
+- **Progress pic** (Today card, optional): the camera opens with the **Day 1 progress photo as a ghost overlay at ~30% opacity** (toggle "Ghost on/off") so the pose lines up. One photo per person per local day; retaking replaces it. Not a rule check-in.
+- **Private by default**: stored on the phone (Application Support, not the App Group the widget reads) and in the user's **own private CloudKit database** (zone `ProgressPhotos`), never in the couple's shared zone. Profile → **"Share progress pics with partner"** (off by default): when turned on, copies go to the shared zone as `ProgressShare` records so the partner can see them; when turned off, those copies are deleted from the shared zone. Leave couple deletes the shared copies; Delete my data deletes everything, including the private zone.
+- **Transformation** (top of Progress): a **before/after slider** (Day 1 vs the latest photo, drag handle in the middle), a horizontal **timeline** of all progress photos (tap → full screen), **"Play"** (timelapse, ~0.15 s per photo) and **"Save / Share"**, which exports a vertical 9:16 video (1080×1920, H.264, `AVAssetWriter`) with the day label and a small "Couples 75" watermark and opens the share sheet. The partner's progress photos appear in their own row only if they share them. Empty state: "No progress photos yet. Take your first one today."
+- **Milestones**: on Day 25, 50 and 75 (once each per round, if the user has progress photos), a celebration screen shows Day 1 and today side by side: only the user's own photos, plus the partner's if they share.
+
+### 4.14 Launch screen and opening animation
+- The launch screen (Info.plist `UILaunchScreen`: color `LaunchPeach` #FDE4D8, image `LaunchLogo` = the app icon with rounded corners, 120 pt, centred, ignoring safe areas) is **identical to the first frame** of the animation, so there is never a blank peach flash.
+- Then ~1.2 s: the 75 + heart logo scales up with a gentle spring, the two avatars (the user's and the partner's, or the dashed outline if not joined) slide in from the left and right and meet in the middle with a **light haptic**, then everything cross-fades into Today (or onboarding for new users). The app loads underneath.
+- Reduce Motion: no movement, just a short fade. Never block the user longer than ~1.5 s.
+
 ## 5. Notifications
 
 - Ask for permission with a priming screen right after the invite step (or after B's "I'm in"): "Turn on reminders so neither of you misses a day", then `requestAuthorization`. If it was denied, Profile shows "Turn on in Settings".
-- **Local** (scheduled on device, rescheduled daily): wake-up reminder "Day {n}. 4 rules today." (+ " {partner} is already up." if the partner has checked in); 21:00 warning only if rules are left: "{x} rules left. {hours} hours to go." (cancel when complete); A's invite nudges (3.6); the trial reminder on Day 2 of a free trial (2.6).
+- **Local** (scheduled on device, rescheduled daily): wake-up reminder "Day {n}. {x} rules today." (+ " {partner} is already up." if the partner has checked in); 21:00 warning only if rules are left: "{x} rules left. {hours} hours to go." — for people who take progress pics and haven't taken today's yet: "{x} rules left **and your progress pic**. {hours} hours to go." (cancel when complete); A's invite nudges (3.6); the trial reminder on Day 2 of a free trial (2.6).
 - **Partner events** (partner checked in, reaction or comment on your check-in, Sus, save used, round ended, pause request and its answer, B joined, tweak proposal and its answer, rule proposal "{name} suggested a new rule. Approve?" and its answer, partner's subscription ended): there is no server, so use CloudKit subscriptions. A subscribes to its couple zone in the private database, B to the shared database (`CKDatabaseSubscription` / `CKRecordZoneSubscription` with `shouldSendContentAvailable = true`). When the silent push arrives, fetch the changes (`CKFetchDatabaseChangesOperation` + `CKFetchRecordZoneChangesOperation` with saved change tokens) and post a **local** notification with the right text ("{name} finished {rule}. React?", "{name} thinks that's sus 🤨", ...). iOS doesn't always deliver silent pushes, so also fetch changes on every app open, when returning to the foreground, and in a `BGAppRefreshTask`. Deep link every notification to the right screen; "{name} finished {rule}. React?" opens that exact check-in in Proof.
 
 ## 6. Data and sync (CloudKit, no server)
@@ -292,6 +312,8 @@ Your character, your name, "Partner linked" pill (sage; make sure it isn't cut o
 - `Reaction`: checkInID, memberID, kind `approve|emoji|sus|comment|seen`, emoji, comment, createdAt.
 - `PauseRequest`: requestedBy, startDate, days, reason, createdAt. `PauseAnswer`: pauseID, accepted, answeredAt. No answer after `PAUSE_AUTO_ACCEPT_H` hours = accepted.
 - `BetPaid`: roundNumber, memberID, paidAt.
+- `ProgressShare`: memberID, localDate, dayNumber, capturedAt, photo (`CKAsset`). Only while the owner shares progress pics; deleted when they stop.
+- Private database only (zone `ProgressPhotos`, never shared): `ProgressPhoto`: localDate, dayNumber, capturedAt, photo (`CKAsset`).
 - Public database only: `InviteCode` (3.2) and `Waitlist` (email, createdAt).
 - Write the schema as code and document in the README how to deploy it to Production in the CloudKit Console.
 
@@ -300,7 +322,7 @@ Your character, your name, "Partner linked" pill (sage; make sure it isn't cut o
 - Round 1 starts on the first local day after both members joined. Each following round starts the local day after the previous one ended.
 - The couple is active while any member's subscription is active. Frozen: when nobody's is, days from that date on don't settle; after `LAPSE_GRACE_DAYS` the round ends as `abandoned` with no bet.
 - Rules: the member's rules for the round, then B's join tweak, then **only approved** rule proposals, each from the local day after its approval; only the first approved in-round swap per member per round counts.
-- **XCTest unit tests** covering: a normal complete day; one miss uses a save; the 4th miss ends the round and starts the next; both miss the same day; hard mode; tie at 0, tie above 0, unequal misses; pause accepted, declined, auto-accepted, pending at midnight; time zones 8 hours apart; a check-in uploaded too late is ignored; warm-up check-ins ignored; subscription lapse freeze and abandon; one subscription covers both (a partner's lapse alone doesn't freeze); Day 75 completion; a pending rule proposal doesn't count; an approved swap starts the next day; a second swap in a round is rejected; the same facts always give the same state.
+- **XCTest unit tests** covering: a normal complete day; one miss uses a save; the 4th miss ends the round and starts the next; both miss the same day; hard mode; tie at 0, tie above 0, unequal misses; pause accepted, declined, auto-accepted, pending at midnight; time zones 8 hours apart; a check-in uploaded too late is ignored; warm-up check-ins ignored; subscription lapse freeze and abandon; one subscription covers both (a partner's lapse alone doesn't freeze); Day 75 completion; a pending rule proposal doesn't count; an approved swap starts the next day; a second swap in a round is rejected; the plan review, the stored rules (A and B's copy) and Today always show identical rules; a typed goal becomes "Learn Chinese: 15/10/30 min" by level; plans are trimmed to 4–6 rules keeping 2 photo rules; typed goal names never contain brands; the same facts always give the same state.
 
 ### 6.4 The app's data layer
 - `Store` protocol with `CloudKitStore` and `MockStore` (section 7). All screens use `@Observable` view models that read the latest `RulesEngine` state.
@@ -310,7 +332,7 @@ Your character, your name, "Partner linked" pill (sage; make sure it isn't cut o
 
 ### 6.5 Leave couple, delete my data, report
 - **Leave couple** (Profile): a sheet "Leave {partner}?" explaining that the run ends and the shared photos are deleted for both. First offer "Save my photos" (exports the user's own photos to a share sheet as images), then "Leave couple" (destructive). If A leaves: delete the couple zone (this removes it for B too). If B leaves: write `leftAt` on B's Member record, then leave the share. Either way the other phone shows "{name} left the couple" and offers to start over with a new partner. The subscription stays with whoever bought it.
-- **Delete my data** (Profile): same as Leave couple, plus clear all local caches and the iCloud key-value store, then return to the hook. (There is no account to delete, because the app has no sign-up.)
+- **Delete my data** (Profile): same as Leave couple, plus delete all progress photos (local and the private `ProgressPhotos` zone), clear all local caches and the iCloud key-value store, then **fade** (not cut) back to the hook. (There is no account to delete, because the app has no sign-up.)
 - Report: see 4.3. Leaving the couple doubles as "block".
 
 ## 7. Mock mode (so I can test without any backend)
@@ -330,7 +352,7 @@ In DEBUG builds without a camera (the Simulator) the shutter makes a generated s
 - "Delete my data" and "Leave couple" (6.5), report and block (4.3, 6.5). The app has no sign-up, so Apple's account-deletion rule doesn't apply, but keep "Delete my data" anyway.
 - Privacy: photos are personal data under GDPR. They are stored in the couple owner's iCloud and shared only with the partner; the developer never sees them. Note in the README which data is collected (name, character, time zone, photos, check-ins) for the App Privacy labels.
 - Never use "75 Hard" anywhere in the UI, metadata or code strings. Add to Profile → About: "Couples 75 is not affiliated with 44Seven Media or the 75 HARD program."
-- Camera usage string: "Couples 75 uses the camera to take live proof photos for your partner." Notifications priming as in 5.
+- Camera usage string: "Couples 75 uses the camera to take live proof photos for your partner." Photo library (add only) usage string, for saving the timelapse: "Couples 75 saves your progress timelapse video to your photo library when you ask it to." App Store description: see `docs/APP_STORE_SUBMISSION.md` ("4 to 6 daily rules each", private progress photos and the timelapse). Notifications priming as in 5.
 
 ## 9. Build order (finish and test each stage before the next)
 
