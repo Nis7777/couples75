@@ -110,6 +110,13 @@ enum Prefs {
     static let joinDraftKey = "joinDraft"
     static let invitePaidAtKey = "invitePaidAt"
     static let shareProgressKey = "shareProgressPhotos"
+    static let healthProofKey = "healthProofOn"
+
+    /// "Use Apple Health as proof" (off until the user turns it on and allows access).
+    static var healthProofOn: Bool {
+        get { UserDefaults.standard.bool(forKey: healthProofKey) }
+        set { UserDefaults.standard.set(newValue, forKey: healthProofKey) }
+    }
 
     /// "Share progress pics with partner": off by default (progress photos are private).
     static var shareProgressPhotos: Bool {
@@ -124,7 +131,7 @@ enum Prefs {
 
     static func wipe() {
         for k in [eveningWarningKey, onboardingDoneKey, seenCodeEntryKey, draftKey, joinDraftKey, invitePaidAtKey,
-                  shareProgressKey] {
+                  shareProgressKey, healthProofKey] {
             UserDefaults.standard.removeObject(forKey: k)
         }
     }
@@ -148,6 +155,8 @@ final class AppModel {
     /// My private daily progress photos (Part 4).
     let progress = ProgressPhotoStore()
     var presentedMilestone: Int?
+    /// Today's Apple Health totals per rule id (only for rules Health can prove).
+    var healthReadings: [String: Double] = [:]
 
     private(set) var facts: Facts
     private(set) var state: EngineState
@@ -405,6 +414,7 @@ final class AppModel {
                 Haptics.light()
             }
         }
+        await refreshHealth()
         await NotificationManager.shared.postPartnerEvents(oldFacts: oldFacts, newFacts: facts,
                                                           oldState: oldState, newState: state,
                                                           meID: meID, isInitial: oldFacts.couple == nil)

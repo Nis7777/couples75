@@ -345,7 +345,7 @@ extension AppModel {
 
     /// Saves a check-in for today. `photo` is the stamped, compressed JPEG for photo rules.
     @discardableResult
-    func checkIn(rule: RuleFact, photo: Data?, honourFallback: Bool = false) async -> Bool {
+    func checkIn(rule: RuleFact, photo: Data?, honourFallback: Bool = false, healthProof: String? = nil) async -> Bool {
         guard let m = me else { return false }
         let now = self.now()
         let warm = isWarmup
@@ -353,7 +353,8 @@ extension AppModel {
         let c = CheckInFact(id: .newID(), memberID: m.id, ruleID: rule.id, capturedAt: now, localDate: date.string,
                             stampText: stampText(dayNumber: warm ? nil : myToday?.dayNumber, at: now, tz: m.tz),
                             hasPhoto: photo != nil, isWarmup: warm,
-                            uploadedAt: isMock ? now : nil, honourFallback: honourFallback)
+                            uploadedAt: isMock ? now : nil, honourFallback: honourFallback,
+                            healthProof: healthProof)
         let ok = await save([.checkIn(c, photo: photo)])
         if ok { Haptics.success() }
         return ok

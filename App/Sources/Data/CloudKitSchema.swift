@@ -91,7 +91,7 @@ enum CloudKitSchema {
         name: "CheckIn",
         fields: ["memberID": "String", "ruleID": "String", "capturedAt": "Date/Time", "localDate": "String",
                  "stampText": "String", "hasPhoto": "Int(64)", "isWarmup": "Int(64)", "honourFallback": "Int(64)",
-                 "photo": "Asset"],
+                 "healthProof": "String", "photo": "Asset"],
         dateKeys: ["capturedAt", "uploadedAt"], boolKeys: ["hasPhoto", "isWarmup", "honourFallback"], jsonKeys: [])
 
     static let reaction = RecordType(

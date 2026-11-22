@@ -412,7 +412,15 @@ struct TodayView: View {
                                 .lineLimit(2)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .multilineTextAlignment(.leading)
-                            if isMe, !warmup, !item.isChecked, item.rule.type == .honour, hour < 18 {
+                            if isMe, !item.isChecked, let health = model.healthProgressText(for: item.rule) {
+                                Text(health)
+                                    .font(.app(12, .medium))
+                                    .foregroundStyle(Color.textSecondary.opacity(0.85))
+                            } else if let proof = item.checkIn?.healthProof, item.isChecked {
+                                Text(proof.replacingOccurrences(of: "Apple Health · ", with: " "))
+                                    .font(.app(12, .semibold))
+                                    .foregroundStyle(Color.sage)
+                            } else if isMe, !warmup, !item.isChecked, item.rule.type == .honour, hour < 18 {
                                 Text("Tap tonight")
                                     .font(.app(12, .medium))
                                     .foregroundStyle(Color.textSecondary.opacity(0.85))

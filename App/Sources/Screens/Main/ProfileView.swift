@@ -13,6 +13,7 @@ struct ProfileView: View {
     @State private var showDebug = false
     @State private var showRules = false
     @State private var shareProgress = Prefs.shareProgressPhotos
+    @State private var healthOn = Prefs.healthProofOn
     @State private var eveningOn = Prefs.eveningWarningOn
     @State private var notificationsDenied = false
 
@@ -84,6 +85,25 @@ struct ProfileView: View {
                         }
                     }
                     row("Partner", value: model.partnerName)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Toggle(isOn: $healthOn) {
+                            Text("Use Apple Health as proof")
+                                .font(.app(17, .medium))
+                                .foregroundStyle(Color.textPrimary)
+                        }
+                        .tint(.coral)
+                        Text("Steps, exercise, water and mindful minutes check off matching rules by themselves.")
+                            .font(.app(13))
+                            .foregroundStyle(Color.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 12)
+                    .card(radius: 16, shadow: false)
+                    .onChange(of: healthOn) { _, on in
+                        guard on != Prefs.healthProofOn else { return }
+                        Task { await model.setHealthProof(on) }
+                    }
                     // Progress pics are private by default.
                     VStack(alignment: .leading, spacing: 4) {
                         Toggle(isOn: $shareProgress) {
