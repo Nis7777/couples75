@@ -58,8 +58,10 @@ struct TodayView: View {
                 // Let the sheet go away before the camera cover comes up.
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { open(r) }
             }
-            .presentationDetents([.height(CGFloat(150 + uncheckedRules.count * 62))])
+            // Native sheet: medium/large detents with spring snapping and a grabber.
+            .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
+            .presentationCornerRadius(28)
         }
         .sheet(isPresented: $showDebug) { DebugMenuView() }
     }
@@ -511,6 +513,7 @@ struct WhichRuleSheet: View {
     var pick: (RuleFact) -> Void
 
     var body: some View {
+        ScrollView(showsIndicators: false) {
         VStack(alignment: .leading, spacing: 12) {
             Text("Which rule?")
                 .font(.app(22, .bold))
@@ -549,6 +552,8 @@ struct WhichRuleSheet: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, Metrics.side)
+        .padding(.bottom, 20)
+        }
         .background(Color.ivory.ignoresSafeArea())
     }
 }

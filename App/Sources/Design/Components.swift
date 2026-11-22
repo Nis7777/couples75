@@ -7,6 +7,10 @@ enum Haptics {
     static func tap() { UIImpactFeedbackGenerator(style: .light).impactOccurred() }
     static func success() { UINotificationFeedbackGenerator().notificationOccurred(.success) }
     static func warning() { UINotificationFeedbackGenerator().notificationOccurred(.warning) }
+    /// "Hold to sign" completed.
+    static func heavy() { UIImpactFeedbackGenerator(style: .heavy).impactOccurred() }
+    /// A partner's approval arrived; avatars meeting in the opening animation.
+    static func light() { UIImpactFeedbackGenerator(style: .light).impactOccurred() }
 }
 
 enum Metrics {
@@ -184,6 +188,49 @@ struct PressableStyle: ButtonStyle {
     }
 }
 
+// MARK: - Segmented control
+
+/// The app's segmented control: a coral pill slides under the selected option (white text);
+/// the others stay `textPrimary` on a white track.
+struct PillSegmentedControl: View {
+    var options: [String]
+    @Binding var selection: Int
+    @Namespace private var pill
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(Array(options.enumerated()), id: \.offset) { i, title in
+                let selected = selection == i
+                Button {
+                    guard !selected else { return }
+                    Haptics.tap()
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { selection = i }
+                } label: {
+                    Text(title)
+                        .font(.app(15, .semibold))
+                        .foregroundStyle(selected ? Color.white : Color.textPrimary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 38)
+                        .background {
+                            if selected {
+                                Capsule().fill(Color.coral)
+                                    .matchedGeometryEffect(id: "pill", in: pill)
+                            }
+                        }
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
+            }
+        }
+        .padding(4)
+        .background(Capsule().fill(Color.white))
+        .overlay(Capsule().stroke(Color.cardBorder, lineWidth: 1))
+    }
+}
+
 // MARK: - Option card
 
 /// White card, 1pt border, radius 18, 64–72pt tall. Selected: peach fill, 1.5pt coral border,
@@ -271,16 +318,20 @@ struct CheckCircle: View {
         ZStack {
             if isOn {
                 Circle().fill(color)
+                    .transition(.scale(scale: 0.4).combined(with: .opacity))
                 Image(systemName: "checkmark")
                     .font(.system(size: size * 0.48, weight: .heavy))
                     .foregroundStyle(.white)
+                    // Scale pop when a rule is checked off.
+                    .transition(.scale(scale: 0.2).combined(with: .opacity))
             } else {
                 Circle().fill(Color.white)
                 Circle().stroke(Color.radio, lineWidth: 1.8)
             }
         }
         .frame(width: size, height: size)
-        .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isOn)
+        .scaleEffect(isOn ? 1 : 0.96)
+        .animation(.spring(response: 0.32, dampingFraction: 0.5), value: isOn)
         .accessibilityHidden(true)
     }
 }

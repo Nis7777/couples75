@@ -140,7 +140,7 @@ struct HoldToSignButton: View {
         signed = true
         holding = false
         progress = 1
-        Haptics.success()
+        Haptics.heavy()
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 350_000_000)
             onSigned()

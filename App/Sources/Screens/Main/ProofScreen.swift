@@ -23,13 +23,15 @@ struct ProofScreen: View {
                     .foregroundStyle(Color.textPrimary)
                     .padding(.top, 14)
                     .accessibilityAddTraits(.isHeader)
-                Picker("Show", selection: $segment) {
-                    Text("From \(model.partnerName)").tag(0)
-                    Text("Mine").tag(1)
-                }
-                .pickerStyle(.segmented)
+                PillSegmentedControl(options: ["From \(model.partnerName)", "Mine"], selection: $segment)
                 PlanChangesSection(suggest: { suggesting = $0 })
-                if segment == 0 { fromPartner } else { mine }
+                // Cross-fade between the two lists.
+                VStack(alignment: .leading, spacing: 16) {
+                    if segment == 0 { fromPartner } else { mine }
+                }
+                .id(segment)
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.25), value: segment)
             }
             .padding(.horizontal, Metrics.side)
             .padding(.bottom, 24)
@@ -74,7 +76,7 @@ struct ProofScreen: View {
         if model.partnerCheckIns.isEmpty || model.partner?.joinedAt == nil {
             emptyState(text: model.partner?.joinedAt == nil
                        ? "Nothing yet. \(model.partnerName)'s check-ins show up here once they join."
-                       : "All caught up. Nothing to check right now.")
+                       : "No proof yet today.")
         } else {
             if model.unreactedPartnerCheckIns.isEmpty {
                 emptyState(text: "All caught up. Nothing to check right now.")
@@ -101,19 +103,7 @@ struct ProofScreen: View {
     }
 
     private func emptyState(text: String) -> some View {
-        VStack(spacing: 14) {
-            CoupleScene(left: model.sceneA, right: model.sceneB, crop: 0.56, overlap: -0.04)
-                .frame(height: 200)
-            Text(text)
-                .font(.app(17, .semibold))
-                .foregroundStyle(Color.textPrimary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(.vertical, 18)
-        .padding(.horizontal, 16)
-        .frame(maxWidth: .infinity)
-        .background(PeachPanelFill(radius: 22))
+        EmptyStateCard(text: text, height: 180)
     }
 
     // MARK: Mine
@@ -122,7 +112,7 @@ struct ProofScreen: View {
     private var mine: some View {
         let mineList = model.checkIns(of: model.meID)
         if mineList.isEmpty {
-            emptyState(text: "Your check-ins and \(model.partnerName)'s reactions show up here.")
+            emptyState(text: "No proof yet today. Check in and \(model.partnerName) can react.")
         } else {
             ForEach(mineList) { c in
                 HStack(alignment: .top, spacing: 14) {

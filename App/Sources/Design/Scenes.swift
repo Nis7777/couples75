@@ -228,17 +228,46 @@ struct RingHero: View {
     @ViewBuilder
     private func chip(_ c: StatusChip?) -> some View {
         if let c {
+            // "4 left" → "3 left" rolls like a counter.
             Text(c.text)
                 .font(.app(17, .semibold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
+                .contentTransition(.numericText(countsDown: true))
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: c.text)
                 .frame(maxWidth: .infinity)
                 .frame(height: 40)
-                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(c.color))
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(c.color)
+                    .animation(.easeInOut(duration: 0.3), value: c.color))
         } else {
             Color.clear.frame(maxWidth: .infinity).frame(height: 40)
         }
+    }
+}
+
+/// Friendly empty state: both avatars (the partner's dashed outline until they've joined) and one line.
+struct EmptyStateCard: View {
+    @Environment(AppModel.self) private var model
+    var text: String
+    var height: CGFloat = 150
+
+    var body: some View {
+        VStack(spacing: 12) {
+            CoupleScene(left: model.sceneA, right: model.sceneBBuilt, crop: 0.56, overlap: -0.04)
+                .frame(height: height)
+                .accessibilityHidden(true)
+            Text(text)
+                .font(.app(17, .semibold))
+                .foregroundStyle(Color.textPrimary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, 18)
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity)
+        .background(PeachPanelFill(radius: 22))
+        .accessibilityElement(children: .combine)
     }
 }
 

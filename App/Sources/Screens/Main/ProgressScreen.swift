@@ -115,13 +115,11 @@ struct ProgressScreen: View {
                 .font(.app(18, .semibold))
                 .foregroundStyle(Color.textPrimary)
                 .frame(maxWidth: .infinity)
-            HStack(spacing: 14) {
+            HStack(spacing: 16) {
                 legend(.both, "Both done")
                 legend(.half, "One + save")
                 legend(.today, "Today")
             }
-            .font(.app(12))
-            .foregroundStyle(Color.textSecondary)
             .frame(maxWidth: .infinity)
         }
         .padding(18)
@@ -155,9 +153,11 @@ struct ProgressScreen: View {
     }
 
     private func legend(_ c: Cell, _ text: String) -> some View {
-        HStack(spacing: 5) {
-            cellView(c).frame(width: 11, height: 11)
+        HStack(spacing: 6) {
+            cellView(c).frame(width: 13, height: 13)
             Text(text)
+                .font(.app(13, .medium))
+                .foregroundStyle(Color.textPrimary)
         }
     }
 
@@ -173,10 +173,7 @@ struct ProgressScreen: View {
                 .font(.app(20, .semibold))
                 .foregroundStyle(Color.textPrimary)
             if photos.isEmpty {
-                Text("Photo check-ins from both of you show up here. Only the two of you can see them.")
-                    .font(.app(15))
-                    .foregroundStyle(Color.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                EmptyStateCard(text: "No proof photos yet. Snap your first check-in today.", height: 120)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {

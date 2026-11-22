@@ -368,6 +368,15 @@ final class AppModel {
         } catch {
             recompute()
         }
+        // Light haptic when a partner's approval of one of my check-ins arrives.
+        if oldFacts.couple != nil {
+            let seen = Set(oldFacts.reactions.map(\.id))
+            let mine = Set(facts.checkIns.filter { $0.memberID == meID }.map(\.id))
+            if facts.reactions.contains(where: { !seen.contains($0.id) && $0.kind == .approve
+                                                && $0.memberID != meID && mine.contains($0.checkInID) }) {
+                Haptics.light()
+            }
+        }
         await NotificationManager.shared.postPartnerEvents(oldFacts: oldFacts, newFacts: facts,
                                                           oldState: oldState, newState: state,
                                                           meID: meID, isInitial: oldFacts.couple == nil)
