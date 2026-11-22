@@ -104,6 +104,16 @@ One subscription covers both partners: only the person who starts (A) pays; the 
    buyer's own `Member` record. The couple counts as active while either member's subscription is active.
 5. When a trial starts the app schedules a local reminder for Day 2 of the trial.
 
+## Apple Watch, HealthKit, Live Activities
+
+- The project has a watchOS target (`Couples75Watch`) embedded in the iPhone app. If Xcode says the watchOS
+  platform isn't installed, click **Get** (Xcode → Settings → Components → watchOS) once; then Run works as before.
+- Enable **HealthKit** for the App ID (read only) in the Apple Developer portal; the entitlement is in
+  `Config/App.entitlements`.
+- Live Activities need nothing extra (`NSSupportsLiveActivities` is in the Info.plist).
+- New CloudKit record types to deploy to Production: `Nudge`, `BucketItem`, `ProgressShare` (couple zone)
+  and `ProgressPhoto` (private zone `ProgressPhotos`), plus the `healthProof` field on `CheckIn`.
+
 ## Testing the invite on two iPhones
 
 You need two iPhones signed into two **different** Apple IDs (a Sandbox tester on each for purchases:

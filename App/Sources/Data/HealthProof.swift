@@ -115,7 +115,11 @@ final class HealthProof {
         guard let type = HKObjectType.quantityType(forIdentifier: id) else { return nil }
         let descriptor = HKStatisticsQueryDescriptor(predicate: .quantitySample(type: type, predicate: window),
                                                      options: .cumulativeSum)
-        guard let stats = try? await descriptor.result(for: store) else { return nil }
-        return stats?.sumQuantity()?.doubleValue(for: unit) ?? 0
+        do {
+            let stats = try await descriptor.result(for: store)
+            return stats?.sumQuantity()?.doubleValue(for: unit) ?? 0
+        } catch {
+            return nil
+        }
     }
 }

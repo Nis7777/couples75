@@ -35,11 +35,13 @@ In **DEBUG builds only**, the Simulator, the launch argument `-mock`, the unit t
 - Commit a complete `Couples75.xcodeproj` (objectVersion 77, `PBXFileSystemSynchronizedRootGroup` folders, so every file in `App/`, `Shared/`, `Widgets/` and `Tests/` is included automatically) with a shared scheme **Couples75** that uses `Config/Products.storekit` on Run. No XcodeGen or scripts are needed to open and run it.
 - Targets:
   1. `Couples75`: the main SwiftUI app.
-  2. `Widgets`: a WidgetKit extension (small + medium widgets, section 4.10).
+  2. `Widgets`: a WidgetKit extension (home, interactive and Lock Screen widgets plus the Live Activity, section 4.10).
   3. `Couples75Tests`: XCTest unit tests.
+  4. `Couples75Watch`: a watchOS 10 app (section 4.15), embedded in the iPhone app. Sources in `Watch/`; the payload type shared with the iPhone lives in `WatchShared/` (compiled into both).
   - Both share the App Group `APP_GROUP`. The app writes a small `WidgetSnapshot` JSON there; the widget only reads it.
-- Capabilities on `App`: iCloud with **CloudKit** (container `CLOUDKIT_CONTAINER`), Push Notifications, App Groups, Background Modes (remote notifications, background fetch). Add `CKSharingSupported = YES` to Info.plist so iCloud share links open the app. No Sign in with Apple: the user's iCloud account is their identity.
-- **No third-party packages at all.** Apple frameworks only: SwiftUI, CloudKit, StoreKit (StoreKit 2), AVFoundation, WidgetKit, UserNotifications, BackgroundTasks.
+- Capabilities on `App`: iCloud with **CloudKit** (container `CLOUDKIT_CONTAINER`), Push Notifications, App Groups, Background Modes (remote notifications, background fetch), **HealthKit** (read only), Live Activities (`NSSupportsLiveActivities`). Add `CKSharingSupported = YES` to Info.plist so iCloud share links open the app. No Sign in with Apple: the user's iCloud account is their identity.
+- **No third-party packages at all.** Apple frameworks only: SwiftUI, CloudKit, StoreKit (StoreKit 2), AVFoundation, WidgetKit, UserNotifications, BackgroundTasks, HealthKit, ActivityKit, AppIntents, WatchConnectivity.
+- **English only.** No translations and no other languages anywhere. (The StoreKit test storefront is only there so prices show in euros.)
 - Add a **StoreKit Configuration file** `Products.storekit` with the three subscriptions in one subscription group "Couples 75" (storefront Portugal, EUR): yearly 39,99 € with a 3-day free-trial introductory offer, yearly7 39,99 € with a 7-day free trial, monthly 7,99 € with no introductory offer. Set it on the Run scheme so purchases work in the Simulator.
 - Art: every PNG from `ArtSource/` is an image set in `Shared/Assets.xcassets` (shared by the app and the widget) named after the file; `AppIcon.png` (1024×1024, no alpha) is the single-size App Icon. Avatar recolouring layers (section 1.3) live in `ArtSource/masks/`, with the stand and bust poses in `Shared/Assets.xcassets` and the other poses in `App/Masks.xcassets`.
 - Font: bundle **Outfit** (OFL, google/fonts `ofl/outfit`) as static weights in `Shared/Fonts/` and register them with `UIAppFonts` in both Info.plists.
@@ -155,6 +157,16 @@ The mockups always show the same two people, "Maya" and "Joao". In the real app 
 - "Suggest a change" declines the proposal and sends a new proposal for the same rule back to the proposer.
 - Free text ideas ("Something else?"): on iOS 26+, when `SystemLanguageModel.default.availability` is `.available`, Apple's **on-device** Foundation Models write 3 ideas (title ≤ 40 characters, photo or honour, with a photo hint). Otherwise, a keyword match against the rule library (plus generic ideas from the text). **Never call an online AI service.**
 
+### 2.8 Maintenance mode (after Day 75)
+- From the Day 75 screen: "Keep it up with maintenance mode". Each person picks which of their rules to keep (the partner keeps theirs and can change them through "Our rules").
+- A maintenance round (`RoundMode.maintenance`): **no saves, no bet, misses are only recorded and never end anything, no end date**. Today shows "DAY {n} · Keep it up", "Maintenance · no stakes" and a "New 75 ›" button. Starting a new 75 ends maintenance (no bet) and the new round's Day 1 is the next local day.
+- Day 75 / milestone screens and the "You finished" notification never fire for maintenance.
+
+### 2.9 Streak shields, badges and the shared reward
+- **Streak shields**: every 7 days in a row that both complete earns a shield (at most 2 banked). A day that isn't complete for both uses a shield instead of breaking the couple's streak (the streak doesn't grow that day). Shields only protect the streak: misses, saves and the bet are unaffected. The streak pill shows a sage shield (and the count when 2).
+- **Badges** (computed, never stored), shown on Progress with a toast when one unlocks: First proof, 7 together, Shielded, Day 25, Day 50, Day 75, 30-day streak, Flawless (a round with no saves used), Shutterbug (50 photo check-ins), Cheerleader (25 cheers given), Sweet talker (10 love notes), Glow-up (10 progress pics), In sync (a rule proved by Apple Health), Dream big (a bucket list item done).
+- **Shared bucket list** (Progress): either partner adds things to do together and ticks them off. When a round ends with **nobody owing**, the Day 75 screen offers "Nobody owes. Treat yourselves." and the couple picks a bucket list item (or adds one) as their **shared reward**.
+
 ## 3. Flows
 
 ### 3.1 Person A onboarding (steps that show "Step X of N")
@@ -228,7 +240,11 @@ B never sees A's couple quiz and never sees a paywall.
 - "Today's rules": two cards side by side (A, B), rule text 15pt wrapping to at most 2 lines (never cut off), each rule with a check circle; in the partner's card each checked photo rule shows a small rounded thumbnail instead of the check (a coral dot if you haven't reacted) and the header shows "{n} to react"; tapping it opens Proof. **Tapping any of your own rules checks in that rule**: photo rule → camera (21); honour rule → a small sheet "Did you stick to {rule} today?" with "Yes, I did ›" (only enabled after 18:00 local; before that the row says "Tap tonight").
 - Primary "Check in ›" (warm-up: "Practise check-in ›") first opens a small sheet **"Which rule?"** listing your unchecked rules (photo rules first); picking one opens the camera or the honour sheet. It never opens the camera directly.
 - **"Take today's progress pic"** card (optional, separate from rule proof; section 4.13): opens the progress camera; once taken it shows the thumbnail, "Progress pic done" and "Retake".
-- Bet row at the bottom: "🏆 Stakes: {bet}".
+- Under the header: a small **sync line** so sync is visible: "Updated 2 min ago" (sage dot), "Syncing…" (gold), "Offline · 2 waiting to send" / "Signed out of iCloud · not syncing" (coral).
+- A **love note** from the partner shows as a peach banner ("{name} sent you a note") until dismissed (24 h max).
+- Under the Check in button: **"Nudge {partner}"** (only while they have rules left, at most once every 2 hours) and **"Send a note"** (presets "Proud of you ❤️", "You've got this 💪", "Thanks for doing this with me", "Miss you 😘", or one custom line, 80 characters).
+- With Apple Health on (4.17), rules Health can prove show live progress under the title ("6,120 / 8,000 steps") and check themselves off when the target is met.
+- Bet row at the bottom: "🏆 Stakes: {bet}" (maintenance: the maintenance row instead).
 - After 21:00, if you still have rules left, a coral banner: "{x} rules left. {hours} hours to go."
 
 ### 4.2 Check-in camera (21)
@@ -251,16 +267,31 @@ Title "Progress", "{A} & {B}", then the **Transformation** section (4.13) at the
 Confetti, "Day 75", "We finished Couples 75" (fix the name), "{A} & {B}", the cheer + trophy scene. A recap card: saves used, final score, best streak, most sus moments, and who owes the bet (or "Nobody owes anything"). Buttons: "Share our card ›" (renders a 1080×1920 image without photos and opens the share sheet), "Start round 2" (reruns steps 9 and 13 of the quiz, offers Hard mode).
 
 ### 4.8 Profile (18)
-Your character, your name, "Partner linked" pill (sage; make sure it isn't cut off). Rows: **Mode** (Couples 75 · 3 saves / Hard mode), **Saves left** ("{x} of 3"), **Wake-up reminder** (time), **Evening warning** (21:00, on/off), **Partner** ({name}), **Share progress pics with partner** (toggle, **off by default**, section 4.13), **Our rules** (both partners' rules, pending changes, and "Request a change", section 2.7), **Subscription** ("Active · {plan} (free trial), renews {date} · covers you both", or "Covered by {payer}'s subscription", or "Not active") → Manage, **Restore purchases**, and when notifications were denied, **"Reminders are off · Turn on in Settings"** (opens the app's Settings page), **Terms**, **Privacy**, **Contact support**. Then quiet text buttons: **"Leave couple"** and **"Delete my data"** (section 6.5). Remove "Missed-day rule: Restart".
+Your character, your name, "Partner linked" pill (sage; make sure it isn't cut off). Rows: **Mode** (Couples 75 · 3 saves / Hard mode), **Saves left** ("{x} of 3"), **Wake-up reminder** (time), **Evening warning** (21:00, on/off), **Partner** ({name}), **Evening progress on Lock Screen** (toggle, 4.10), **Use Apple Health as proof** (toggle, 4.17), **Share progress pics with partner** (toggle, **off by default**, section 4.13), **Our rules** (both partners' rules, pending changes, **per-rule reminder times** ("Add time", e.g. "Meditate at 07:00"; skipped once the rule is done), and "Request a change", section 2.7), **Subscription** ("Active · {plan} (free trial), renews {date} · covers you both", or "Covered by {payer}'s subscription", or "Not active") → Manage, **Restore purchases**, and when notifications were denied, **"Reminders are off · Turn on in Settings"** (opens the app's Settings page), **Terms**, **Privacy**, **Contact support**. Then quiet text buttons: **"Leave couple"** and **"Delete my data"** (section 6.5). Remove "Missed-day rule: Restart".
 
 ### 4.9 Pause request (29)
 - Requester side (new): from Today's "…" menu → "Life happens": pick 1–3 days, start Today/Tomorrow, reason field ("Travelling", "Sick", or custom), "Send request ›". Disabled with an explanation if the round's pause is already used.
 - Receiver side (29): small coral label "Pause request", title "{name} asked to pause", body: "{reason}. Pause {x} day(s) from {date}? Paused days don't count for either of you and don't use a save. If you don't answer in 12 hours, it's accepted." Buttons "Agree ›" / "Not now". **Replace the mockup copy** ("one save is used", "Saves left if you agree") with this.
 
-### 4.10 Widgets (20)
+### 4.10 Widgets (20) and Live Activity
 - Small: the ring with both characters' busts and "Day {n}/75".
 - Medium: the two characters, "Day {n}/75", "{A} ✓ · {B} …" (✓ when complete, … when not) and the streak flame.
+- **"My rules today"** (medium/large, interactive): my rules with check circles. Honour rules tick off from the Home Screen **from 18:00** (an App Intent that conforms to `LiveActivityIntent`, so it runs in the app's process and saves a real check-in; if the app can't take it right then, the tap is queued in the App Group with its time and saved on the next launch/refresh). Photo rules open that rule's camera (`couples75://rule/{id}`). The partner's progress in the corner.
+- **Lock Screen**: circular day gauge, rectangular ("Day 14/75 · 2 rules left · Joao is done") and inline.
+- **Live Activity** (evening): from 17:00, while I still have rules left, both partners' progress on the Lock Screen and in the Dynamic Island. Started/updated by the app (no push server), ends when I'm done (after 30 min) or at midnight. Profile toggle "Evening progress on Lock Screen" (on by default).
 - Never show photos in widgets. Update the snapshot after every check-in, settlement and app launch, then call `WidgetCenter.shared.reloadAllTimelines()`.
+
+### 4.15 Apple Watch
+- A watchOS app: the day and streak, my rules (honour rules tick off on the wrist from 18:00; photo rules say "Use your iPhone camera") and the partner's progress. The iPhone sends the payload over WatchConnectivity (application context) whenever the widget snapshot changes; a tap goes back as a message, or as queued user info with its time when the phone is away.
+
+### 4.16 Weekly recap and the App Store rating prompt
+- **"Our week"** (the 7 days ending yesterday): headline ("A perfect week." / "A strong week." / …), "{x} of 7 days together", each partner's days complete with 7 dots and reactions received, streak, saves used, photos. Shown once on the first open of a Monday, always reachable from Progress ("Our week: 5/7 days · See recap ›"), with "Share our week" (a rendered card, never photos). A Monday 09:00 notification "Your week together is ready."
+- The App Store rating prompt (`requestReview`) only at happy moments: closing a recap with 5+ days complete, or a milestone (4.13). At most once every 120 days. No invented ratings anywhere.
+
+### 4.17 Proof through Apple Health
+- Profile → **"Use Apple Health as proof"** (off until turned on; read-only HealthKit access to steps, exercise minutes, water and mindful minutes; nothing is written).
+- Mapping from the rule: Steps "Steps: 8k" → 8,000 steps; Water "Water: 3L" → 3 L dietary water; Workout "Walk: 20 min" / "Workout: 45 min" / "Workout: 2 × 45 min" → 20 / 45 / 90 exercise minutes; Meditate "Meditate: 15 min" → 15 mindful minutes. Other rules still need a photo or tap.
+- Today's totals are read on every refresh; when a target is met the rule is checked off automatically with the proof line "Apple Health · 8,412 steps" (shown to the partner in Proof instead of a photo).
 
 ### 4.11 Locked states
 - The couple's subscription lapsed (2.6): the payer gets the full-screen "Renew to keep your run" paywall; the partner gets "Keep your run going: take over the subscription" and a banner on Today; the round shows as paused.
@@ -291,8 +322,8 @@ Your character, your name, "Partner linked" pill (sage; make sure it isn't cut o
 ## 5. Notifications
 
 - Ask for permission with a priming screen right after the invite step (or after B's "I'm in"): "Turn on reminders so neither of you misses a day", then `requestAuthorization`. If it was denied, Profile shows "Turn on in Settings".
-- **Local** (scheduled on device, rescheduled daily): wake-up reminder "Day {n}. {x} rules today." (+ " {partner} is already up." if the partner has checked in); 21:00 warning only if rules are left: "{x} rules left. {hours} hours to go." — for people who take progress pics and haven't taken today's yet: "{x} rules left **and your progress pic**. {hours} hours to go." (cancel when complete); A's invite nudges (3.6); the trial reminder on Day 2 of a free trial (2.6).
-- **Partner events** (partner checked in, reaction or comment on your check-in, Sus, save used, round ended, pause request and its answer, B joined, tweak proposal and its answer, rule proposal "{name} suggested a new rule. Approve?" and its answer, partner's subscription ended): there is no server, so use CloudKit subscriptions. A subscribes to its couple zone in the private database, B to the shared database (`CKDatabaseSubscription` / `CKRecordZoneSubscription` with `shouldSendContentAvailable = true`). When the silent push arrives, fetch the changes (`CKFetchDatabaseChangesOperation` + `CKFetchRecordZoneChangesOperation` with saved change tokens) and post a **local** notification with the right text ("{name} finished {rule}. React?", "{name} thinks that's sus 🤨", ...). iOS doesn't always deliver silent pushes, so also fetch changes on every app open, when returning to the foreground, and in a `BGAppRefreshTask`. Deep link every notification to the right screen; "{name} finished {rule}. React?" opens that exact check-in in Proof.
+- **Local** (scheduled on device, rescheduled daily): wake-up reminder "Day {n}. {x} rules today." (+ " {partner} is already up." if the partner has checked in); 21:00 warning only if rules are left: "{x} rules left. {hours} hours to go." — for people who take progress pics and haven't taken today's yet: "{x} rules left **and your progress pic**. {hours} hours to go." (cancel when complete); A's invite nudges (3.6); the trial reminder on Day 2 of a free trial (2.6); per-rule reminders "Time for {rule}." at the chosen times (4.8); the weekly recap on Monday 09:00 (4.16).
+- **Partner events** (partner checked in, reaction or comment on your check-in, Sus, save used, round ended, pause request and its answer, B joined, tweak proposal and its answer, rule proposal "{name} suggested a new rule. Approve?" and its answer, a nudge "{name} nudged you 👀 2 rules left today.", a love note "{name}: Proud of you ❤️", partner's subscription ended): there is no server, so use CloudKit subscriptions. A subscribes to its couple zone in the private database, B to the shared database (`CKDatabaseSubscription` / `CKRecordZoneSubscription` with `shouldSendContentAvailable = true`). When the silent push arrives, fetch the changes (`CKFetchDatabaseChangesOperation` + `CKFetchRecordZoneChangesOperation` with saved change tokens) and post a **local** notification with the right text ("{name} finished {rule}. React?", "{name} thinks that's sus 🤨", ...). iOS doesn't always deliver silent pushes, so also fetch changes on every app open, when returning to the foreground, and in a `BGAppRefreshTask`. Deep link every notification to the right screen; "{name} finished {rule}. React?" opens that exact check-in in Proof.
 
 ## 6. Data and sync (CloudKit, no server)
 
@@ -312,6 +343,10 @@ Your character, your name, "Partner linked" pill (sage; make sure it isn't cut o
 - `Reaction`: checkInID, memberID, kind `approve|emoji|sus|comment|seen`, emoji, comment, createdAt.
 - `PauseRequest`: requestedBy, startDate, days, reason, createdAt. `PauseAnswer`: pauseID, accepted, answeredAt. No answer after `PAUSE_AUTO_ACCEPT_H` hours = accepted.
 - `BetPaid`: roundNumber, memberID, paidAt.
+- `Nudge`: from, to, kind `nudge|note`, text, createdAt.
+- `BucketItem`: text, addedBy, createdAt, doneAt, rewardRound (set when it's picked as a round's shared reward).
+- `CheckIn` also has `healthProof` ("Apple Health · 8,412 steps") when Apple Health proved it.
+- `RoundConfig.mode` can be `maintenance` (2.8).
 - `ProgressShare`: memberID, localDate, dayNumber, capturedAt, photo (`CKAsset`). Only while the owner shares progress pics; deleted when they stop.
 - Private database only (zone `ProgressPhotos`, never shared): `ProgressPhoto`: localDate, dayNumber, capturedAt, photo (`CKAsset`).
 - Public database only: `InviteCode` (3.2) and `Waitlist` (email, createdAt).
@@ -322,7 +357,7 @@ Your character, your name, "Partner linked" pill (sage; make sure it isn't cut o
 - Round 1 starts on the first local day after both members joined. Each following round starts the local day after the previous one ended.
 - The couple is active while any member's subscription is active. Frozen: when nobody's is, days from that date on don't settle; after `LAPSE_GRACE_DAYS` the round ends as `abandoned` with no bet.
 - Rules: the member's rules for the round, then B's join tweak, then **only approved** rule proposals, each from the local day after its approval; only the first approved in-round swap per member per round counts.
-- **XCTest unit tests** covering: a normal complete day; one miss uses a save; the 4th miss ends the round and starts the next; both miss the same day; hard mode; tie at 0, tie above 0, unequal misses; pause accepted, declined, auto-accepted, pending at midnight; time zones 8 hours apart; a check-in uploaded too late is ignored; warm-up check-ins ignored; subscription lapse freeze and abandon; one subscription covers both (a partner's lapse alone doesn't freeze); Day 75 completion; a pending rule proposal doesn't count; an approved swap starts the next day; a second swap in a round is rejected; the plan review, the stored rules (A and B's copy) and Today always show identical rules; a typed goal becomes "Learn Chinese: 15/10/30 min" by level; plans are trimmed to 4–6 rules keeping 2 photo rules; typed goal names never contain brands; the same facts always give the same state.
+- **XCTest unit tests** covering: a normal complete day; one miss uses a save; the 4th miss ends the round and starts the next; both miss the same day; hard mode; tie at 0, tie above 0, unequal misses; pause accepted, declined, auto-accepted, pending at midnight; time zones 8 hours apart; a check-in uploaded too late is ignored; warm-up check-ins ignored; subscription lapse freeze and abandon; one subscription covers both (a partner's lapse alone doesn't freeze); Day 75 completion; a pending rule proposal doesn't count; an approved swap starts the next day; a second swap in a round is rejected; the plan review, the stored rules (A and B's copy) and Today always show identical rules; maintenance never fails, uses no saves, owes nothing and ends when a new round is set up; streak shields (7 days earn one, a miss uses it, max 2); the weekly recap counts the 7 days ending yesterday; Apple Health targets parse from rule titles; a typed goal becomes "Learn Chinese: 15/10/30 min" by level; plans are trimmed to 4–6 rules keeping 2 photo rules; typed goal names never contain brands; the same facts always give the same state.
 
 ### 6.4 The app's data layer
 - `Store` protocol with `CloudKitStore` and `MockStore` (section 7). All screens use `@Observable` view models that read the latest `RulesEngine` state.
