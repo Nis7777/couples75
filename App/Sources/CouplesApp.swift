@@ -56,6 +56,11 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         // Interactive widget taps run in the app's process and become real check-ins.
         let appModel = self.model
         WidgetCheckIns.appHandler = { ruleID, date in await appModel.checkInFromWidget(ruleID: ruleID, at: date) }
+        // Apple Watch: honour check-ins from the wrist.
+        WatchSync.shared.onCheckIn = { ruleID, date in
+            Task { @MainActor in _ = await appModel.checkInFromWidget(ruleID: ruleID, at: date) }
+        }
+        WatchSync.shared.activate()
         return true
     }
 
