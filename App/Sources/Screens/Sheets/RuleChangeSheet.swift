@@ -81,6 +81,9 @@ struct RuleChangeSheet: View {
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text(title).font(.app(17, .bold)).foregroundStyle(Color.textPrimary)
+                }
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                         .font(.app(16, .semibold))

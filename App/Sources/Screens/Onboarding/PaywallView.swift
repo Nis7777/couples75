@@ -154,9 +154,9 @@ struct PaywallView: View {
                 .padding(.horizontal, 28)
                 .padding(.top, 10)
             VStack(alignment: .leading, spacing: 0) {
-                timelineRow(icon: "lock.open.fill", day: "Today", text: "Full access for both of you", last: false)
-                timelineRow(icon: "bell.fill", day: "Day 2", text: "We remind you", last: false)
-                timelineRow(icon: "star.fill", day: "Day 3", text: "Trial ends, billing starts", last: true)
+                timelineRow(day: "Today", text: "Full access for both of you", last: false)
+                timelineRow(day: "Day 2", text: "We remind you", last: false)
+                timelineRow(day: "Day 3", text: "Trial ends, billing starts", last: true)
             }
             .padding(24)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -173,23 +173,23 @@ struct PaywallView: View {
         }
     }
 
-    private func timelineRow(icon: String, day: String, text: String, last: Bool) -> some View {
-        HStack(alignment: .top, spacing: 16) {
+    /// 13b: plain gold dots on a gold line; the last dot (trial ends) is coral.
+    private func timelineRow(day: String, text: String, last: Bool) -> some View {
+        HStack(alignment: .top, spacing: 18) {
             VStack(spacing: 0) {
-                Image(systemName: icon)
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 38, height: 38)
-                    .background(Circle().fill(Color.gold))
+                Circle()
+                    .fill(last ? Color.coral.opacity(0.8) : Color.gold)
+                    .frame(width: 20, height: 20)
+                    .padding(.top, 4)
                 if !last {
-                    Rectangle().fill(Color.gold.opacity(0.45)).frame(width: 4, height: 44)
+                    Rectangle().fill(Color.gold).frame(width: 2.5).frame(minHeight: 64, maxHeight: 96)
                 }
             }
-            VStack(alignment: .leading, spacing: 3) {
-                Text(day).font(.app(19, .bold)).foregroundStyle(Color.textPrimary)
-                Text(text).font(.app(16)).foregroundStyle(Color.textSecondary)
+            .frame(width: 20)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(day).font(.app(21, .bold)).foregroundStyle(Color.textPrimary)
+                Text(text).font(.app(17)).foregroundStyle(Color.textSecondary)
             }
-            .padding(.top, 6)
         }
         .accessibilityElement(children: .combine)
     }
@@ -295,13 +295,9 @@ struct PaywallView: View {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) { yearlySelected = yearly }
         } label: {
             VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Text(yearly ? "Yearly" : "Monthly")
-                        .font(.app(26, .bold))
-                        .foregroundStyle(Color.textPrimary)
-                    Spacer()
-                    CheckCircle(isOn: selected, size: 26)
-                }
+                Text(yearly ? "Yearly" : "Monthly")
+                    .font(.app(26, .bold))
+                    .foregroundStyle(Color.textPrimary)
                 if yearly {
                     if let weekly = purchases.weeklyPrice {
                         Pill(text: "BEST VALUE · \(weekly)/week", fill: .gold, size: 15)
@@ -321,11 +317,10 @@ struct PaywallView: View {
             .padding(.vertical, 20)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous)
-                .fill(yearly ? Color.peach.opacity(0.75) : Color.white)
+                .fill(selected ? Color.peach.opacity(0.75) : Color.white)
                 .shadow(color: .black.opacity(0.05), radius: 12, y: 4))
             .overlay(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous)
-                .stroke(selected ? Color.coral : (yearly ? Color.coral.opacity(0.35) : Color.cardBorder),
-                        lineWidth: selected ? 1.5 : 1))
+                .stroke(selected ? Color.coral.opacity(0.8) : Color.cardBorder, lineWidth: selected ? 1.5 : 1))
             .contentShape(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous))
         }
         .buttonStyle(PressableStyle())

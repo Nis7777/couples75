@@ -48,6 +48,9 @@ struct OurRulesSheet: View {
             .navigationTitle("Our rules")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Our rules").font(.app(17, .bold)).foregroundStyle(Color.textPrimary)
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                         .font(.app(16, .semibold))
