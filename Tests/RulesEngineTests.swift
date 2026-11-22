@@ -325,15 +325,41 @@ final class RulesEngineTests: XCTestCase {
         f.facts.members[i].subscribedUntil = periods.last!.end
     }
 
+    func testOneSubscriptionCoversBoth() {
+        var f = Fixture()
+        // B never subscribes: A's subscription covers the couple.
+        let i = f.facts.members.firstIndex { $0.id == f.b }!
+        f.facts.members[i].subscriptionPeriods = []
+        f.facts.members[i].subscribedUntil = nil
+        f.completeBoth(1...2)
+        let s = f.state(at: f.noon(3))
+        XCTAssertTrue(s.coupleActive)
+        XCTAssertFalse(s.isFrozen)
+        XCTAssertEqual(s.payerID, f.a)
+        XCTAssertEqual(s.currentRound?.member(f.b)?.days.count, 2)
+        XCTAssertEqual(s.today[f.b]?.dayNumber, 3)
+    }
+
+    func testPartnerLapseAloneDoesNotFreeze() {
+        var f = Fixture()
+        f.completeBoth(1...2)
+        lapse(&f, member: f.b, at: f.date(3).startInstant(in: f.utc))
+        let s = f.state(at: f.noon(3))
+        XCTAssertFalse(s.isFrozen)
+        XCTAssertTrue(s.coupleActive)
+    }
+
     func testSubscriptionLapseFreezes() {
         var f = Fixture()
         f.completeBoth(1...2)
+        lapse(&f, member: f.a, at: f.date(3).startInstant(in: f.utc))
         lapse(&f, member: f.b, at: f.date(3).startInstant(in: f.utc))
         let s = f.state(at: f.noon(5))
         let r = s.currentRound!
         XCTAssertEqual(r.status, .active)
         XCTAssertTrue(s.isFrozen)
-        XCTAssertEqual(s.lapsedMembers, [f.b])
+        XCTAssertFalse(s.coupleActive)
+        XCTAssertEqual(Set(s.lapsedMembers), Set([f.a, f.b]))
         XCTAssertEqual(r.savesUsed, 0)
         XCTAssertEqual(r.member(f.a)?.days.map { $0.outcome }, [.complete, .complete, .frozen, .frozen])
     }
@@ -342,6 +368,7 @@ final class RulesEngineTests: XCTestCase {
         var f = Fixture()
         f.completeBoth(1...2)
         let end = f.date(3).startInstant(in: f.utc)
+        lapse(&f, member: f.a, at: end)
         lapse(&f, member: f.b, at: end)
         let s = f.state(at: end.addingTimeInterval(86_400 * 8))
         let r = s.rounds[0]
@@ -356,7 +383,8 @@ final class RulesEngineTests: XCTestCase {
         var f = Fixture()
         f.completeBoth(1...2)
         let end = f.date(3).startInstant(in: f.utc)
-        lapse(&f, member: f.b, at: end, renewAt: end.addingTimeInterval(86_400 * 2 + 3600))
+        lapse(&f, member: f.a, at: end, renewAt: end.addingTimeInterval(86_400 * 2 + 3600))
+        lapse(&f, member: f.b, at: end)
         f.completeBoth(5...5)
         let s = f.state(at: f.noon(6))
         let r = s.currentRound!

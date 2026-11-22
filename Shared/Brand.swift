@@ -13,8 +13,11 @@ enum Brand {
     static let cloudKitContainer = "iCloud.com.dinismagina.couples75"
     /// A check-in must reach iCloud within this many hours of being taken.
     static let checkInUploadWindowHours: Double = 6
-    static let iapMonthly = "com.dinismagina.couples75.monthly"
-    static let iapYearly = "com.dinismagina.couples75.yearly"
+    /// One subscription covers both partners. Prices always come from StoreKit.
+    static let iapYearly = "com.dinismagina.couples75.yearly"      // 39,99 € / $39.99 a year, 3-day free trial
+    static let iapYearly7 = "com.dinismagina.couples75.yearly7"    // same price, 7-day free trial (exit sheet only)
+    static let iapMonthly = "com.dinismagina.couples75.monthly"    // 7,99 € / $7.99 a month, no trial
+    static let allProducts = [iapYearly, iapYearly7, iapMonthly]
     static let savesPerRound = 3
     static let roundLengthDays = 75
     static let maxPauseDays = 3

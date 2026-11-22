@@ -39,6 +39,27 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         center.removeAllDeliveredNotifications()
     }
 
+    // MARK: - Trial reminder
+
+    private static let trialEndKey = "trialEndsAt"
+
+    /// "Day 2: we remind you": a reminder two days before the free trial ends (day 2 of a 3-day trial).
+    /// Stored so it's (re)scheduled once notifications are allowed.
+    func scheduleTrialReminder(trialEnd: Date) {
+        UserDefaults.standard.set(trialEnd, forKey: Self.trialEndKey)
+        Task { await addTrialReminderIfNeeded() }
+    }
+
+    private func addTrialReminderIfNeeded() async {
+        guard let end = UserDefaults.standard.object(forKey: Self.trialEndKey) as? Date else { return }
+        let fire = max(end.addingTimeInterval(-48 * 3600), Date().addingTimeInterval(3600))
+        guard fire < end, await authorizationStatus() == .authorized else { return }
+        let days = max(1, Int((end.timeIntervalSince(fire) / 86_400).rounded()))
+        schedule(id: "trial-reminder", title: Brand.appName,
+                 body: "Your free trial ends in \(days) day\(days == 1 ? "" : "s"). Nothing to do if you're staying; you can cancel anytime in Settings.",
+                 at: fire, route: "profile")
+    }
+
     // MARK: - Scheduled reminders
 
     /// Rebuilds the wake-up reminder, the 21:00 warning and A's invite nudges from the current state.
@@ -47,6 +68,7 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         let pending = await center.pendingNotificationRequests().map { $0.identifier }
         let ours = pending.filter { $0.hasPrefix(ID.wakePrefix) || $0 == ID.evening || $0.hasPrefix(ID.nudgePrefix) }
         center.removePendingNotificationRequests(withIdentifiers: ours)
+        await addTrialReminderIfNeeded()
         guard let me = model.me, me.leftAt == nil else { return }
 
         let now = Date()

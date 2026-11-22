@@ -142,9 +142,14 @@ struct EngineState: Equatable {
     var today: [MemberID: MemberToday]
     var streak: Int
     var bestStreak: Int
-    /// Days don't settle right now because a subscription lapsed.
+    /// Days don't settle right now because the couple's subscription lapsed.
     var isFrozen: Bool
+    /// Members whose own subscription isn't active right now.
     var lapsedMembers: [MemberID]
+    /// One subscription covers both: the couple is active while ANY member's subscription is.
+    var coupleActive: Bool = false
+    /// The member whose subscription runs the longest (the one who pays); nil if nobody ever subscribed.
+    var payerID: MemberID? = nil
     var pendingPause: PauseInfo?
     var pendingTweak: TweakInfo?
     var roundsPlayed: Int
@@ -170,6 +175,11 @@ enum RulesEngine {
             .map { tweakInfo($0, facts: facts, at: now) }
             .last { $0.status == .pending }
 
+        let couplePlan = SubscriptionTimeline(members: facts.members)
+        result.coupleActive = couplePlan.active(at: now)
+        result.payerID = facts.members.filter { $0.subscribedUntil != nil }
+            .max { ($0.subscribedUntil ?? .distantPast) < ($1.subscribedUntil ?? .distantPast) }?.id
+
         if let leaver = facts.members.first(where: { $0.leftAt != nil }) {
             result.phase = .partnerLeft(leaver.id)
             return result
@@ -185,8 +195,7 @@ enum RulesEngine {
         let members = [a, b]
         let timeline = SubscriptionTimeline(members: members)
         result.lapsedMembers = members.filter { !$0.isSubscribed(at: now) }.map { $0.id }
-
-        // Round 1 starts the first local day after both joined and both are subscribed.
+        // Round 1 starts the first local day after B joined, while the couple's subscription is active.
         let activation = max(joinedA, joinedB)
         guard let firstActive = timeline.nextBothActive(from: activation) else {
             result.phase = .warmup
@@ -607,18 +616,19 @@ enum RulesEngine {
 
 // MARK: - Subscription timeline
 
-/// When both members' subscriptions were active at the same time.
+/// When the couple's subscription was active. One subscription covers both partners, so the couple is active
+/// whenever ANY member's subscription is.
 struct SubscriptionTimeline {
-    /// Sorted, non-overlapping intervals during which both members were subscribed.
+    /// Sorted, non-overlapping intervals during which at least one member was subscribed.
     let intervals: [SubscriptionPeriod]
 
     init(members: [MemberFact]) {
-        let lists = members.map { Self.merge($0.subscriptionPeriods) }
-        guard var acc = lists.first else { intervals = []; return }
-        for other in lists.dropFirst() { acc = Self.intersect(acc, other) }
-        intervals = acc
+        intervals = Self.merge(members.flatMap { $0.subscriptionPeriods })
     }
 
+    func active(at t: Date) -> Bool { bothActive(at: t) }
+
+    /// Whether the couple's subscription covers instant `t`.
     func bothActive(at t: Date) -> Bool {
         intervals.contains { $0.start <= t && t < $0.end }
     }
@@ -659,15 +669,4 @@ struct SubscriptionTimeline {
         return out
     }
 
-    private static func intersect(_ x: [SubscriptionPeriod], _ y: [SubscriptionPeriod]) -> [SubscriptionPeriod] {
-        var out: [SubscriptionPeriod] = []
-        var i = 0, j = 0
-        while i < x.count && j < y.count {
-            let s = max(x[i].start, y[j].start)
-            let e = min(x[i].end, y[j].end)
-            if s < e { out.append(SubscriptionPeriod(start: s, end: e)) }
-            if x[i].end < y[j].end { i += 1 } else { j += 1 }
-        }
-        return out
-    }
 }

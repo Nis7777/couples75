@@ -7,32 +7,51 @@ struct Entitlement: Equatable {
     var purchaseDate: Date
     var expirationDate: Date
     var willAutoRenew: Bool
+    /// In the free-trial period right now.
+    var isTrial: Bool = false
 
-    var isYearly: Bool { productID == Brand.iapYearly }
+    var isYearly: Bool { productID == Brand.iapYearly || productID == Brand.iapYearly7 }
     var planName: String { isYearly ? "Yearly" : "Monthly" }
 }
 
-/// StoreKit 2, one subscription per person (section 2.6). Prices always come from StoreKit.
+/// StoreKit 2. ONE subscription covers both partners; only the person who sets up the couple pays.
+/// Prices always come from StoreKit, never hard-coded.
 @MainActor
 @Observable
 final class PurchaseManager {
-    private(set) var monthly: Product?
     private(set) var yearly: Product?
+    private(set) var yearly7: Product?
+    private(set) var monthly: Product?
     private(set) var entitlement: Entitlement?
     private(set) var isLoadingProducts = false
     private(set) var productsFailed = false
     private(set) var isPurchasing = false
+    /// Whether this Apple ID can still get the free trial (one introductory offer per subscription group).
+    private(set) var trialEligible = true
 
     @ObservationIgnored var onEntitlementChange: ((Entitlement?) -> Void)?
     @ObservationIgnored private var updatesTask: Task<Void, Never>?
 
-    var monthlyPrice: String? { monthly?.displayPrice }
     var yearlyPrice: String? { yearly?.displayPrice }
+    var monthlyPrice: String? { monthly?.displayPrice }
 
-    /// Yearly price ÷ 12, localized.
-    var yearlyMonthlyEquivalent: String? {
+    /// Yearly price ÷ 52, localized ("0,77 €").
+    var weeklyPrice: String? {
         guard let y = yearly else { return nil }
-        return (y.price / 12).formatted(y.priceFormatStyle)
+        return (y.price / 52).formatted(y.priceFormatStyle)
+    }
+
+    /// Free-trial length in days for a product (3 for yearly, 7 for yearly7), nil when none or not eligible.
+    func trialDays(_ product: Product?) -> Int? {
+        guard trialEligible, let offer = product?.subscription?.introductoryOffer, offer.paymentMode == .freeTrial else {
+            return nil
+        }
+        let p = offer.period
+        if p.unit == .day { return p.value }
+        if p.unit == .week { return p.value * 7 }
+        if p.unit == .month { return p.value * 30 }
+        if p.unit == .year { return p.value * 365 }
+        return nil
     }
 
     func start() {
@@ -54,10 +73,14 @@ final class PurchaseManager {
         productsFailed = false
         defer { isLoadingProducts = false }
         do {
-            let products = try await Product.products(for: [Brand.iapMonthly, Brand.iapYearly])
-            monthly = products.first { $0.id == Brand.iapMonthly }
+            let products = try await Product.products(for: Brand.allProducts)
             yearly = products.first { $0.id == Brand.iapYearly }
-            productsFailed = monthly == nil && yearly == nil
+            yearly7 = products.first { $0.id == Brand.iapYearly7 }
+            monthly = products.first { $0.id == Brand.iapMonthly }
+            productsFailed = yearly == nil && monthly == nil
+            if let sub = yearly?.subscription {
+                trialEligible = await sub.isEligibleForIntroOffer
+            }
         } catch {
             productsFailed = true
         }
@@ -71,12 +94,16 @@ final class PurchaseManager {
                   t.revocationDate == nil,
                   let exp = t.expirationDate else { continue }
             let ent = Entitlement(productID: t.productID, purchaseDate: t.originalPurchaseDate,
-                                  expirationDate: exp, willAutoRenew: true)
-            if best == nil || exp > best!.expirationDate { best = ent }
+                                  expirationDate: exp, willAutoRenew: true,
+                                  isTrial: t.offerType == .introductory)
+            if best == nil || exp > (best?.expirationDate ?? .distantPast) { best = ent }
         }
-        if var b = best, let product = b.isYearly ? yearly : monthly,
-           let status = try? await product.subscription?.status.first {
-            if case .verified(let info) = status.renewalInfo { b.willAutoRenew = info.willAutoRenew }
+        if var b = best {
+            let product = b.productID == Brand.iapMonthly ? monthly : (b.productID == Brand.iapYearly7 ? yearly7 : yearly)
+            if let status = try? await product?.subscription?.status.first,
+               case .verified(let info) = status.renewalInfo {
+                b.willAutoRenew = info.willAutoRenew
+            }
             best = b
         }
         let changed = best != entitlement
@@ -88,6 +115,7 @@ final class PurchaseManager {
     func purchase(_ product: Product, memberID: MemberID) async throws -> Bool {
         isPurchasing = true
         defer { isPurchasing = false }
+        let trial = trialDays(product)
         var options: Set<Product.PurchaseOption> = []
         if let token = UUID(uuidString: memberID) { options.insert(.appAccountToken(token)) }
         let result = try await product.purchase(options: options)
@@ -95,6 +123,12 @@ final class PurchaseManager {
         case .success(let verification):
             guard case .verified(let t) = verification else { return false }
             await t.finish()
+            if let trial {
+                // "Day 2: we remind you": a real local reminder the day before the trial ends.
+                let end = t.purchaseDate.addingTimeInterval(TimeInterval(trial) * 86_400)
+                NotificationManager.shared.scheduleTrialReminder(trialEnd: end)
+            }
+            trialEligible = false
             await refreshEntitlements()
             return entitlement != nil
         case .pending, .userCancelled:

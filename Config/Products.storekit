@@ -1,70 +1,102 @@
 {
-  "identifier" : "C0175C75",
-  "nonRenewingSubscriptions" : [ ],
-  "products" : [ ],
-  "settings" : {
-    "_applicationInternalID" : "",
-    "_developerTeamID" : "",
-    "_failTransactionsEnabled" : false,
-    "_locale" : "pt_PT",
-    "_storefront" : "PRT",
-    "_storeKitErrors" : [ ]
+  "identifier": "C0175C75",
+  "nonRenewingSubscriptions": [],
+  "products": [],
+  "settings": {
+    "_applicationInternalID": "",
+    "_developerTeamID": "",
+    "_failTransactionsEnabled": false,
+    "_locale": "pt_PT",
+    "_storefront": "PRT",
+    "_storeKitErrors": []
   },
-  "subscriptionGroups" : [
+  "subscriptionGroups": [
     {
-      "id" : "C75GROUP",
-      "localizations" : [ ],
-      "name" : "Couples 75",
-      "subscriptions" : [
+      "id": "C75GROUP",
+      "localizations": [],
+      "name": "Couples 75",
+      "subscriptions": [
         {
-          "adHocOffers" : [ ],
-          "codeOffers" : [ ],
-          "displayPrice" : "3.99",
-          "familyShareable" : false,
-          "groupNumber" : 2,
-          "internalID" : "C75MONTH",
-          "introductoryOffer" : null,
-          "localizations" : [
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "39.99",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "C75YEAR",
+          "introductoryOffer": {
+            "internalID": "C75YEARTRIAL",
+            "numberOfPeriods": 1,
+            "paymentMode": "free",
+            "subscriptionPeriod": "P3D"
+          },
+          "localizations": [
             {
-              "description" : "Couples 75 for one person, billed monthly.",
-              "displayName" : "Monthly",
-              "locale" : "en_US"
+              "description": "Couples 75 for both of you, billed yearly after a 3-day free trial.",
+              "displayName": "Yearly",
+              "locale": "en_US"
             }
           ],
-          "productID" : "com.dinismagina.couples75.monthly",
-          "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "Couples 75 Monthly",
-          "subscriptionGroupID" : "C75GROUP",
-          "type" : "RecurringSubscription",
-          "winbackOffers" : [ ]
+          "productID": "com.dinismagina.couples75.yearly",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "Yearly",
+          "subscriptionGroupID": "C75GROUP",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
         },
         {
-          "adHocOffers" : [ ],
-          "codeOffers" : [ ],
-          "displayPrice" : "29.99",
-          "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "C75YEAR",
-          "introductoryOffer" : null,
-          "localizations" : [
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "39.99",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "C75YEAR7",
+          "introductoryOffer": {
+            "internalID": "C75YEAR7TRIAL",
+            "numberOfPeriods": 1,
+            "paymentMode": "free",
+            "subscriptionPeriod": "P1W"
+          },
+          "localizations": [
             {
-              "description" : "Couples 75 for one person, billed yearly.",
-              "displayName" : "Yearly",
-              "locale" : "en_US"
+              "description": "Couples 75 for both of you, billed yearly after a 7-day free trial.",
+              "displayName": "Yearly (7-day trial)",
+              "locale": "en_US"
             }
           ],
-          "productID" : "com.dinismagina.couples75.yearly",
-          "recurringSubscriptionPeriod" : "P1Y",
-          "referenceName" : "Couples 75 Yearly",
-          "subscriptionGroupID" : "C75GROUP",
-          "type" : "RecurringSubscription",
-          "winbackOffers" : [ ]
+          "productID": "com.dinismagina.couples75.yearly7",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "Yearly (7-day trial)",
+          "subscriptionGroupID": "C75GROUP",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "7.99",
+          "familyShareable": false,
+          "groupNumber": 2,
+          "internalID": "C75MONTH",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "Couples 75 for both of you, billed monthly.",
+              "displayName": "Monthly",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "com.dinismagina.couples75.monthly",
+          "recurringSubscriptionPeriod": "P1M",
+          "referenceName": "Monthly",
+          "subscriptionGroupID": "C75GROUP",
+          "type": "RecurringSubscription",
+          "winbackOffers": []
         }
       ]
     }
   ],
-  "version" : {
-    "major" : 4,
-    "minor" : 0
+  "version": {
+    "major": 4,
+    "minor": 0
   }
 }
