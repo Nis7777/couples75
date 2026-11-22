@@ -543,18 +543,19 @@ struct IconBadge: View {
     }
 }
 
-/// Single-answer questions move on by themselves about 0.3 s after a tap (after the selection animation).
-@MainActor
 /// Pending auto-advances. Any navigation (forward or back) bumps the generation, so a tap made just before
-/// leaving a step can never push a later step forward on its own. Only touched on the main thread.
+/// leaving a step can never push a later step forward on its own. Everything here runs on the main actor
+/// (taps and navigation), so it compiles cleanly in Swift 5 and Swift 6 mode.
+@MainActor
 enum AutoAdvanceGate {
-    /// Only read and written on the main thread (taps and navigation).
-    nonisolated(unsafe) static var generation = 0
-    nonisolated static func cancelPending() { generation += 1 }
+    static var generation = 0
+    static func cancelPending() { generation += 1 }
 }
 
-/// Single-answer steps move on ~0.3 s after a tap (never on their own, never twice).
-func autoAdvance(_ next: @escaping () -> Void) {
+/// Single-answer steps move on ~0.3 s after a tap (after the selection animation), never on their own and
+/// never twice.
+@MainActor
+func autoAdvance(_ next: @escaping @MainActor () -> Void) {
     AutoAdvanceGate.generation += 1
     let mine = AutoAdvanceGate.generation
     Task { @MainActor in

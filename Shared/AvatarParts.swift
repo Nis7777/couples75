@@ -5,7 +5,7 @@ import SwiftUI
 // An avatar is a stack of independent layers (hair, skin, face, clothes, accessory) drawn on one shared
 // canvas (`AvatarCanvas`), so every part lines up at every size. `AvatarConfig` stores only ids and colours.
 // To add a part: add one line to the catalogue below (and, optionally, drop its art in the asset catalogue,
-// see `AvatarArt`). Parts without art are drawn as flat vector placeholders in code.
+// see `AvatarArt`). Parts without art aren't drawn and aren't offered in the builder.
 
 enum AvatarBody: String, Codable, CaseIterable, Hashable {
     case feminine, masculine, neutral

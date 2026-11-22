@@ -1,16 +1,15 @@
 # Layered avatar: art still needed
 
 The avatar is now built from independent layers (`Shared/AvatarParts.swift`, `Shared/LayeredAvatarView.swift`).
-Every part already works with a flat vector placeholder drawn in code. Drop real art into
-`Shared/Assets.xcassets` with the names below and the app uses it automatically, part by part (no code change).
+Only real art is ever drawn. Drop art into `Shared/Assets.xcassets/Avatar` with the names below and the app
+uses it automatically, part by part (no code change); a part without art isn't drawn or offered.
 To add a brand-new part: add the art and one line to the catalogue in `AvatarParts.swift`.
 
 ## How it switches on
 
 Until `avatar_head_head` and `avatar_body_neutral_stand` are in the asset catalogue, the app keeps the 12
-illustrated characters and the original builder (the code-drawn placeholders never show). As soon as both
-exist, the layered avatar and the new builder turn on by themselves. Parts without art yet fall back to the
-placeholder, so a first batch can be tested on its own.
+illustrated characters and the original builder. As soon as both exist, the layered avatar and the new
+builder turn on by themselves. Parts without art yet are left out, so a batch can be tested on its own.
 
 Fallbacks for small batches: a part drawn only for `stand` is used in every pose; the neutral body is used for
 the other body shapes until they exist.
@@ -98,7 +97,7 @@ the clothes split off the body: `avatar_body_neutral_stand` = skin only (arms, h
 (e.g. short, wavy, curly, ponytail). Put them in a folder with exactly these names; I'll drop them into
 `Shared/Assets.xcassets` (template rendering for the tinted ones) and check the alignment.
 
-## Minimum set to replace the placeholders well
+## Full set (after the test batches)
 
 1. `avatar_body_*_<pose>` (3 bodies × 4 poses) and `avatar_head_head`.
 2. Hair: back + front for the 28 styles.
