@@ -69,6 +69,10 @@ protocol Store: AnyObject {
     func photoData(for checkIn: CheckInFact) async -> Data?
     /// Locally cached photo bytes, if any (no network).
     func cachedPhotoData(for checkInID: String) -> Data?
+    /// Photo bytes of a shared progress photo (downloaded and cached).
+    func progressSharePhotoData(id: String) async -> Data?
+    /// Removes shared progress photo copies from the couple's zone (sharing turned off, leaving).
+    func deleteProgressShares(ids: [String]) async
 
     /// Leave the couple. The owner deletes the zone; the participant writes leftAt and leaves the share.
     func leaveCouple(me: MemberFact) async throws

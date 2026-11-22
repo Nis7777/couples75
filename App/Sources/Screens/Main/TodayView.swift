@@ -16,6 +16,7 @@ struct TodayView: View {
     @State private var showTweakAnswer = false
     @State private var showDebug = false
     @State private var showWhichRule = false
+    @State private var showProgressCamera = false
 
     private var round: RoundState? { model.currentRound }
     private var hour: Int {
@@ -32,10 +33,12 @@ struct TodayView: View {
                 banners
                 hero
                 WeekDotsView(days: weekDays, streak: model.state.streak)
+                DayProgressBar(day: warmup ? 0 : (model.myToday?.dayNumber ?? 0))
                 savesRow
                 newFromPartnerRow
                 rulesSection
                 checkInButton
+                ProgressPhotoCard { showProgressCamera = true }
                 stakesRow
             }
             .padding(.horizontal, Metrics.side)
@@ -43,6 +46,7 @@ struct TodayView: View {
         }
         .refreshable { await model.refresh() }
         .fullScreenCover(item: $cameraRule) { r in CheckInCameraView(rule: r) }
+        .fullScreenCover(isPresented: $showProgressCamera) { ProgressCameraView() }
         .sheet(item: $honourRule) { r in HonourSheet(rule: r).presentationDetents([.height(430)]) }
         .sheet(item: $openedCheckIn) { c in PartnerCheckInView(checkIn: c) }
         .sheet(isPresented: $showPauseRequest) { PauseRequestView() }
@@ -504,6 +508,97 @@ struct TodayView: View {
         .padding(.vertical, 15)
         .card(radius: 16)
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// Today, under the streak row: "Day X of 75", a coral bar and the percentage. The bar animates from the
+/// last day this phone showed when the day goes up.
+struct DayProgressBar: View {
+    var day: Int
+    var total = Brand.roundLengthDays
+    @State private var shown: Int = UserDefaults.standard.integer(forKey: "progressBarDay")
+
+    private var fraction: Double { Double(min(max(shown, 0), total)) / Double(total) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Day \(shown) of \(total)")
+                    .font(.app(15, .semibold))
+                    .foregroundStyle(Color.textPrimary)
+                    .contentTransition(.numericText())
+                Spacer()
+                Text("\(Int((fraction * 100).rounded()))%")
+                    .font(.app(15, .bold))
+                    .foregroundStyle(Color.coral)
+                    .contentTransition(.numericText())
+            }
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.track)
+                    Capsule().fill(Color.coral)
+                        .frame(width: max(fraction > 0 ? 10 : 0, geo.size.width * fraction))
+                }
+            }
+            .frame(height: 10)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 13)
+        .card(radius: 16, shadow: false)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Day \(day) of \(total), \(Int((Double(day) / Double(total) * 100).rounded())) percent")
+        .onAppear { animate(to: day) }
+        .onChange(of: day) { _, new in animate(to: new) }
+    }
+
+    private func animate(to new: Int) {
+        guard new != shown else { return }
+        withAnimation(.spring(response: 0.9, dampingFraction: 0.85).delay(0.25)) { shown = new }
+        UserDefaults.standard.set(new, forKey: "progressBarDay")
+    }
+}
+
+/// The optional daily progress photo (separate from rule proof): "Take today's progress pic".
+struct ProgressPhotoCard: View {
+    @Environment(AppModel.self) private var model
+    var open: () -> Void
+
+    var body: some View {
+        let today = model.myProgressToday
+        Button(action: open) {
+            HStack(spacing: 14) {
+                Group {
+                    if let today, let img = model.progress.image(for: today) {
+                        Image(uiImage: img).resizable().scaledToFill()
+                    } else {
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(Color.coral)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(Color.peach)
+                    }
+                }
+                .frame(width: 52, height: 52)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(today == nil ? "Take today's progress pic" : "Progress pic done")
+                        .font(.app(16, .semibold))
+                        .foregroundStyle(Color.textPrimary)
+                    Text(model.shareProgressPhotos ? "Shared with \(model.partnerName)" : "Optional · private, only you see it")
+                        .font(.app(13))
+                        .foregroundStyle(Color.textSecondary)
+                }
+                Spacer(minLength: 4)
+                Text(today == nil ? "Open ›" : "Retake")
+                    .font(.app(14, .semibold))
+                    .foregroundStyle(Color.coral)
+            }
+            .padding(12)
+            .card(radius: 18, shadow: false)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityLabel(today == nil ? "Take today's progress pic" : "Progress pic done. Retake")
     }
 }
 

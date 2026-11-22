@@ -12,6 +12,7 @@ struct ProfileView: View {
     @State private var confirmDelete = false
     @State private var showDebug = false
     @State private var showRules = false
+    @State private var shareProgress = Prefs.shareProgressPhotos
     @State private var eveningOn = Prefs.eveningWarningOn
     @State private var notificationsDenied = false
 
@@ -83,6 +84,28 @@ struct ProfileView: View {
                         }
                     }
                     row("Partner", value: model.partnerName)
+                    // Progress pics are private by default.
+                    VStack(alignment: .leading, spacing: 4) {
+                        Toggle(isOn: $shareProgress) {
+                            Text("Share progress pics with partner")
+                                .font(.app(17, .medium))
+                                .foregroundStyle(Color.textPrimary)
+                        }
+                        .tint(.coral)
+                        Text(shareProgress ? "\(model.partnerName) can see your progress pics."
+                                           : "Off: only you can see your progress pics.")
+                            .font(.app(13))
+                            .foregroundStyle(Color.textSecondary)
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 12)
+                    .frame(minHeight: 58)
+                    .card(radius: 16, shadow: false)
+                    .disabled(model.partner == nil)
+                    .onChange(of: shareProgress) { _, on in
+                        guard on != Prefs.shareProgressPhotos else { return }
+                        Task { await model.setShareProgressPhotos(on) }
+                    }
                     Button { showRules = true } label: {
                         row("Our rules", value: model.myPendingProposals.isEmpty ? nil : "Pending", chevron: true)
                     }

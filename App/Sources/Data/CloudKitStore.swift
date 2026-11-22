@@ -135,6 +135,10 @@ final class CloudKitStore: Store {
                 LocalCache.savePhoto(data, checkInID: id)
             }
         }
+        if type.name == CloudKitSchema.progressShare.name,
+           let asset = record["photo"] as? CKAsset, let url = asset.fileURL, let data = try? Data(contentsOf: url) {
+            LocalCache.savePhoto(data, checkInID: id)
+        }
         guard let data = try? JSONSerialization.data(withJSONObject: dict) else { return }
         let d = LocalCache.decoder
         switch type.name {
@@ -151,6 +155,8 @@ final class CloudKitStore: Store {
         case "BetPaid": if let f = try? d.decode(BetPaidFact.self, from: data) { state.facts.apply(.betPaid(f)) }
         case "RuleProposal": if let f = try? d.decode(RuleProposalFact.self, from: data) { state.facts.apply(.ruleProposal(f)) }
         case "RuleAnswer": if let f = try? d.decode(RuleAnswerFact.self, from: data) { state.facts.apply(.ruleAnswer(f)) }
+        case "ProgressShare":
+            if let f = try? d.decode(ProgressShareFact.self, from: data) { state.facts.apply(.progressShare(f, photo: nil)) }
         default: break
         }
     }
@@ -162,6 +168,9 @@ final class CloudKitStore: Store {
         case "Member": f.members.removeAll { $0.id == recordName }
         case "CheckIn": f.checkIns.removeAll { $0.id == recordName }
         case "Reaction": f.reactions.removeAll { $0.id == recordName }
+        case "ProgressShare":
+            f.progressShares.removeAll { $0.id == recordName }
+            LocalCache.deletePhoto(recordName)
         default: break
         }
         state.facts = f
@@ -172,6 +181,7 @@ final class CloudKitStore: Store {
     func save(_ records: [FactRecord]) async throws -> Facts {
         for r in records {
             if case .checkIn(_, let photo) = r, let photo { LocalCache.savePhoto(photo, checkInID: r.id) }
+            if case .progressShare(_, let photo) = r, let photo { LocalCache.savePhoto(photo, checkInID: r.id) }
             state.facts.apply(r)
             let key = "\(Self.typeName(r))|\(r.id)"
             if !state.pending.contains(key) { state.pending.append(key) }
@@ -252,6 +262,7 @@ final class CloudKitStore: Store {
         case .betPaid: return CloudKitSchema.betPaid.name
         case .ruleProposal: return CloudKitSchema.ruleProposal.name
         case .ruleAnswer: return CloudKitSchema.ruleAnswer.name
+        case .progressShare: return CloudKitSchema.progressShare.name
         }
     }
 
@@ -277,6 +288,7 @@ final class CloudKitStore: Store {
         case "BetPaid": data = f.betPayments.first { $0.id == id }.flatMap { try? e.encode($0) }
         case "RuleProposal": data = f.ruleProposals.first { $0.id == id }.flatMap { try? e.encode($0) }
         case "RuleAnswer": data = f.ruleAnswers.first { $0.id == id }.flatMap { try? e.encode($0) }
+        case "ProgressShare": data = f.progressShares.first { $0.id == id }.flatMap { try? e.encode($0) }
         default: data = nil
         }
         guard let data, let dict = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return nil }
@@ -285,7 +297,8 @@ final class CloudKitStore: Store {
         if type.name != CloudKitSchema.couple.name {
             record.parent = CKRecord.Reference(recordID: rootID, action: .none)
         }
-        if type.name == CloudKitSchema.checkIn.name, LocalCache.photo(id) != nil {
+        if type.name == CloudKitSchema.checkIn.name || type.name == CloudKitSchema.progressShare.name,
+           LocalCache.photo(id) != nil {
             record["photo"] = CKAsset(fileURL: LocalCache.photoURL(id))
         }
         return record
@@ -480,6 +493,28 @@ final class CloudKitStore: Store {
     }
 
     // MARK: - Photos
+
+    func progressSharePhotoData(id: String) async -> Data? {
+        if let cached = LocalCache.photo(id) { return cached }
+        guard let zoneID else { return nil }
+        guard let rec = try? await zoneDB.record(for: CKRecord.ID(recordName: id, zoneID: zoneID)),
+              let asset = rec["photo"] as? CKAsset, let url = asset.fileURL,
+              let data = try? Data(contentsOf: url) else { return nil }
+        LocalCache.savePhoto(data, checkInID: id)
+        return data
+    }
+
+    func deleteProgressShares(ids: [String]) async {
+        guard !ids.isEmpty else { return }
+        let set = Set(ids)
+        state.facts.progressShares.removeAll { set.contains($0.id) }
+        state.pending.removeAll { key in set.contains { key == "\(CloudKitSchema.progressShare.name)|\($0)" } }
+        for id in ids { LocalCache.deletePhoto(id) }
+        persist()
+        guard let zoneID else { return }
+        let recordIDs = ids.map { CKRecord.ID(recordName: $0, zoneID: zoneID) }
+        _ = try? await zoneDB.modifyRecords(saving: [], deleting: recordIDs)
+    }
 
     func photoData(for checkIn: CheckInFact) async -> Data? {
         if let cached = LocalCache.photo(checkIn.id) { return cached }

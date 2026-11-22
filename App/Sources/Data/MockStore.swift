@@ -37,6 +37,9 @@ final class MockStore: Store {
             if case .checkIn(_, let photo) = r, let photo {
                 LocalCache.savePhoto(photo, checkInID: r.id)
             }
+            if case .progressShare(_, let photo) = r, let photo {
+                LocalCache.savePhoto(photo, checkInID: r.id)
+            }
             state.facts.apply(r)
         }
         persist()
@@ -98,6 +101,15 @@ final class MockStore: Store {
     func photoData(for checkIn: CheckInFact) async -> Data? { LocalCache.photo(checkIn.id) }
 
     func cachedPhotoData(for checkInID: String) -> Data? { LocalCache.photo(checkInID) }
+
+    func progressSharePhotoData(id: String) async -> Data? { LocalCache.photo(id) }
+
+    func deleteProgressShares(ids: [String]) async {
+        let set = Set(ids)
+        state.facts.progressShares.removeAll { set.contains($0.id) }
+        for id in ids { LocalCache.deletePhoto(id) }
+        persist()
+    }
 
     func leaveCouple(me: MemberFact) async throws {
         state.facts = Facts()

@@ -488,6 +488,9 @@ extension AppModel {
 
     func leaveCouple() async -> Bool {
         guard let m = me else { return false }
+        // My shared progress photo copies go too (the private originals stay mine).
+        await store.deleteProgressShares(ids: facts.progressShares.filter { $0.memberID == m.id }.map(\.id))
+        Prefs.shareProgressPhotos = false
         do {
             try await store.leaveCouple(me: m)
             resetLocalCoupleState()
@@ -510,6 +513,7 @@ extension AppModel {
             }
         }
         if me != nil { _ = await leaveCouple() }
+        await progress.deleteAll()
         store.wipeLocalData()
         SeenEvents.wipe()
         Prefs.wipe()

@@ -167,6 +167,17 @@ struct RuleProposalFact: Codable, Equatable, Identifiable {
     var isSwap: Bool { effectiveFrom != nil }
 }
 
+/// A copy of a progress photo shared with the partner ("Share progress pics with partner" is on).
+/// Progress photos are private by default and live in the owner's own private database (ProgressPhotoStore);
+/// only these copies are in the couple's shared zone, and they are deleted when sharing is turned off.
+struct ProgressShareFact: Codable, Equatable, Identifiable {
+    var id: String                  // = the private photo's id
+    var memberID: MemberID
+    var localDate: String
+    var dayNumber: Int?
+    var capturedAt: Date
+}
+
 struct RuleAnswerFact: Codable, Equatable, Identifiable {
     var id: String
     var proposalID: String
@@ -262,6 +273,7 @@ struct Facts: Codable, Equatable {
     var betPayments: [BetPaidFact] = []
     var ruleProposals: [RuleProposalFact] = []
     var ruleAnswers: [RuleAnswerFact] = []
+    var progressShares: [ProgressShareFact] = []
 
     static let empty = Facts()
 
@@ -286,6 +298,7 @@ struct Facts: Codable, Equatable {
         case .betPaid(let f): Self.upsert(&betPayments, f)
         case .ruleProposal(let f): Self.upsert(&ruleProposals, f)
         case .ruleAnswer(let f): Self.upsert(&ruleAnswers, f)
+        case .progressShare(let f, _): Self.upsert(&progressShares, f)
         }
     }
 
@@ -309,6 +322,7 @@ enum FactRecord {
     case betPaid(BetPaidFact)
     case ruleProposal(RuleProposalFact)
     case ruleAnswer(RuleAnswerFact)
+    case progressShare(ProgressShareFact, photo: Data?)
 
     var id: String {
         switch self {
@@ -325,6 +339,7 @@ enum FactRecord {
         case .betPaid(let f): return f.id
         case .ruleProposal(let f): return f.id
         case .ruleAnswer(let f): return f.id
+        case .progressShare(let f, _): return f.id
         }
     }
 }
@@ -346,6 +361,7 @@ extension Facts {
         betPayments = try c.decodeIfPresent([BetPaidFact].self, forKey: .betPayments) ?? []
         ruleProposals = try c.decodeIfPresent([RuleProposalFact].self, forKey: .ruleProposals) ?? []
         ruleAnswers = try c.decodeIfPresent([RuleAnswerFact].self, forKey: .ruleAnswers) ?? []
+        progressShares = try c.decodeIfPresent([ProgressShareFact].self, forKey: .progressShares) ?? []
     }
 }
 

@@ -56,6 +56,20 @@ enum CloudKitSchema {
         fields: ["proposalID": "String", "accepted": "Int(64)", "answeredAt": "Date/Time"],
         dateKeys: ["answeredAt"], boolKeys: ["accepted"], jsonKeys: [])
 
+    /// A progress photo the owner chose to share with the partner (the original stays in their private DB).
+    static let progressShare = RecordType(
+        name: "ProgressShare",
+        fields: ["memberID": "String", "localDate": "String", "dayNumber": "Int(64)", "capturedAt": "Date/Time",
+                 "photo": "Asset"],
+        dateKeys: ["capturedAt"], boolKeys: [], jsonKeys: [])
+
+    /// Private database only, zone `ProgressPhotos`: the owner's own progress photos.
+    static let progressPhoto = RecordType(
+        name: "ProgressPhoto",
+        fields: ["localDate": "String", "dayNumber": "Int(64)", "capturedAt": "Date/Time", "photo": "Asset"],
+        dateKeys: ["capturedAt"], boolKeys: [], jsonKeys: [])
+    static let progressZoneName = "ProgressPhotos"
+
     static let ruleTweak = RecordType(
         name: "RuleTweak",
         fields: ["proposedBy": "String", "payload": "String (JSON)", "createdAt": "Date/Time"],
@@ -109,7 +123,7 @@ enum CloudKitSchema {
         dateKeys: ["createdAt"], boolKeys: [], jsonKeys: [])
 
     static let zoneTypes: [RecordType] = [couple, member, roundConfig, rule, ruleTweak, tweakAnswer, checkIn,
-                                          reaction, pauseRequest, pauseAnswer, betPaid, ruleProposal, ruleAnswer]
+                                          reaction, pauseRequest, pauseAnswer, betPaid, ruleProposal, ruleAnswer, progressShare]
 
     static func type(named name: String) -> RecordType? { zoneTypes.first { $0.name == name } }
 

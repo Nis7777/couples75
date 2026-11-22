@@ -51,6 +51,10 @@ enum LocalCache {
         try? Data(contentsOf: photoURL(checkInID))
     }
 
+    static func deletePhoto(_ id: String) {
+        try? FileManager.default.removeItem(at: photoURL(id))
+    }
+
     static func wipe() {
         try? FileManager.default.removeItem(at: directory)
     }

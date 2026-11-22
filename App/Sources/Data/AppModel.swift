@@ -109,6 +109,13 @@ enum Prefs {
     static let draftKey = "onboardingDraft"
     static let joinDraftKey = "joinDraft"
     static let invitePaidAtKey = "invitePaidAt"
+    static let shareProgressKey = "shareProgressPhotos"
+
+    /// "Share progress pics with partner": off by default (progress photos are private).
+    static var shareProgressPhotos: Bool {
+        get { UserDefaults.standard.bool(forKey: shareProgressKey) }
+        set { UserDefaults.standard.set(newValue, forKey: shareProgressKey) }
+    }
 
     static var eveningWarningOn: Bool {
         get { UserDefaults.standard.object(forKey: eveningWarningKey) as? Bool ?? true }
@@ -116,7 +123,8 @@ enum Prefs {
     }
 
     static func wipe() {
-        for k in [eveningWarningKey, onboardingDoneKey, seenCodeEntryKey, draftKey, joinDraftKey, invitePaidAtKey] {
+        for k in [eveningWarningKey, onboardingDoneKey, seenCodeEntryKey, draftKey, joinDraftKey, invitePaidAtKey,
+                  shareProgressKey] {
             UserDefaults.standard.removeObject(forKey: k)
         }
     }
@@ -137,6 +145,9 @@ enum DeepLink: Equatable {
 final class AppModel {
     @ObservationIgnored private(set) var store: Store
     let purchases = PurchaseManager()
+    /// My private daily progress photos (Part 4).
+    let progress = ProgressPhotoStore()
+    var presentedMilestone: Int?
 
     private(set) var facts: Facts
     private(set) var state: EngineState
@@ -194,6 +205,7 @@ final class AppModel {
         onboardingDone = UserDefaults.standard.bool(forKey: Prefs.onboardingDoneKey)
         seenCodeEntry = UserDefaults.standard.bool(forKey: Prefs.seenCodeEntryKey)
         invite = store.currentInvite
+        progress.cloudEnabled = !mock
     }
 
     var isMock: Bool { store.isMock }
@@ -305,6 +317,7 @@ final class AppModel {
         await refresh()
         startTimer()
         if !isMock { await store.registerForChanges() }
+        await progress.refresh()
     }
 
     func recheckICloud() async {
@@ -336,6 +349,7 @@ final class AppModel {
         meID = Identity.memberID(isMock: true)
         facts = mock.cachedFacts()
         invite = mock.currentInvite
+        progress.cloudEnabled = false
     }
     #endif
 
@@ -392,6 +406,7 @@ final class AppModel {
     func recompute() {
         state = RulesEngine.state(facts: facts, now: now())
         evaluatePresentations()
+        evaluateMilestone()
     }
 
     func afterStateChange() async {

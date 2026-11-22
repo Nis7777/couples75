@@ -93,13 +93,20 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             schedule(id: ID.wakePrefix + "\(offset)", title: Brand.appName, body: body, at: fire, route: "today")
         }
 
-        // 21:00 warning, only if rules are left today.
-        if Prefs.eveningWarningOn, let t = today, t.dayNumber != nil, t.remaining > 0 {
+        // 21:00 warning, only if rules are left today (or the daily progress pic, for people who take them).
+        let picMissing = !model.progress.photos.isEmpty && model.myProgressToday == nil
+        if Prefs.eveningWarningOn, let t = today, t.dayNumber != nil, t.remaining > 0 || picMissing {
             let fire = ClockTime.date(from: Brand.eveningWarning, on: now)
             if fire > now {
                 let hours = max(1, Int(ceil(cal.startOfDay(for: now).addingTimeInterval(86_400).timeIntervalSince(fire) / 3600)))
-                schedule(id: ID.evening, title: Brand.appName,
-                         body: "\(t.remaining) rules left. \(hours) hours to go.", at: fire, route: "today")
+                let body: String
+                if t.remaining > 0 {
+                    let rules = t.remaining == 1 ? "1 rule" : "\(t.remaining) rules"
+                    body = "\(rules) left\(picMissing ? " and your progress pic" : ""). \(hours) hours to go."
+                } else {
+                    body = "Rules done. Just your progress pic left. \(hours) hours to go."
+                }
+                schedule(id: ID.evening, title: Brand.appName, body: body, at: fire, route: "today")
             }
         }
 

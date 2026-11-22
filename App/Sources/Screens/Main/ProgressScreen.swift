@@ -5,6 +5,7 @@ import UIKit
 struct ProgressScreen: View {
     @Environment(AppModel.self) private var model
     @State private var viewing: CheckInFact?
+    @State private var showProgressCamera = false
 
     private var round: RoundState? { model.currentRound }
     private var columns: [GridItem] { Array(repeating: GridItem(.flexible(), spacing: 6), count: 12) }
@@ -22,6 +23,8 @@ struct ProgressScreen: View {
                         .foregroundStyle(Color.textSecondary)
                 }
                 .padding(.top, 14)
+
+                TransformationSection(takePhoto: { showProgressCamera = true })
 
                 // Both busts above the grid, also before the partner has joined (their avatar as made on A's phone).
                 CoupleScene(left: model.sceneA, right: model.sceneBBuilt, crop: 0.56, overlap: -0.04)
@@ -51,6 +54,7 @@ struct ProgressScreen: View {
         }
         .refreshable { await model.refresh() }
         .fullScreenCover(item: $viewing) { c in PhotoViewer(checkIn: c) }
+        .fullScreenCover(isPresented: $showProgressCamera) { ProgressCameraView() }
     }
 
     // MARK: 75-day grid

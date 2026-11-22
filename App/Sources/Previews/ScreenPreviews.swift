@@ -212,6 +212,17 @@ private let noop: () -> Void = {}
 #Preview("Proof, plan changes", traits: .sizeThatFitsLayout) {
     screen(PreviewData.model(PreviewData.factsWithProposals(), tab: .proof)) { MainView() }
 }
+#Preview("Progress camera", traits: .sizeThatFitsLayout) { screen { ProgressCameraView() } }
+#Preview("Milestone Day 25", traits: .sizeThatFitsLayout) { screen { MilestoneView(day: 25) } }
+#Preview("Transformation (empty)", traits: .sizeThatFitsLayout) {
+    screen { ScrollView { TransformationSection(takePhoto: {}).padding(20) } }
+}
+#Preview("Before / after", traits: .sizeThatFitsLayout) {
+    let a = UIImage(systemName: "figure.stand") ?? UIImage()
+    let b = UIImage(systemName: "figure.run") ?? UIImage()
+    return screen { BeforeAfterSlider(before: a, after: b).frame(height: 360).padding(20) }
+}
+#Preview("Opening animation", traits: .sizeThatFitsLayout) { screen { SplashView(onDone: {}) } }
 #Preview("Which rule?", traits: .sizeThatFitsLayout) {
     let rules = PlanGenerator.rules(keys: ["workout", "reading", "noSugar"], memberID: PreviewData.a,
                                     intensity: .standard, round: 1, now: Date())
