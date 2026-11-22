@@ -97,17 +97,14 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     }
 
     /// CloudKit silent push: fetch changes and post local notifications.
-    /// Runs off the main actor so the (non-Sendable) payload never crosses actors; only the refresh hops to
-    /// the main actor. The payload itself isn't needed: the app fetches the changes.
-    nonisolated func application(_ application: UIApplication,
-                                 didReceiveRemoteNotification userInfo: [AnyHashable: Any]) async -> UIBackgroundFetchResult {
-        await refreshAfterPush()
-        return .newData
-    }
-
-    @MainActor
-    private func refreshAfterPush() async {
-        await model.refresh()
+    /// CloudKit silent push. The completion-handler form is called on the main actor, so the (non-Sendable)
+    /// payload never crosses actors. The payload itself isn't needed: the app fetches the changes.
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+                     fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        Task { @MainActor in
+            await model.refresh()
+            completionHandler(.newData)
+        }
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {}

@@ -1,4 +1,4 @@
-import AVFoundation
+@preconcurrency import AVFoundation
 import UIKit
 
 /// Exports progress photos as a vertical 9:16 timelapse video (1080×1920, H.264) with a small

@@ -1,5 +1,7 @@
 import SwiftUI
-import AVFoundation
+// AVFoundation predates Swift concurrency annotations: AVCaptureSession is safe to start and stop on our own
+// serial queue (Apple's documented pattern), but isn't marked Sendable.
+@preconcurrency import AVFoundation
 import UIKit
 
 /// 21: full-screen dark camera. Live photo only, never from the photo library.
