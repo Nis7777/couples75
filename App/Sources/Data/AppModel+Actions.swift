@@ -443,6 +443,32 @@ extension AppModel {
         await save([.betPaid(BetPaidFact(id: .newID(), roundNumber: round.number, memberID: meID, paidAt: now()))])
     }
 
+    /// After Day 75: maintenance mode with the rules I keep (my partner keeps theirs and can change them).
+    func startMaintenance(after round: RoundState, keepRuleIDs: Set<String>) async {
+        let now = self.now()
+        let next = round.number + 1
+        var records: [FactRecord] = [
+            .roundConfig(RoundConfigFact(id: .newID(), fromRound: next, mode: .maintenance, betText: "",
+                                         rewardText: nil, createdBy: meID, createdAt: now))
+        ]
+        for m in facts.members {
+            var current = RulesEngine.effectiveRules(for: m.id, round: round.number, facts: facts, at: now)
+            if m.id == meID, !keepRuleIDs.isEmpty { current = current.filter { keepRuleIDs.contains($0.id) } }
+            for (i, r) in current.enumerated() {
+                var copy = r
+                copy.id = .newID()
+                copy.fromRound = next
+                copy.position = i + 1
+                copy.createdAt = now
+                records.append(.rule(copy))
+            }
+        }
+        await save(records)
+        presentedDay75 = nil
+        SeenEvents.insert(["day75-\(round.number)", "roundend-\(round.number)"])
+        toast = "Maintenance mode starts tomorrow."
+    }
+
     /// "Start round 2" after Day 75: new wake time and level; both members' rules follow the new level.
     func startNextRound(after round: RoundState, level: Level, wakeTime: String) async {
         let now = self.now()

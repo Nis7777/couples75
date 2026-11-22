@@ -24,6 +24,15 @@ enum RuleType: String, Codable, Equatable {
 enum RoundMode: String, Codable, Equatable {
     case standard
     case hard
+    /// After Day 75: keep some rules going with no stakes. No saves, no bet, misses don't end anything,
+    /// no end date. It ends when the couple starts a new 75-day round.
+    case maintenance
+}
+
+extension RoundMode {
+    /// How many counted days a round lasts (maintenance has no end).
+    var length: Int { self == .maintenance ? 1_000_000 : Brand.roundLengthDays }
+    var isMaintenance: Bool { self == .maintenance }
 }
 
 enum FitnessLevel: String, Codable, CaseIterable, Equatable {

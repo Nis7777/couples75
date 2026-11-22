@@ -37,14 +37,16 @@ struct TodayView: View {
                 banners
                 hero
                 WeekDotsView(days: weekDays, streak: model.state.streak)
-                DayProgressBar(day: warmup ? 0 : (model.myToday?.dayNumber ?? 0))
+                if round?.mode.isMaintenance != true {
+                    DayProgressBar(day: warmup ? 0 : (model.myToday?.dayNumber ?? 0))
+                }
                 savesRow
                 newFromPartnerRow
                 rulesSection
                 checkInButton
                 PartnerActionsRow()
                 ProgressPhotoCard { showProgressCamera = true }
-                stakesRow
+                if round?.mode.isMaintenance == true { MaintenanceRow() } else { stakesRow }
             }
             .padding(.horizontal, Metrics.side)
             .padding(.bottom, 24)
@@ -235,12 +237,14 @@ struct TodayView: View {
             title = "Day 1"; subtitle = "tomorrow"
         } else if model.myToday?.finishedRound == true {
             title = "Done"; subtitle = "75 / 75"
+        } else if round?.mode.isMaintenance == true {
+            title = "DAY \(day ?? 0)"; subtitle = "Keep it up"
         } else {
             title = "DAY \(day ?? 0)"; subtitle = "/ \(Brand.roundLengthDays)"
         }
         let bubble = speechBubble(ta: ta, tb: tb)
         return RingHero(left: model.sceneA, right: model.sceneBJoined ?? (warmup ? nil : model.sceneB),
-                        progress: Double(day ?? 0) / Double(Brand.roundLengthDays),
+                        progress: round?.mode.isMaintenance == true ? 1 : Double(day ?? 0) / Double(Brand.roundLengthDays),
                         centerTitle: title, centerSubtitle: subtitle, topLabel: Brand.appName,
                         leftChip: chip(ta), rightChip: chip(tb),
                         bubble: bubble?.text, bubbleFromLeft: bubble?.fromA ?? true, panelRadius: 22)
@@ -291,7 +295,11 @@ struct TodayView: View {
 
     private var savesRow: some View {
         HStack(spacing: 10) {
-            if (round?.mode ?? model.currentMode) == .hard {
+            if (round?.mode ?? model.currentMode) == .maintenance {
+                Text("Maintenance · no stakes")
+                    .font(.app(15, .semibold))
+                    .foregroundStyle(Color.textPrimary)
+            } else if (round?.mode ?? model.currentMode) == .hard {
                 Text("Hard mode · no saves")
                     .font(.app(15, .semibold))
                     .foregroundStyle(Color.textPrimary)
@@ -764,6 +772,31 @@ struct WeekDotsView: View {
         case .paused: return "paused"
         case .today: return "today"
         case .future, .empty: return "upcoming"
+        }
+    }
+}
+
+/// In maintenance: no stakes, and a way back into a full 75-day round.
+struct MaintenanceRow: View {
+    @Environment(AppModel.self) private var model
+    @State private var startNew = false
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "leaf.fill").foregroundStyle(Color.sage)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Maintenance mode").font(.app(16, .semibold)).foregroundStyle(Color.textPrimary)
+                Text("No saves, no bet. Just keep it up.").font(.app(13)).foregroundStyle(Color.textSecondary)
+            }
+            Spacer()
+            Button("New 75 ›") { startNew = true }
+                .font(.app(15, .bold))
+                .foregroundStyle(Color.coral)
+        }
+        .padding(16)
+        .card(radius: 16)
+        .sheet(isPresented: $startNew) {
+            if let r = model.currentRound { StartNextRoundSheet(round: r) }
         }
     }
 }

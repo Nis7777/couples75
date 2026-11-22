@@ -59,9 +59,9 @@ struct ProfileView: View {
                     .padding(.bottom, 6)
 
                 section {
-                    row("Mode", value: (round?.mode ?? model.currentMode) == .hard
-                        ? "Hard mode" : "Couples 75 · \(Brand.savesPerRound) saves")
-                    if (round?.mode ?? model.currentMode) != .hard {
+                    row("Mode", value: (round?.mode ?? model.currentMode) == .maintenance ? "Maintenance · no stakes"
+                        : (round?.mode ?? model.currentMode) == .hard ? "Hard mode" : "Couples 75 · \(Brand.savesPerRound) saves")
+                    if (round?.mode ?? model.currentMode) == .standard {
                         row("Saves left", value: "\(round?.savesLeft ?? Brand.savesPerRound) of \(Brand.savesPerRound)")
                     }
                     Button { showWake = true } label: {

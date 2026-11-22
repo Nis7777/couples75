@@ -7,6 +7,7 @@ struct Day75View: View {
     var round: RoundState
     @State private var shareImage: UIImage?
     @State private var showNextRound = false
+    @State private var showMaintenance = false
 
     var body: some View {
         ZStack {
@@ -49,6 +50,7 @@ struct Day75View: View {
                     }
                 }
                 SecondaryButton("Start round \(round.number + 1)") { showNextRound = true }
+                TextLinkButton("Keep it up with maintenance mode", color: .coral) { showMaintenance = true }
             }
             ConfettiView().ignoresSafeArea()
         }
@@ -59,6 +61,9 @@ struct Day75View: View {
         }
         .sheet(isPresented: $showNextRound) {
             StartNextRoundSheet(round: round)
+        }
+        .sheet(isPresented: $showMaintenance) {
+            MaintenanceSheet(round: round)
         }
     }
 
@@ -199,5 +204,56 @@ struct StartNextRoundSheet: View {
             wake = model.me?.wakeTime ?? "07:30"
             level = round.mode == .hard ? .hard : .couples75
         }
+    }
+}
+
+/// After Day 75: pick the rules to keep. No saves, no bet, no end date.
+struct MaintenanceSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    var round: RoundState
+    @State private var keep: Set<String> = []
+    @State private var saving = false
+
+    var body: some View {
+        let rules = model.rules(for: model.meID)
+        VStack(alignment: .leading, spacing: 14) {
+            TitleText("Maintenance mode", size: 28)
+                .padding(.top, 26)
+            BodyText("Keep the habits that stuck. No saves, no bet, no end date. Start a new 75 whenever you like.",
+                     alignment: .leading)
+            Text("Rules to keep").font(.app(17, .bold)).foregroundStyle(Color.textPrimary)
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 8) {
+                    ForEach(rules) { r in
+                        Button {
+                            if keep.contains(r.id) { keep.remove(r.id) } else { keep.insert(r.id) }
+                        } label: {
+                            HStack(spacing: 12) {
+                                CheckCircle(isOn: keep.contains(r.id), size: 24)
+                                Text(r.title).font(.app(16, .medium)).foregroundStyle(Color.textPrimary)
+                                Spacer()
+                            }
+                            .padding(.horizontal, 16)
+                            .frame(minHeight: 52)
+                            .card(radius: 16, shadow: false)
+                        }
+                        .buttonStyle(PressableStyle())
+                    }
+                }
+            }
+            PrimaryButton("Start maintenance", isEnabled: !keep.isEmpty, isLoading: saving) {
+                Task {
+                    saving = true
+                    await model.startMaintenance(after: round, keepRuleIDs: keep)
+                    saving = false
+                    dismiss()
+                }
+            }
+            .padding(.bottom, 12)
+        }
+        .padding(.horizontal, Metrics.side)
+        .background(Color.ivory.ignoresSafeArea())
+        .onAppear { keep = Set(rules.map(\.id)) }
     }
 }

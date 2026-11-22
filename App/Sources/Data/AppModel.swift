@@ -497,7 +497,7 @@ final class AppModel {
         if let round = state.lastFinishedRound {
             let endID = "roundend-\(round.number)"
             let d75ID = "day75-\(round.number)"
-            if round.status == .completed, !SeenEvents.contains(d75ID) {
+            if round.status == .completed, !round.mode.isMaintenance, !SeenEvents.contains(d75ID) {
                 SeenEvents.insert(state.allSaveEvents.map { $0.id })
                 presentedDay75 = round
                 Haptics.success()

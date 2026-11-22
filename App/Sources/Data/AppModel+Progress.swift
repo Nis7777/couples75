@@ -64,7 +64,8 @@ extension AppModel {
 
     /// Day 25, 50 and 75: a celebration with Day 1 next to today, once per milestone and round.
     func evaluateMilestone() {
-        guard route == .main, presentedMilestone == nil, let n = myToday?.dayNumber,
+        guard route == .main, presentedMilestone == nil, currentRound?.mode.isMaintenance != true,
+              let n = myToday?.dayNumber,
               Self.milestoneDays.contains(n), !progress.photos.isEmpty else { return }
         let key = "milestone-\(currentRound?.number ?? 1)-\(n)"
         guard !SeenEvents.contains(key) else { return }

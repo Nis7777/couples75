@@ -16,7 +16,7 @@ struct WeeklyRecapView: View {
                 SmallLabel(text: "Our week")
                     .padding(.top, 28)
                 TitleText(recap.headline, size: 30)
-                RecapCard(recap: recap, left: model.sceneA, right: model.sceneBBuilt)
+                WeekRecapCard(recap: recap, left: model.sceneA, right: model.sceneBBuilt)
                 if let shareImage {
                     ShareLink(item: shareImage, preview: SharePreview("Our week on Couples 75", image: shareImage)) {
                         PrimaryButtonLabel(title: "Share our week")
@@ -38,7 +38,7 @@ struct WeeklyRecapView: View {
 
     @MainActor
     private func render() {
-        let card = RecapCard(recap: recap, left: model.sceneA, right: model.sceneBBuilt)
+        let card = WeekRecapCard(recap: recap, left: model.sceneA, right: model.sceneBBuilt)
             .frame(width: 390)
             .padding(20)
             .background(Color.ivory)
@@ -58,7 +58,7 @@ struct WeeklyRecapView: View {
 }
 
 /// The recap card (also rendered as the share image; never contains photos).
-struct RecapCard: View {
+struct WeekRecapCard: View {
     var recap: WeeklyRecap
     var left: SceneCharacter
     var right: SceneCharacter?

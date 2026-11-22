@@ -455,7 +455,9 @@ enum RulesEngine {
                                       now: Date) -> SimResult {
         let cfg = config(for: number, facts: facts)
         let mode = cfg?.mode ?? .standard
-        let savesAllowed = mode == .hard ? 0 : Brand.savesPerRound
+        let savesAllowed = mode == .standard ? Brand.savesPerRound : 0
+        // Maintenance ends when a new round is set up (its config is the stop signal).
+        let stopAt = mode.isMaintenance ? facts.roundConfigs.first(where: { $0.fromRound == number + 1 })?.createdAt : nil
         var cursors = members.map { Cursor(member: $0, date: starts[$0.id] ?? LocalDate(now, in: $0.tz)) }
         let startInstant = cursors.map { $0.date.startInstant(in: $0.member.tz) }.min() ?? now
 
@@ -493,6 +495,11 @@ enum RulesEngine {
                 endedAt = ab
                 break
             }
+            if let st = stopAt, st <= t, st <= now {
+                status = .completed
+                endedAt = st
+                break
+            }
             if t > now { break }
 
             var groupMisses: [(index: Int, day: Int, date: LocalDate)] = []
@@ -515,7 +522,7 @@ enum RulesEngine {
                                                       outcome: complete ? .complete : .miss,
                                                       closedAt: t, coveredBySave: false))
                     if !complete { groupMisses.append((i, n, date)) }
-                    if n >= Brand.roundLengthDays { cursors[i].finished = true }
+                    if n >= mode.length { cursors[i].finished = true }
                 }
                 cursors[i].date = date.adding(1)
             }
@@ -523,6 +530,8 @@ enum RulesEngine {
             // Misses at the same instant are all counted, then saves are drawn in order.
             for miss in groupMisses {
                 cursors[miss.index].misses += 1
+                // Maintenance: misses are just recorded (no saves, nothing ends).
+                if mode.isMaintenance { continue }
                 if savesUsed < savesAllowed {
                     savesUsed += 1
                     if let last = cursors[miss.index].days.indices.last {
@@ -549,6 +558,10 @@ enum RulesEngine {
             status = .abandoned
             endedAt = ab
         }
+        if status == .active, let st = stopAt, st <= now, endedAt == nil {
+            status = .completed
+            endedAt = st
+        }
         if status == .active,
            cursors.allSatisfy({ $0.days.isEmpty && now < $0.date.startInstant(in: $0.member.tz) }) {
             status = .waiting
@@ -562,7 +575,7 @@ enum RulesEngine {
         // Settle the bet once, when the round ends (never for abandoned rounds).
         var owes: [MemberID] = []
         var rewardUnlocked = false
-        if status == .completed || status == .failed, memberStates.count == 2 {
+        if status == .completed || status == .failed, memberStates.count == 2, !mode.isMaintenance {
             let m0 = memberStates[0], m1 = memberStates[1]
             if m0.misses > m1.misses { owes = [m0.memberID] }
             else if m1.misses > m0.misses { owes = [m1.memberID] }
@@ -605,7 +618,7 @@ enum RulesEngine {
             return MemberToday(memberID: m.id, localDate: todayDate, dayNumber: nil, isPaused: false,
                                isFrozen: false, beforeStart: true, finishedRound: false, items: items)
         }
-        if ms.countedDays >= Brand.roundLengthDays {
+        if ms.countedDays >= round.mode.length {
             return MemberToday(memberID: m.id, localDate: todayDate, dayNumber: nil, isPaused: false,
                                isFrozen: false, beforeStart: false, finishedRound: true, items: items)
         }
@@ -621,7 +634,7 @@ enum RulesEngine {
         }
         let isPaused = paused.contains(todayDate.string)
         return MemberToday(memberID: m.id, localDate: todayDate,
-                           dayNumber: (isPaused || frozen) ? nil : min(n, Brand.roundLengthDays),
+                           dayNumber: (isPaused || frozen) ? nil : min(n, round.mode.length),
                            isPaused: isPaused, isFrozen: frozen, beforeStart: false,
                            finishedRound: false, items: items)
     }

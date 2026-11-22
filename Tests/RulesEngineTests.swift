@@ -494,6 +494,34 @@ final class RulesEngineTests: XCTestCase {
         XCTAssertEqual(rules[1].memberID, f.b)
     }
 
+    // MARK: Maintenance mode
+
+    func testMaintenanceHasNoStakesAndEndsWhenANewRoundStarts() {
+        var f = Fixture()
+        f.completeBoth(1...75)
+        f.facts.roundConfigs.append(RoundConfigFact(id: "cfg2", fromRound: 2, mode: .maintenance, betText: "",
+                                                    rewardText: nil, createdBy: f.a, createdAt: f.noon(76)))
+        // Days 77–79 missed by both: maintenance never fails and uses no saves.
+        let s = f.state(at: f.noon(80))
+        XCTAssertEqual(s.rounds.first?.status, .completed)
+        let m = s.currentRound
+        XCTAssertEqual(m?.number, 2)
+        XCTAssertEqual(m?.mode, .maintenance)
+        XCTAssertEqual(m?.status, .active)
+        XCTAssertEqual(m?.savesUsed, 0)
+        XCTAssertEqual(m?.misses(f.a), 3)
+        XCTAssertTrue(m?.owes.isEmpty ?? false)
+
+        // A new 75 ends maintenance (no bet) and starts the next day.
+        f.facts.roundConfigs.append(RoundConfigFact(id: "cfg3", fromRound: 3, mode: .standard, betText: "Loser cooks",
+                                                    rewardText: nil, createdBy: f.a, createdAt: f.noon(81)))
+        let later = f.state(at: f.noon(83))
+        XCTAssertEqual(later.rounds[1].status, .completed)
+        XCTAssertTrue(later.rounds[1].owes.isEmpty)
+        XCTAssertEqual(later.currentRound?.number, 3)
+        XCTAssertEqual(later.currentRound?.mode, .standard)
+    }
+
     // MARK: Weekly recap
 
     func testWeeklyRecapCountsTheLastSevenDays() {
