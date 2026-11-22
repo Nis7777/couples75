@@ -194,6 +194,14 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             post(a.accepted ? "\(name) accepted your change." : "\(name) kept the original plan.", route: "today")
         }
 
+        let oldNudges = Set(oldFacts.nudges.map { $0.id })
+        for n in newFacts.nudges where !oldNudges.contains(n.id) && n.from == partner.id && n.to == meID {
+            switch n.kind {
+            case .nudge: post("\(name) nudged you 👀 \(n.text ?? "Your rules are waiting.")", route: "today")
+            case .note: post("\(name): \(n.text ?? "❤️")", route: "today")
+            }
+        }
+
         let oldProposals = Set(oldFacts.ruleProposals.map { $0.id })
         for p in newFacts.ruleProposals where !oldProposals.contains(p.id) && p.proposedBy == partner.id {
             post("\(name) suggested a new rule. Approve?", route: "proof")

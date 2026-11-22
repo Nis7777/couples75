@@ -155,6 +155,11 @@ final class AppModel {
     private(set) var isBootstrapped = false
     private(set) var iCloudAvailable = true
     private(set) var isSyncing = false
+    /// Last successful sync with iCloud (shown as "Updated 2 min ago").
+    private(set) var lastSyncedAt: Date?
+    /// Why the last sync failed, if it did ("offline", "signed out").
+    private(set) var syncProblem: SyncProblem?
+    enum SyncProblem: Equatable { case offline, signedOut }
     /// Bumps every minute so time-based UI (evening banner, "Tap tonight") refreshes.
     private(set) var clockTick = Date()
 
@@ -209,6 +214,7 @@ final class AppModel {
     }
 
     var isMock: Bool { store.isMock }
+    var pendingUploads: Int { _ = facts; return store.pendingUploads }
     #if DEBUG
     var mockStore: MockStore? { store as? MockStore }
     #endif
@@ -376,10 +382,18 @@ final class AppModel {
         do {
             let new = try await store.fetchChanges()
             apply(new)
+            lastSyncedAt = Date()
+            syncProblem = nil
         } catch let e as StoreError {
-            if case .notAuthenticated = e { iCloudAvailable = AppEnvironment.isDebug ? iCloudAvailable : false }
+            if case .notAuthenticated = e {
+                iCloudAvailable = AppEnvironment.isDebug ? iCloudAvailable : false
+                syncProblem = .signedOut
+            } else {
+                syncProblem = .offline
+            }
             recompute()
         } catch {
+            syncProblem = .offline
             recompute()
         }
         // Light haptic when a partner's approval of one of my check-ins arrives.

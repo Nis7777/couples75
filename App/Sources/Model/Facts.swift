@@ -178,6 +178,23 @@ struct ProgressShareFact: Codable, Equatable, Identifiable {
     var capturedAt: Date
 }
 
+enum NudgeKind: String, Codable, Equatable {
+    /// "Nudge {partner}": a playful poke when they still have rules left.
+    case nudge
+    /// A small love note ("Proud of you ❤️" or one custom line).
+    case note
+}
+
+/// A nudge or love note from one partner to the other.
+struct NudgeFact: Codable, Equatable, Identifiable {
+    var id: String
+    var from: MemberID
+    var to: MemberID
+    var kind: NudgeKind
+    var text: String?
+    var createdAt: Date
+}
+
 struct RuleAnswerFact: Codable, Equatable, Identifiable {
     var id: String
     var proposalID: String
@@ -274,6 +291,7 @@ struct Facts: Codable, Equatable {
     var ruleProposals: [RuleProposalFact] = []
     var ruleAnswers: [RuleAnswerFact] = []
     var progressShares: [ProgressShareFact] = []
+    var nudges: [NudgeFact] = []
 
     static let empty = Facts()
 
@@ -299,6 +317,7 @@ struct Facts: Codable, Equatable {
         case .ruleProposal(let f): Self.upsert(&ruleProposals, f)
         case .ruleAnswer(let f): Self.upsert(&ruleAnswers, f)
         case .progressShare(let f, _): Self.upsert(&progressShares, f)
+        case .nudge(let f): Self.upsert(&nudges, f)
         }
     }
 
@@ -323,6 +342,7 @@ enum FactRecord {
     case ruleProposal(RuleProposalFact)
     case ruleAnswer(RuleAnswerFact)
     case progressShare(ProgressShareFact, photo: Data?)
+    case nudge(NudgeFact)
 
     var id: String {
         switch self {
@@ -340,6 +360,7 @@ enum FactRecord {
         case .ruleProposal(let f): return f.id
         case .ruleAnswer(let f): return f.id
         case .progressShare(let f, _): return f.id
+        case .nudge(let f): return f.id
         }
     }
 }
@@ -362,6 +383,7 @@ extension Facts {
         ruleProposals = try c.decodeIfPresent([RuleProposalFact].self, forKey: .ruleProposals) ?? []
         ruleAnswers = try c.decodeIfPresent([RuleAnswerFact].self, forKey: .ruleAnswers) ?? []
         progressShares = try c.decodeIfPresent([ProgressShareFact].self, forKey: .progressShares) ?? []
+        nudges = try c.decodeIfPresent([NudgeFact].self, forKey: .nudges) ?? []
     }
 }
 

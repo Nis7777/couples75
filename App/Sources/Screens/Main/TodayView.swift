@@ -30,6 +30,10 @@ struct TodayView: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 14) {
                 header
+                SyncStatusLine()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, -8)
+                if let note = model.unreadNote { NoteBanner(note: note) }
                 banners
                 hero
                 WeekDotsView(days: weekDays, streak: model.state.streak)
@@ -38,6 +42,7 @@ struct TodayView: View {
                 newFromPartnerRow
                 rulesSection
                 checkInButton
+                PartnerActionsRow()
                 ProgressPhotoCard { showProgressCamera = true }
                 stakesRow
             }

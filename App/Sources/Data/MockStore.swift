@@ -21,6 +21,7 @@ final class MockStore: Store {
     }
 
     var isMock: Bool { true }
+    var pendingUploads: Int { 0 }
     var clockOffset: TimeInterval {
         get { state.clockOffset }
         set { state.clockOffset = newValue; persist() }

@@ -38,6 +38,7 @@ final class CloudKitStore: Store {
     }
 
     var isMock: Bool { false }
+    var pendingUploads: Int { state.pending.count }
     var currentInvite: InviteInfo? { state.invite }
 
     private func persist() { LocalCache.write(state, to: Self.fileName) }
@@ -157,6 +158,7 @@ final class CloudKitStore: Store {
         case "RuleAnswer": if let f = try? d.decode(RuleAnswerFact.self, from: data) { state.facts.apply(.ruleAnswer(f)) }
         case "ProgressShare":
             if let f = try? d.decode(ProgressShareFact.self, from: data) { state.facts.apply(.progressShare(f, photo: nil)) }
+        case "Nudge": if let f = try? d.decode(NudgeFact.self, from: data) { state.facts.apply(.nudge(f)) }
         default: break
         }
     }
@@ -263,6 +265,7 @@ final class CloudKitStore: Store {
         case .ruleProposal: return CloudKitSchema.ruleProposal.name
         case .ruleAnswer: return CloudKitSchema.ruleAnswer.name
         case .progressShare: return CloudKitSchema.progressShare.name
+        case .nudge: return CloudKitSchema.nudge.name
         }
     }
 
@@ -289,6 +292,7 @@ final class CloudKitStore: Store {
         case "RuleProposal": data = f.ruleProposals.first { $0.id == id }.flatMap { try? e.encode($0) }
         case "RuleAnswer": data = f.ruleAnswers.first { $0.id == id }.flatMap { try? e.encode($0) }
         case "ProgressShare": data = f.progressShares.first { $0.id == id }.flatMap { try? e.encode($0) }
+        case "Nudge": data = f.nudges.first { $0.id == id }.flatMap { try? e.encode($0) }
         default: data = nil
         }
         guard let data, let dict = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return nil }

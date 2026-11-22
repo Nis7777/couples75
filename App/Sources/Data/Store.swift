@@ -44,6 +44,8 @@ enum StoreError: LocalizedError, Equatable {
 @MainActor
 protocol Store: AnyObject {
     var isMock: Bool { get }
+    /// Writes made on this phone that haven't reached iCloud yet.
+    var pendingUploads: Int { get }
 
     /// The last known facts (local cache), available instantly and offline.
     func cachedFacts() -> Facts
