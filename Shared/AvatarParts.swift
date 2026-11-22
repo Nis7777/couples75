@@ -49,7 +49,8 @@ struct AvatarConfig: Codable, Equatable, Hashable {
         let masc = body == .masculine
         let hairPool = masc ? ["short", "sidePart", "curly", "fade", "buzz", "manBun", "locs", "wavyShort"]
                             : ["wavy", "longStraight", "bob", "ponytail", "bun", "curlyLong", "braids", "pixie", "afro"]
-        let hair = hairPool.randomElement() ?? "short"
+        // With final art, only hairstyles that have art.
+        let hair = AvatarArt.hairWithArt(hairPool.randomElement() ?? "short")
         let natural = Array(AvatarPalette.hairColors.prefix(8))
         return AvatarConfig(
             body: body,

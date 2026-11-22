@@ -76,6 +76,22 @@ and I'll add the body to the lookup.
 - **Bottoms**: jeans, trousers, leggings, shorts, skirt. **Shoes**: sneakers, boots, flats, sandals.
 - **Extras**: none, glasses, sunglasses, earrings, cap, beanie.
 
+## Test batch 1 (in the app)
+
+Delivered and wired: `avatar_head_head`, `avatar_body_neutral_stand`, and back + front + shade files for
+short, wavy, curly and ponytail (`Shared/Assets.xcassets/Avatar/`). Hair is tinted (flat shape + `_shade`).
+The head and body are finished colour drawings (no `_shade`), so they're drawn as they are: skin tone and
+clothes can't be changed yet, and the builder only shows Hair (4 styles + bald) and Hair colour.
+Other hairstyles show their closest relative (e.g. bob → wavy, afro → curly, bun → ponytail, buzz → short).
+
+What the art actually uses (supersedes the head numbers below): scalp top ≈ y 155 px, chin ≈ 310–322,
+eyes ≈ y 235 at x ≈ 277 / 324, shoulder line ≈ y 347, soles y 1146, body centred on x 300. Keep every future
+part on THIS base (same head and body), not on the guide ellipse. The head-only crop is x 156–444, y 114–402 px.
+
+Next, to make skin and clothes changeable: the head and body as flat shapes + `_shade` (like the hair), and
+the clothes split off the body: `avatar_body_neutral_stand` = skin only (arms, hands, neck, legs), then
+`avatar_top_zip_stand`, `avatar_bottoms_joggers`… on the same base.
+
 ## First test batch (suggested)
 
 `avatar_head_head`, `avatar_body_neutral_stand`, and 4 hairstyles as `avatar_hairBack_<id>` + `avatar_hairFront_<id>`

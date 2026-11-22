@@ -34,7 +34,46 @@ struct LayeredAvatarBuilderView: View {
     @State private var history: [AvatarConfig] = []
     @State private var bounce = false
 
-    private var config: AvatarConfig { avatar.resolvedConfig }
+    /// The look being edited (a hairstyle without art shows as its closest relative that has art).
+    private var config: AvatarConfig {
+        var c = avatar.resolvedConfig
+        c.hairStyle = AvatarArt.hairWithArt(c.hairStyle)
+        return c
+    }
+
+    /// With final art, only parts that have art are offered ("none" options always are).
+    private static func available(_ part: AvatarPart) -> Bool {
+        guard AvatarArt.layeredEnabled else { return true }
+        if part.layer == .hairFront { return AvatarArt.hairHasArt(part.id) }
+        return part.id == "none" || AvatarArt.hasArt(part.layer, part.id)
+    }
+
+    private static func hasChoices(_ parts: [AvatarPart]) -> Bool { parts.filter(available).count > 1 }
+
+    /// Tabs with something to choose. Colour tabs need tintable art (hair now; skin once the head is a shape).
+    private var visibleTabs: [AvatarTab] {
+        guard AvatarArt.layeredEnabled else { return AvatarTab.allCases }
+        let hairTint = AvatarParts.hair.contains { p in
+            [AvatarLayer.hairFront, .hairBack].contains { l in
+                AvatarArt.name(l, p.id, pose: .stand).map(AvatarArt.isTintable) ?? false
+            }
+        }
+        let skinTint = AvatarArt.name(.head, "head", pose: .stand).map(AvatarArt.isTintable) ?? false
+        let bodies = AvatarBody.allCases.filter { AvatarArt.exists("avatar_body_\($0.rawValue)_stand") }.count > 1
+        return AvatarTab.allCases.filter { t in
+            switch t {
+            case .hair: return true
+            case .hairColor: return hairTint
+            case .skin: return skinTint
+            case .face: return bodies || [AvatarParts.eyes, AvatarParts.brows, AvatarParts.mouths,
+                                          AvatarParts.facialHair].contains(where: Self.hasChoices)
+            case .top: return Self.hasChoices(AvatarParts.tops)
+            case .bottoms: return Self.hasChoices(AvatarParts.bottoms)
+            case .shoes: return Self.hasChoices(AvatarParts.shoes)
+            case .extras: return Self.hasChoices(AvatarParts.accessories)
+            }
+        }
+    }
 
     var body: some View {
         OnboardingPage(step: step, total: total, back: back) {
@@ -134,7 +173,7 @@ struct LayeredAvatarBuilderView: View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 2) {
-                    ForEach(AvatarTab.allCases) { t in
+                    ForEach(visibleTabs) { t in
                         Button {
                             Haptics.tap()
                             withAnimation(.easeInOut(duration: 0.2)) {
@@ -188,13 +227,24 @@ struct LayeredAvatarBuilderView: View {
             swatchGrid(AvatarPalette.skinTones, selected: config.skinTone) { c, hex in c.skinTone = hex }
         case .face:
             VStack(alignment: .leading, spacing: 14) {
-                section("Eyes") { partGrid(AvatarParts.eyes, selected: config.eyes, headOnly: true) { c, id in c.eyes = id } }
-                section("Brows") { partGrid(AvatarParts.brows, selected: config.brows, headOnly: true) { c, id in c.brows = id } }
-                section("Mouth") { partGrid(AvatarParts.mouths, selected: config.mouth, headOnly: true) { c, id in c.mouth = id } }
-                section("Facial hair") {
-                    partGrid(AvatarParts.facialHair, selected: config.facialHair, headOnly: true) { c, id in c.facialHair = id }
+                if Self.hasChoices(AvatarParts.eyes) {
+                    section("Eyes") { partGrid(AvatarParts.eyes, selected: config.eyes, headOnly: true) { c, id in c.eyes = id } }
                 }
-                section("Body shape") { bodyPicker }
+                if Self.hasChoices(AvatarParts.brows) {
+                    section("Brows") { partGrid(AvatarParts.brows, selected: config.brows, headOnly: true) { c, id in c.brows = id } }
+                }
+                if Self.hasChoices(AvatarParts.mouths) {
+                    section("Mouth") { partGrid(AvatarParts.mouths, selected: config.mouth, headOnly: true) { c, id in c.mouth = id } }
+                }
+                if Self.hasChoices(AvatarParts.facialHair) {
+                    section("Facial hair") {
+                        partGrid(AvatarParts.facialHair, selected: config.facialHair, headOnly: true) { c, id in c.facialHair = id }
+                    }
+                }
+                if !AvatarArt.layeredEnabled
+                    || AvatarBody.allCases.filter({ AvatarArt.exists("avatar_body_\($0.rawValue)_stand") }).count > 1 {
+                    section("Body shape") { bodyPicker }
+                }
             }
         case .top:
             VStack(alignment: .leading, spacing: 12) {
@@ -248,9 +298,10 @@ struct LayeredAvatarBuilderView: View {
     }
 
     /// 4 circular thumbnails per row, each showing MY avatar with that option applied.
-    private func partGrid(_ parts: [AvatarPart], selected: String, headOnly: Bool,
+    private func partGrid(_ all: [AvatarPart], selected: String, headOnly: Bool,
                           set: @escaping (inout AvatarConfig, String) -> Void) -> some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 12) {
+        let parts = all.filter(Self.available)
+        return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 12) {
             ForEach(parts) { part in
                 let isOn = part.id == selected
                 let preview: AvatarConfig = {

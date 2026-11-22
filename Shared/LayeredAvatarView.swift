@@ -8,7 +8,12 @@ import UIKit
 /// The bust/head-only view shows the region y 14…214 (200 × 200).
 enum AvatarCanvas {
     static let size = CGSize(width: 200, height: 400)
-    static let bustRect = CGRect(x: 0, y: 14, width: 200, height: 200)
+    /// Head and shoulders. With the final art the head is smaller and higher than the placeholder head
+    /// (scalp ≈ y 52, chin ≈ y 107, shoulders ≈ y 116 in points), so the crop follows the art.
+    static var bustRect: CGRect {
+        AvatarArt.layeredEnabled ? CGRect(x: 52, y: 38, width: 96, height: 96)
+                                 : CGRect(x: 0, y: 14, width: 200, height: 200)
+    }
     static let fullAspect: CGFloat = size.width / size.height   // 0.5
     static let bustAspect: CGFloat = 1
 
@@ -38,6 +43,32 @@ enum AvatarArt {
         let v = UIImage(named: name) != nil
         cache[name] = v
         return v
+    }
+
+    /// Art that comes with a `_shade` file is a flat shape the app tints (hair, and later skin and clothes);
+    /// art without one is a finished colour drawing and is drawn as it is (the test head and body).
+    static func isTintable(_ name: String) -> Bool { exists(name + "_shade") }
+
+    /// Hairstyles with art (front or back), plus bald, which needs none.
+    static func hasArt(_ layer: AvatarLayer, _ id: String) -> Bool {
+        name(layer, id, pose: .stand) != nil
+    }
+
+    static func hairHasArt(_ id: String) -> Bool {
+        id == "bald" || hasArt(.hairFront, id) || hasArt(.hairBack, id)
+    }
+
+    /// The closest hairstyle that has art (so old presets and random looks never come out bald by accident).
+    static func hairWithArt(_ id: String) -> String {
+        if !layeredEnabled || hairHasArt(id) { return id }
+        let family: [String: [String]] = [
+            "wavy": ["longStraight", "longFringe", "bob", "curlyLong", "wavyShort", "mullet", "pixie", "fringe"],
+            "curly": ["afro", "coily", "curlyBun", "locs", "curlyLong"],
+            "ponytail": ["highPonytail", "bun", "spaceBuns", "braids", "sideBraid", "manBun"],
+            "short": ["buzz", "fade", "sidePart", "mohawk", "fringe", "pixie", "wavyShort", "hijab"],
+        ]
+        for (target, members) in family where members.contains(id) && hairHasArt(target) { return target }
+        return ["short", "wavy", "curly", "ponytail"].first(where: hairHasArt) ?? id
     }
 
     /// The best art name for a part and pose, if any art exists.
@@ -99,8 +130,11 @@ struct AvatarPainter {
     private var waist: CGFloat { config.body == .masculine ? 36 : config.body == .feminine ? 28 : 32 }
     private var hip: CGFloat { config.body == .masculine ? 35 : config.body == .feminine ? 38 : 35 }
 
+    /// The hairstyle actually drawn: the chosen one, or its closest relative with art.
+    private var hairStyle: String { AvatarArt.hairWithArt(config.hairStyle) }
+
     func draw(in ctx: inout GraphicsContext) {
-        layer(&ctx, .hairBack, config.hairStyle, tint: hair) { c in drawHairBack(&c) }
+        layer(&ctx, .hairBack, hairStyle, tint: hair) { c in drawHairBack(&c) }
         layer(&ctx, .body, config.body.rawValue, tint: skin) { c in drawLegs(&c) }
         if config.top != "dress" {
             layer(&ctx, .bottoms, config.bottoms, tint: bottomsColor) { c in drawBottoms(&c) }
@@ -119,20 +153,23 @@ struct AvatarPainter {
         layer(&ctx, .eyes, config.eyes, tint: nil) { c in drawEyes(&c) }
         layer(&ctx, .mouth, config.mouth, tint: nil) { c in drawMouth(&c) }
         layer(&ctx, .facialHair, config.facialHair, tint: hair) { c in drawFacialHair(&c) }
-        layer(&ctx, .hairFront, config.hairStyle, tint: hair) { c in drawHairFront(&c) }
+        layer(&ctx, .hairFront, hairStyle, tint: hair) { c in drawHairFront(&c) }
         layer(&ctx, .accessory, config.accessory, tint: topColor) { c in drawAccessory(&c) }
     }
 
-    /// Uses the part's art when it exists (tinted template + untinted shading), else the placeholder.
+    /// Uses the part's art when it exists (tinted shape + untinted shading, or a finished drawing as it is).
+    /// With final art switched on, a part without art is simply not drawn (no placeholders over real art);
+    /// placeholders only appear in previews before any art exists.
     private func layer(_ ctx: inout GraphicsContext, _ layer: AvatarLayer, _ id: String, tint: Color?,
                        placeholder: (inout GraphicsContext) -> Void) {
         let rect = CGRect(origin: .zero, size: AvatarCanvas.size)
         guard let name = AvatarArt.name(layer, id, pose: pose) else {
-            placeholder(&ctx)
+            if !AvatarArt.layeredEnabled { placeholder(&ctx) }
             return
         }
-        var art = ctx.resolve(Image(name).renderingMode(tint == nil ? .original : .template))
-        if let tint { art.shading = .color(tint) }
+        let tinted = tint != nil && AvatarArt.isTintable(name)
+        var art = ctx.resolve(Image(name).renderingMode(tinted ? .template : .original))
+        if tinted, let tint { art.shading = .color(tint) }
         ctx.draw(art, in: rect)
         if AvatarArt.exists(name + "_shade") {
             ctx.draw(ctx.resolve(Image(name + "_shade")), in: rect)
