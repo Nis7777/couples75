@@ -52,6 +52,8 @@ struct ProgressScreen: View {
                 gridCard.zIndex(1)
                 photoStrip
                 statsRow
+                BadgesCard()
+                BucketListCard()
                 HStack(spacing: 12) {
                     Image(systemName: "trophy.fill")
                         .font(.system(size: 20))

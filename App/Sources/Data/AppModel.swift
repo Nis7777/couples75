@@ -443,6 +443,7 @@ final class AppModel {
         evaluatePresentations()
         evaluateMilestone()
         evaluateRecap()
+        evaluateBadges()
     }
 
     func afterStateChange() async {

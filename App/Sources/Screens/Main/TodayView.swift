@@ -112,7 +112,7 @@ struct TodayView: View {
                     .frame(height: 34)
                     .background(Capsule().fill(Color.peach))
             } else {
-                StreakPill(streak: model.state.streak)
+                StreakPill(streak: model.state.streak, shields: model.state.streakShields)
             }
             if !warmup { menu }
         }
@@ -688,18 +688,27 @@ struct WhichRuleSheet: View {
 /// Gold "🔥 14" pill.
 struct StreakPill: View {
     var streak: Int
+    /// Banked streak shields: each covers one missed day without breaking the streak.
+    var shields: Int = 0
 
     var body: some View {
         HStack(spacing: 5) {
             Text("🔥").font(.system(size: 16))
             Text("\(streak)").font(.app(18, .semibold))
+                .contentTransition(.numericText())
+            if shields > 0 {
+                Image(systemName: "shield.fill")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(Color.sage)
+                if shields > 1 { Text("\(shields)").font(.app(14, .semibold)) }
+            }
         }
         .foregroundStyle(Color.textPrimary)
         .padding(.horizontal, 14)
         .frame(height: 38)
         .background(Capsule().fill(Color.gold.opacity(0.55)))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Streak \(streak) days")
+        .accessibilityLabel(shields > 0 ? "Streak \(streak) days, \(shields) streak shield\(shields == 1 ? "" : "s")" : "Streak \(streak) days")
     }
 }
 

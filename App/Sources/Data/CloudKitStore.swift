@@ -159,6 +159,7 @@ final class CloudKitStore: Store {
         case "ProgressShare":
             if let f = try? d.decode(ProgressShareFact.self, from: data) { state.facts.apply(.progressShare(f, photo: nil)) }
         case "Nudge": if let f = try? d.decode(NudgeFact.self, from: data) { state.facts.apply(.nudge(f)) }
+        case "BucketItem": if let f = try? d.decode(BucketItemFact.self, from: data) { state.facts.apply(.bucketItem(f)) }
         default: break
         }
     }
@@ -266,6 +267,7 @@ final class CloudKitStore: Store {
         case .ruleAnswer: return CloudKitSchema.ruleAnswer.name
         case .progressShare: return CloudKitSchema.progressShare.name
         case .nudge: return CloudKitSchema.nudge.name
+        case .bucketItem: return CloudKitSchema.bucketItem.name
         }
     }
 
@@ -293,6 +295,7 @@ final class CloudKitStore: Store {
         case "RuleAnswer": data = f.ruleAnswers.first { $0.id == id }.flatMap { try? e.encode($0) }
         case "ProgressShare": data = f.progressShares.first { $0.id == id }.flatMap { try? e.encode($0) }
         case "Nudge": data = f.nudges.first { $0.id == id }.flatMap { try? e.encode($0) }
+        case "BucketItem": data = f.bucketItems.first { $0.id == id }.flatMap { try? e.encode($0) }
         default: data = nil
         }
         guard let data, let dict = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return nil }

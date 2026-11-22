@@ -142,6 +142,8 @@ struct EngineState: Equatable {
     var today: [MemberID: MemberToday]
     var streak: Int
     var bestStreak: Int
+    /// Banked streak shields in the current round (see `RulesEngine.streakRun`).
+    var streakShields: Int = 0
     /// Days don't settle right now because the couple's subscription lapsed.
     var isFrozen: Bool
     /// Members whose own subscription isn't active right now.
@@ -267,6 +269,7 @@ enum RulesEngine {
             if i == rounds.count - 1, r.status == .active {
                 s += todayBonus(round: r, today: result.today, members: members)
                 result.streak = s
+                result.streakShields = shields(r)
             }
             best = max(best, r.bestStreak, s)
         }
@@ -679,17 +682,47 @@ enum RulesEngine {
         return zip(a, b).map { $0 && $1 }
     }
 
-    private static func trailingStreak(_ r: RoundState) -> Int {
-        var s = 0
-        for v in coupleDays(r).reversed() { if v { s += 1 } else { break } }
-        return s
+    /// Streak shields: every 7 days in a row that you both complete earn a shield (at most 2 banked). A day
+    /// that isn't complete for both uses a shield instead of breaking the streak (the streak doesn't grow
+    /// that day). Shields only protect the streak: misses and saves are unaffected.
+    static let shieldEvery = 7
+    static let maxShields = 2
+
+    struct StreakRun: Equatable {
+        var current = 0
+        var best = 0
+        var shields = 0
+        var shieldsUsed = 0
     }
 
-    private static func bestRun(_ r: RoundState) -> Int {
-        var best = 0, run = 0
-        for v in coupleDays(r) { run = v ? run + 1 : 0; best = max(best, run) }
-        return best
+    static func streakRun(_ days: [Bool]) -> StreakRun {
+        var r = StreakRun()
+        var sinceShield = 0
+        for v in days {
+            if v {
+                r.current += 1
+                sinceShield += 1
+                if sinceShield == shieldEvery {
+                    sinceShield = 0
+                    r.shields = min(r.shields + 1, maxShields)
+                }
+                r.best = max(r.best, r.current)
+            } else if r.shields > 0 {
+                r.shields -= 1
+                r.shieldsUsed += 1
+            } else {
+                r.current = 0
+                sinceShield = 0
+            }
+        }
+        return r
     }
+
+    private static func trailingStreak(_ r: RoundState) -> Int { streakRun(coupleDays(r)).current }
+
+    private static func bestRun(_ r: RoundState) -> Int { streakRun(coupleDays(r)).best }
+
+    static func shields(_ r: RoundState) -> Int { streakRun(coupleDays(r)).shields }
 
     private static func todayBonus(round: RoundState, today: [MemberID: MemberToday], members: [MemberFact]) -> Int {
         let all = members.compactMap { today[$0.id] }

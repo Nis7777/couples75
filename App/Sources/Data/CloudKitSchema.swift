@@ -76,6 +76,13 @@ enum CloudKitSchema {
         fields: ["from": "String", "to": "String", "kind": "String", "text": "String", "createdAt": "Date/Time"],
         dateKeys: ["createdAt"], boolKeys: [], jsonKeys: [])
 
+    /// The couple's shared bucket list (also the shared reward when nobody owes the bet).
+    static let bucketItem = RecordType(
+        name: "BucketItem",
+        fields: ["text": "String", "addedBy": "String", "createdAt": "Date/Time", "doneAt": "Date/Time",
+                 "rewardRound": "Int(64)"],
+        dateKeys: ["createdAt", "doneAt"], boolKeys: [], jsonKeys: [])
+
     static let ruleTweak = RecordType(
         name: "RuleTweak",
         fields: ["proposedBy": "String", "payload": "String (JSON)", "createdAt": "Date/Time"],
@@ -129,7 +136,7 @@ enum CloudKitSchema {
         dateKeys: ["createdAt"], boolKeys: [], jsonKeys: [])
 
     static let zoneTypes: [RecordType] = [couple, member, roundConfig, rule, ruleTweak, tweakAnswer, checkIn,
-                                          reaction, pauseRequest, pauseAnswer, betPaid, ruleProposal, ruleAnswer, progressShare, nudge]
+                                          reaction, pauseRequest, pauseAnswer, betPaid, ruleProposal, ruleAnswer, progressShare, nudge, bucketItem]
 
     static func type(named name: String) -> RecordType? { zoneTypes.first { $0.name == name } }
 

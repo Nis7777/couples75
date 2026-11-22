@@ -187,6 +187,17 @@ struct ProgressShareFact: Codable, Equatable, Identifiable {
     var capturedAt: Date
 }
 
+/// One item on the couple's shared bucket list ("Weekend in Porto", "Sunset picnic"). A round that ends with
+/// nobody owing turns into a shared reward: the couple picks an item (`rewardRound`).
+struct BucketItemFact: Codable, Equatable, Identifiable {
+    var id: String
+    var text: String
+    var addedBy: MemberID
+    var createdAt: Date
+    var doneAt: Date?
+    var rewardRound: Int?
+}
+
 enum NudgeKind: String, Codable, Equatable {
     /// "Nudge {partner}": a playful poke when they still have rules left.
     case nudge
@@ -303,6 +314,7 @@ struct Facts: Codable, Equatable {
     var ruleAnswers: [RuleAnswerFact] = []
     var progressShares: [ProgressShareFact] = []
     var nudges: [NudgeFact] = []
+    var bucketItems: [BucketItemFact] = []
 
     static let empty = Facts()
 
@@ -329,6 +341,7 @@ struct Facts: Codable, Equatable {
         case .ruleAnswer(let f): Self.upsert(&ruleAnswers, f)
         case .progressShare(let f, _): Self.upsert(&progressShares, f)
         case .nudge(let f): Self.upsert(&nudges, f)
+        case .bucketItem(let f): Self.upsert(&bucketItems, f)
         }
     }
 
@@ -354,6 +367,7 @@ enum FactRecord {
     case ruleAnswer(RuleAnswerFact)
     case progressShare(ProgressShareFact, photo: Data?)
     case nudge(NudgeFact)
+    case bucketItem(BucketItemFact)
 
     var id: String {
         switch self {
@@ -372,6 +386,7 @@ enum FactRecord {
         case .ruleAnswer(let f): return f.id
         case .progressShare(let f, _): return f.id
         case .nudge(let f): return f.id
+        case .bucketItem(let f): return f.id
         }
     }
 }
@@ -395,6 +410,7 @@ extension Facts {
         ruleAnswers = try c.decodeIfPresent([RuleAnswerFact].self, forKey: .ruleAnswers) ?? []
         progressShares = try c.decodeIfPresent([ProgressShareFact].self, forKey: .progressShares) ?? []
         nudges = try c.decodeIfPresent([NudgeFact].self, forKey: .nudges) ?? []
+        bucketItems = try c.decodeIfPresent([BucketItemFact].self, forKey: .bucketItems) ?? []
     }
 }
 

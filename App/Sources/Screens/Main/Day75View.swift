@@ -39,6 +39,9 @@ struct Day75View: View {
                             .padding(.horizontal, -Metrics.side)
                         RecapCard(round: round)
                             .padding(.top, 8)
+                        if round.owes.isEmpty {
+                            RewardPickerCard(round: round)
+                        }
                     }
                     .padding(.bottom, 8)
                 }

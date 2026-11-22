@@ -494,6 +494,22 @@ final class RulesEngineTests: XCTestCase {
         XCTAssertEqual(rules[1].memberID, f.b)
     }
 
+    // MARK: Streak shields
+
+    func testStreakShields() {
+        // 7 complete days earn a shield; the 8th day missed uses it, so the streak survives.
+        let r1 = RulesEngine.streakRun(Array(repeating: true, count: 7) + [false, true])
+        XCTAssertEqual(r1.current, 8)
+        XCTAssertEqual(r1.shieldsUsed, 1)
+        XCTAssertEqual(r1.shields, 0)
+        // Without a shield a miss resets it.
+        let r2 = RulesEngine.streakRun([true, true, false, true])
+        XCTAssertEqual(r2.current, 1)
+        XCTAssertEqual(r2.best, 2)
+        // At most 2 shields are banked.
+        XCTAssertEqual(RulesEngine.streakRun(Array(repeating: true, count: 30)).shields, 2)
+    }
+
     // MARK: Maintenance mode
 
     func testMaintenanceHasNoStakesAndEndsWhenANewRoundStarts() {
