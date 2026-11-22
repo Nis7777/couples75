@@ -111,6 +111,13 @@ enum Prefs {
     static let invitePaidAtKey = "invitePaidAt"
     static let shareProgressKey = "shareProgressPhotos"
     static let healthProofKey = "healthProofOn"
+    static let liveActivityKey = "liveActivityOn"
+
+    /// The evening Lock Screen progress (Live Activity). On by default.
+    static var liveActivityOn: Bool {
+        get { UserDefaults.standard.object(forKey: liveActivityKey) as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: liveActivityKey) }
+    }
 
     /// "Use Apple Health as proof" (off until the user turns it on and allows access).
     static var healthProofOn: Bool {
@@ -131,7 +138,7 @@ enum Prefs {
 
     static func wipe() {
         for k in [eveningWarningKey, onboardingDoneKey, seenCodeEntryKey, draftKey, joinDraftKey, invitePaidAtKey,
-                  shareProgressKey, healthProofKey] {
+                  shareProgressKey, healthProofKey, liveActivityKey] {
             UserDefaults.standard.removeObject(forKey: k)
         }
     }
@@ -155,6 +162,8 @@ final class AppModel {
     /// My private daily progress photos (Part 4).
     let progress = ProgressPhotoStore()
     var presentedMilestone: Int?
+    /// A rule to open on Today (widget tap on a photo rule).
+    var openRuleID: String?
     /// Today's Apple Health totals per rule id (only for rules Health can prove).
     var healthReadings: [String: Double] = [:]
 
@@ -415,6 +424,7 @@ final class AppModel {
             }
         }
         await refreshHealth()
+        await saveQueuedWidgetCheckIns()
         await NotificationManager.shared.postPartnerEvents(oldFacts: oldFacts, newFacts: facts,
                                                           oldState: oldState, newState: state,
                                                           meID: meID, isInitial: oldFacts.couple == nil)
@@ -438,6 +448,7 @@ final class AppModel {
         await closeInviteIfPartnerJoined()
         writeWidgetSnapshot()
         await NotificationManager.shared.reschedule(model: self)
+        await LiveActivityManager.shared.update(model: self)
     }
 
     /// Save facts, then recompute and refresh dependants.
@@ -540,7 +551,15 @@ final class AppModel {
                                   doneA: ta?.isComplete ?? false, doneB: tb?.isComplete ?? false,
                                   streak: state.streak, statusLine: status, updatedAt: Date(),
                                   avatarA: a.avatar, avatarB: memberB?.avatar)
-        snap.save()
+        var full = snap
+        full.myName = me?.name ?? ""
+        full.partnerName = partnerName
+        full.myRules = (myToday?.items ?? []).map {
+            SnapshotRule(id: $0.rule.id, title: $0.rule.title, isHonour: $0.rule.type == .honour, done: $0.isChecked)
+        }
+        full.partnerLeft = partnerToday?.remaining ?? 0
+        full.partnerTotal = partnerToday?.items.count ?? 0
+        full.save()
         WidgetCenter.shared.reloadAllTimelines()
     }
 }

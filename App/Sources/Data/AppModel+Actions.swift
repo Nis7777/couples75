@@ -345,9 +345,10 @@ extension AppModel {
 
     /// Saves a check-in for today. `photo` is the stamped, compressed JPEG for photo rules.
     @discardableResult
-    func checkIn(rule: RuleFact, photo: Data?, honourFallback: Bool = false, healthProof: String? = nil) async -> Bool {
+    func checkIn(rule: RuleFact, photo: Data?, honourFallback: Bool = false, healthProof: String? = nil,
+                 at time: Date? = nil) async -> Bool {
         guard let m = me else { return false }
-        let now = self.now()
+        let now = time ?? self.now()
         let warm = isWarmup
         let date = LocalDate(now, in: m.tz)
         let c = CheckInFact(id: .newID(), memberID: m.id, ruleID: rule.id, capturedAt: now, localDate: date.string,
@@ -563,6 +564,10 @@ extension AppModel {
             }
         } else if url.host == "today" {
             deepLink = .today
+        } else if url.host == "rule" {
+            // From the widget: couples75://rule/{ruleID} opens that rule's camera or honour sheet.
+            deepLink = .today
+            openRuleID = url.pathComponents.last { $0 != "/" }
         }
     }
 

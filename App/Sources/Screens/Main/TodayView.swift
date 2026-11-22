@@ -52,6 +52,8 @@ struct TodayView: View {
         .refreshable { await model.refresh() }
         .fullScreenCover(item: $cameraRule) { r in CheckInCameraView(rule: r) }
         .fullScreenCover(isPresented: $showProgressCamera) { ProgressCameraView() }
+        .onChange(of: model.openRuleID) { _, id in openFromWidget(id) }
+        .onAppear { openFromWidget(model.openRuleID) }
         .sheet(item: $honourRule) { r in HonourSheet(rule: r).presentationDetents([.height(430)]) }
         .sheet(item: $openedCheckIn) { c in PartnerCheckInView(checkIn: c) }
         .sheet(isPresented: $showPauseRequest) { PauseRequestView() }
@@ -468,6 +470,15 @@ struct TodayView: View {
         if warmup { return true }
         if model.state.isFrozen || today.isPaused || today.finishedRound { return false }
         return today.dayNumber != nil || model.isWarmup
+    }
+
+    /// A widget tap on a photo rule: open its camera (or the honour sheet).
+    private func openFromWidget(_ id: String?) {
+        guard let id else { return }
+        model.openRuleID = nil
+        guard let item = model.myToday?.items.first(where: { $0.rule.id == id }), !item.isChecked,
+              canCheckIn(model.myToday) else { return }
+        open(item.rule)
     }
 
     private func open(_ rule: RuleFact) {

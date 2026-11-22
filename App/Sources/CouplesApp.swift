@@ -53,6 +53,9 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         }
         if !model.isMock { application.registerForRemoteNotifications() }
         AppDelegate.current = self
+        // Interactive widget taps run in the app's process and become real check-ins.
+        let appModel = self.model
+        WidgetCheckIns.appHandler = { ruleID, date in await appModel.checkInFromWidget(ruleID: ruleID, at: date) }
         return true
     }
 

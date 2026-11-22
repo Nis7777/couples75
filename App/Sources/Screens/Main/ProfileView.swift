@@ -14,6 +14,7 @@ struct ProfileView: View {
     @State private var showRules = false
     @State private var shareProgress = Prefs.shareProgressPhotos
     @State private var healthOn = Prefs.healthProofOn
+    @State private var liveOn = Prefs.liveActivityOn
     @State private var eveningOn = Prefs.eveningWarningOn
     @State private var notificationsDenied = false
 
@@ -85,6 +86,19 @@ struct ProfileView: View {
                         }
                     }
                     row("Partner", value: model.partnerName)
+                    Toggle(isOn: $liveOn) {
+                        Text("Evening progress on Lock Screen")
+                            .font(.app(17, .medium))
+                            .foregroundStyle(Color.textPrimary)
+                    }
+                    .tint(.coral)
+                    .padding(.horizontal, 18)
+                    .frame(minHeight: 58)
+                    .card(radius: 16, shadow: false)
+                    .onChange(of: liveOn) { _, on in
+                        Prefs.liveActivityOn = on
+                        Task { await LiveActivityManager.shared.update(model: model) }
+                    }
                     VStack(alignment: .leading, spacing: 4) {
                         Toggle(isOn: $healthOn) {
                             Text("Use Apple Health as proof")
