@@ -207,6 +207,17 @@ final class AppModel {
     var sceneA: SceneCharacter { SceneCharacter(avatar: memberA?.avatar ?? draft.avatar, name: nameA) }
     /// nil until B has built their avatar: draw the dashed partner outline instead.
     var sceneB: SceneCharacter? { memberB.map { SceneCharacter(avatar: $0.avatar, name: $0.name) } }
+    /// B as built so far: their member record, or the avatar B made on A's phone ("together now"); nil = outline.
+    var sceneBBuilt: SceneCharacter? {
+        sceneB ?? draft.partnerAvatar.map { SceneCharacter(avatar: $0, name: nameB) }
+    }
+    /// Couple-level subscription: one subscription covers both partners.
+    var coupleActive: Bool { state.coupleActive }
+    var payerName: String { state.payerID.map { name(of: $0) } ?? nameA }
+    /// The run is frozen because nobody's subscription is active.
+    var subscriptionLapsed: Bool { !state.coupleActive && currentRound?.status == .active }
+    /// Whether I'm (or was) the one paying.
+    var iAmPayer: Bool { state.payerID == nil ? isOwner : state.payerID == meID }
     /// A's avatar while onboarding.
     var draftScene: SceneCharacter { SceneCharacter(avatar: draft.avatar, name: draft.myName) }
     /// B shown only once fully joined.

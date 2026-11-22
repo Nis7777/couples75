@@ -7,10 +7,11 @@ struct MainView: View {
     @State private var showPauseAnswer = false
     @State private var showTweakAnswer = false
 
-    /// My own subscription lapsed during an active run (4.11).
-    private var mustRenew: Bool {
-        model.state.lapsedMembers.contains(model.meID) && model.currentRound?.status == .active
-    }
+    /// The couple's subscription lapsed during an active run and I'm the one who paid: renew (4.11).
+    private var mustRenew: Bool { model.subscriptionLapsed && model.iAmPayer }
+    /// The payer's subscription lapsed: the partner may take it over (the only paywall B ever sees).
+    @State private var takeOverDismissed = false
+    private var offerTakeOver: Bool { model.subscriptionLapsed && !model.iAmPayer && !takeOverDismissed }
 
     var body: some View {
         @Bindable var model = model
@@ -47,6 +48,12 @@ struct MainView: View {
         }
         .fullScreenCover(isPresented: .constant(mustRenew && model.presentedDay75 == nil)) {
             PaywallView(variant: .renew, onClose: nil) { Task { await model.refresh() } }
+        }
+        .fullScreenCover(isPresented: Binding(get: { offerTakeOver && model.presentedDay75 == nil },
+                                              set: { if !$0 { takeOverDismissed = true } })) {
+            PaywallView(variant: .takeOver(payer: model.payerName), onClose: { takeOverDismissed = true }) {
+                Task { await model.refresh() }
+            }
         }
         .sheet(item: $openedCheckIn) { c in
             PartnerCheckInView(checkIn: c)

@@ -152,11 +152,9 @@ struct InviteCardView: View {
                 .font(.app(28, .heavy))
                 .tracking(5)
                 .foregroundStyle(Color.textPrimary)
-            if let monthlyPrice {
-                Text("\(monthlyPrice)/month each")
-                    .font(.app(11))
-                    .foregroundStyle(Color.textSecondary)
-            }
+            Text("Free for you: \(inviter.name)'s subscription covers you both.")
+                .font(.app(12, .medium))
+                .foregroundStyle(Color.textSecondary)
         }
         .padding(20)
         .frame(width: 360, height: 480)

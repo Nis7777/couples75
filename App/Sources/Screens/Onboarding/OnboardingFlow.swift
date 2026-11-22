@@ -34,8 +34,8 @@ struct OnboardingFlow: View {
         case .level: OnboardingLevelStep(next: { go(.building) }, back: back)
         case .building: BuildingPlanView(next: { go(.planReveal) })
         case .planReveal: PlanRevealView(next: { go(.stakes) }, back: { go(.level, forward: false) })
-        case .stakes: StakesView(next: { go(.outcome) }, back: back)
-        case .outcome: OutcomeView(next: { go(.paywall) }, back: back)
+        case .stakes: StakesView(next: { go(.paywall) }, back: back)
+        // × on any paywall page opens the exit sheet; closing the paywall goes back to the plan, never into the app.
         case .paywall: PaywallAView(onClose: { go(.planReveal, forward: false) }, onDone: { go(.invite) })
         case .invite: InviteView(next: { go(.notifications) })
         case .notifications: NotificationPrimingView(next: { model.finishOnboarding() })

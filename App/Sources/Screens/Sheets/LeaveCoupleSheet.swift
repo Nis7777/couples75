@@ -14,7 +14,7 @@ struct LeaveCoupleSheet: View {
             Capsule().fill(Color.cardBorder).frame(width: 40, height: 5).padding(.top, 10)
             TitleText("Leave \(model.partnerName)?", size: 26)
                 .padding(.top, 8)
-            BodyText("Your run ends and the shared photos are deleted for both of you. Each of you keeps your own subscription. Leaving also stops \(model.partnerName) from seeing anything new from you.")
+            BodyText("Your run ends and the shared photos are deleted for both of you. Whoever pays keeps their subscription until they cancel it. Leaving also stops \(model.partnerName) from seeing anything new from you.")
             Spacer(minLength: 0)
             if !myPhotos.isEmpty {
                 ShareLink(items: myPhotos, preview: { _ in SharePreview("My \(Brand.appName) photo") }) {

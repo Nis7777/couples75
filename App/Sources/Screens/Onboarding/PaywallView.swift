@@ -1,128 +1,269 @@
 import SwiftUI
 import StoreKit
 
-/// 13c paywall. Variants: A during onboarding, B while joining, and "Renew to keep your run".
-/// Prices always come from StoreKit.
+/// Social proof shown on the outcome page. NEVER invent ratings, review counts, quotes or user numbers.
+enum SocialProof {
+    static let line = "Built for couples who want to finish what they start."
+
+    // MARK: Real App Store ratings go here later
+    // When the app has real ratings, set these from App Store Connect (e.g. 4.8 and 1200).
+    // Leave them nil until then: nothing is shown.
+    static let appStoreRating: Double? = nil
+    static let appStoreRatingCount: Int? = nil
+}
+
+/// The paywall. Only the person who sets up the couple (A) sees it during onboarding: 4 pages after "Hold to sign"
+/// (outcome → trial timeline → plans, and the exit sheet on ×). ONE subscription covers both partners.
+/// The same plans page is used to renew (the payer) or to take over the subscription (the partner, only when the
+/// payer's lapsed). Prices always come from StoreKit.
 struct PaywallView: View {
     enum Variant: Equatable {
-        case personA(partner: String)
-        case personB(inviter: String)
+        /// A, during onboarding: outcome, trial, plans.
+        case onboarding(partner: String)
+        /// The payer's subscription lapsed.
         case renew
+        /// The payer's subscription lapsed; the partner can take it over.
+        case takeOver(payer: String)
     }
+
+    enum Page: Hashable { case outcome, trial, plans }
 
     @Environment(AppModel.self) private var model
     var variant: Variant
-    /// × tapped (A: opens the exit sheet first). nil hides the ×.
+    /// Closing the paywall entirely (onboarding: back to the plan; take over: back to the app). nil hides the ×.
     var onClose: (() -> Void)?
     var onPurchased: () -> Void
 
-    @State private var yearlySelected = false
+    @State private var page: Page = .outcome
+    @State private var yearlySelected = true
     @State private var showExit = false
+    @State private var showAllPlans = false
     @State private var working = false
 
     private var purchases: PurchaseManager { model.purchases }
+    private var isOnboarding: Bool {
+        if case .onboarding = variant { return true }
+        return false
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
                 if onClose != nil {
+                    // In onboarding the × always opens the exit sheet; it never drops the user into the app.
                     CloseButton {
-                        if case .personA = variant { showExit = true } else { onClose?() }
+                        if isOnboarding { showExit = true } else { onClose?() }
                     }
+                } else {
+                    Color.clear.frame(width: 44, height: 44)
                 }
                 Spacer()
+                if isOnboarding { pageDots }
+                Spacer()
+                Color.clear.frame(width: 44, height: 44)
             }
             .padding(.horizontal, 10)
             .padding(.top, 6)
-            .frame(height: 52)
 
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 14) {
-                    header
-                    if purchases.monthly == nil && purchases.yearly == nil {
-                        loadingState
-                    } else {
-                        planCard(yearly: false)
-                        planCard(yearly: true)
-                    }
-                    if case .personA(let partner) = variant {
-                        StepsStrip(partner: partner)
-                            .padding(.top, 4)
-                    }
-                    Text("Cancel anytime.")
-                        .font(.app(14, .medium))
-                        .foregroundStyle(Color.textSecondary)
+            Group {
+                switch page {
+                case .outcome: outcomePage
+                case .trial: trialPage
+                case .plans: plansPage
                 }
-                .padding(.horizontal, Metrics.side)
-                .padding(.bottom, 12)
             }
-
-            BottomActions {
-                PrimaryButton(primaryTitle, isEnabled: selectedProduct != nil || model.hasActiveSubscription,
-                              isLoading: working || purchases.isPurchasing) {
-                    Task { await buy(selectedProduct) }
-                }
-                FooterLinks()
-            }
+            .id(page)
+            .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),
+                                    removal: .move(edge: .leading).combined(with: .opacity)))
         }
+        .animation(.easeInOut(duration: 0.3), value: page)
         .screenBackground()
+        .onAppear { if !isOnboarding { page = .plans } }
         .sheet(isPresented: $showExit) {
-            ExitSheet(monthlyPrice: purchases.monthlyPrice ?? "",
-                      startMonthly: {
+            ExitSheet(monthlyPrice: purchases.monthlyPrice ?? "…",
+                      tryMonthly: {
                           showExit = false
                           Task { await buy(purchases.monthly) }
                       },
-                      backToPlans: { showExit = false },
-                      reviewPlan: {
+                      sevenDayTrial: {
+                          showExit = false
+                          Task { await buy(purchases.yearly7) }
+                      },
+                      keepYearly: {
+                          showExit = false
+                          yearlySelected = true
+                      },
+                      backToPlan: {
                           showExit = false
                           onClose?()
                       })
-                .presentationDetents([.height(380)])
+                .presentationDetents([.height(430)])
                 .presentationCornerRadius(28)
                 .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: $showAllPlans) { AllPlansSheet() }
         .task {
-            if purchases.monthly == nil { await purchases.loadProducts() }
+            if purchases.yearly == nil { await purchases.loadProducts() }
         }
     }
 
-    // MARK: Pieces
+    private var pageDots: some View {
+        HStack(spacing: 6) {
+            ForEach([Page.outcome, Page.trial, Page.plans], id: \.self) { p in
+                Capsule()
+                    .fill(p == page ? Color.gold : Color.track)
+                    .frame(width: p == page ? 22 : 8, height: 8)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
+    private var hasTrial: Bool { purchases.trialDays(purchases.yearly) != nil }
+
+    // MARK: 1. Outcome (13a)
+
+    private var outcomePage: some View {
+        VStack(spacing: 10) {
+            TitleText("In 75 days, you'll be the couple who finished.", size: 30)
+                .padding(.horizontal, 28)
+                .padding(.top, 10)
+            if let rating = SocialProof.appStoreRating, let count = SocialProof.appStoreRatingCount {
+                // Real App Store rating only (see SocialProof).
+                Text("\(rating.formatted(.number.precision(.fractionLength(1)))) on the App Store · \(count) ratings")
+                    .font(.app(15, .medium))
+                    .foregroundStyle(Color.textSecondary)
+            }
+            Text(SocialProof.line)
+                .font(.app(16, .medium))
+                .foregroundStyle(Color.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 28)
+            TrophyScene(left: model.sceneA, right: model.sceneBBuilt)
+                .frame(maxHeight: .infinity)
+            BottomActions {
+                PrimaryButton("Continue") { page = hasTrial ? .trial : .plans }
+            }
+        }
+    }
+
+    // MARK: 2. Trial timeline (13b)
+
+    private var trialPage: some View {
+        VStack(spacing: 0) {
+            TitleText("How your free trial works", size: 30)
+                .padding(.horizontal, 28)
+                .padding(.top, 10)
+            VStack(alignment: .leading, spacing: 0) {
+                timelineRow(icon: "lock.open.fill", day: "Today", text: "Full access for both of you", last: false)
+                timelineRow(icon: "bell.fill", day: "Day 2", text: "We remind you", last: false)
+                timelineRow(icon: "star.fill", day: "Day 3", text: "Trial ends, billing starts", last: true)
+            }
+            .padding(24)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .card()
+            .padding(.horizontal, Metrics.side)
+            .padding(.top, 28)
+            Spacer(minLength: 12)
+            Text("No commitment. Cancel anytime.")
+                .font(.app(15, .medium))
+                .foregroundStyle(Color.textSecondary)
+            BottomActions {
+                PrimaryButton("Continue") { page = .plans }
+            }
+        }
+    }
+
+    private func timelineRow(icon: String, day: String, text: String, last: Bool) -> some View {
+        HStack(alignment: .top, spacing: 16) {
+            VStack(spacing: 0) {
+                Image(systemName: icon)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 38, height: 38)
+                    .background(Circle().fill(Color.gold))
+                if !last {
+                    Rectangle().fill(Color.gold.opacity(0.45)).frame(width: 4, height: 44)
+                }
+            }
+            VStack(alignment: .leading, spacing: 3) {
+                Text(day).font(.app(19, .bold)).foregroundStyle(Color.textPrimary)
+                Text(text).font(.app(16)).foregroundStyle(Color.textSecondary)
+            }
+            .padding(.top, 6)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    // MARK: 3. Plans (13c)
+
+    private var plansPage: some View {
+        VStack(spacing: 0) {
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 14) {
+                    plansHeader
+                    if purchases.yearly == nil && purchases.monthly == nil {
+                        loadingState
+                    } else {
+                        planCard(yearly: true)
+                        planCard(yearly: false)
+                        VStack(spacing: 4) {
+                            if let weekly = purchases.weeklyPrice {
+                                Text("\(weekly)/week, less than one date night.")
+                                    .font(.app(16, .semibold))
+                                    .foregroundStyle(Color.textPrimary)
+                            }
+                            Text("One subscription covers you both.")
+                                .font(.app(15))
+                                .foregroundStyle(Color.textSecondary)
+                        }
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 4)
+                    }
+                }
+                .padding(.horizontal, Metrics.side)
+                .padding(.bottom, 16)
+            }
+            BottomActions {
+                PrimaryButton(primaryTitle, isEnabled: selectedProduct != nil,
+                              isLoading: working || purchases.isPurchasing) {
+                    Task { await buy(selectedProduct) }
+                }
+                HStack(spacing: 6) {
+                    Button("View all plans") { showAllPlans = true }
+                    Text("·")
+                    FooterLinks()
+                }
+                .font(.app(13, .medium))
+                .foregroundStyle(Color.textSecondary)
+                .tint(Color.textSecondary)
+            }
+        }
+    }
 
     @ViewBuilder
-    private var header: some View {
-        let monthly = purchases.monthlyPrice ?? "…"
+    private var plansHeader: some View {
         switch variant {
-        case .personA(let partner):
-            headerText(title: "\(monthly) a month each",
-                       subtitle: "You subscribe now, then invite \(partner). \(partner) joins with their own subscription.")
-        case .personB(let inviter):
-            headerText(title: "Join \(inviter): \(monthly) a month",
-                       subtitle: "\(inviter) already subscribed. Subscribe to start Day 1 together.")
+        case .onboarding:
+            header(title: "Start your 75 days together", subtitle: "No commitment. Cancel anytime.")
         case .renew:
-            VStack(spacing: 8) {
-                TitleText("Renew to keep your run", size: 26)
-                headerText(title: nil,
-                           subtitle: "Your subscription ended, so your run is paused. Renew within \(Brand.lapseGraceDays) days or the round ends with no bet.")
-            }
+            header(title: "Renew to keep your run",
+                   subtitle: "Your subscription ended, so your run is paused. Renew within \(Brand.lapseGraceDays) days or the round ends with no bet.")
+        case .takeOver(let payer):
+            header(title: "Keep your run going: take over the subscription",
+                   subtitle: "\(payer)'s subscription ended, so your run is paused. Subscribe and it continues for you both.")
         }
     }
 
-    private func headerText(title: String?, subtitle: String) -> some View {
+    private func header(title: String, subtitle: String) -> some View {
         VStack(spacing: 8) {
-            if let title {
-                Text(title)
-                    .font(.app(22, .semibold))
-                    .foregroundStyle(Color.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .accessibilityAddTraits(.isHeader)
-            }
+            TitleText(title, size: 28)
             Text(subtitle)
                 .font(.app(15))
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(.top, 4)
+        .padding(.top, 6)
         .padding(.bottom, 8)
     }
 
@@ -140,11 +281,15 @@ struct PaywallView: View {
         .frame(maxWidth: .infinity, minHeight: 160)
     }
 
-    /// 13c plan card: big title, yearly peach-tinted with a centred gold pill, monthly white.
-    /// The selected one gets the coral border and a check.
+    /// 13c plan card. Yearly: peach with a gold "BEST VALUE · x/week" pill. Monthly: white.
     private func planCard(yearly: Bool) -> some View {
         let selected = yearlySelected == yearly
-        let price = (yearly ? purchases.yearlyPrice : purchases.monthlyPrice) ?? "…"
+        let trial = purchases.trialDays(purchases.yearly)
+        let yearlyLine: String = {
+            let price = purchases.yearlyPrice ?? "…"
+            if let trial { return "\(price)/year after \(trial) free days" }
+            return "\(price)/year"
+        }()
         return Button {
             Haptics.tap()
             withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) { yearlySelected = yearly }
@@ -157,19 +302,26 @@ struct PaywallView: View {
                     Spacer()
                     CheckCircle(isOn: selected, size: 26)
                 }
-                if yearly, let eq = purchases.yearlyMonthlyEquivalent {
-                    Pill(text: "BEST VALUE · \(eq)/month", fill: .gold, size: 15)
+                if yearly {
+                    if let weekly = purchases.weeklyPrice {
+                        Pill(text: "BEST VALUE · \(weekly)/week", fill: .gold, size: 15)
+                            .frame(maxWidth: .infinity)
+                    }
+                    Text(yearlyLine)
+                        .font(.app(17, .semibold))
+                        .foregroundStyle(Color.textPrimary)
                         .frame(maxWidth: .infinity)
+                } else {
+                    Text("\(purchases.monthlyPrice ?? "…")/month")
+                        .font(.app(20, .bold))
+                        .foregroundStyle(Color.textPrimary)
                 }
-                (Text(price).font(.app(20, .bold)) + Text(yearly ? "/year per person" : "/month per person").font(.app(16)))
-                    .foregroundStyle(Color.textPrimary)
-                    .frame(maxWidth: .infinity, alignment: yearly ? .center : .leading)
             }
             .padding(.horizontal, 22)
             .padding(.vertical, 20)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous)
-                .fill(yearly ? Color.peach.opacity(0.7) : Color.white)
+                .fill(yearly ? Color.peach.opacity(0.75) : Color.white)
                 .shadow(color: .black.opacity(0.05), radius: 12, y: 4))
             .overlay(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous)
                 .stroke(selected ? Color.coral : (yearly ? Color.coral.opacity(0.35) : Color.cardBorder),
@@ -184,15 +336,12 @@ struct PaywallView: View {
     private var selectedProduct: Product? { yearlySelected ? purchases.yearly : purchases.monthly }
 
     private var primaryTitle: String {
-        switch variant {
-        case .personA: return "Start our challenge"
-        case .personB(let inviter): return "Join \(inviter)"
-        case .renew: return "Renew"
-        }
+        if yearlySelected && hasTrial { return "Start my free trial" }
+        return "Subscribe"
     }
 
     private func buy(_ product: Product?) async {
-        if model.hasActiveSubscription && variant != .renew {
+        if isOnboarding && model.hasActiveSubscription {
             onPurchased()
             return
         }
@@ -207,47 +356,6 @@ struct PaywallView: View {
         } catch {
             model.errorMessage = error.localizedDescription
         }
-    }
-}
-
-/// "1. You subscribe" → "2. Invite {B}" → "3. {B} subscribes and Day 1 starts".
-struct StepsStrip: View {
-    var partner: String
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 6) {
-            item(1, "You subscribe")
-            arrow
-            item(2, "Invite \(partner)")
-            arrow
-            item(3, "\(partner) subscribes and Day 1 starts")
-        }
-        .padding(12)
-        .card(fill: .white, radius: 16)
-        .accessibilityElement(children: .combine)
-    }
-
-    private var arrow: some View {
-        Image(systemName: "arrow.right")
-            .font(.system(size: 11, weight: .bold))
-            .foregroundStyle(Color.gold)
-            .padding(.top, 6)
-    }
-
-    private func item(_ n: Int, _ text: String) -> some View {
-        VStack(spacing: 4) {
-            Text("\(n)")
-                .font(.app(13, .bold))
-                .foregroundStyle(.white)
-                .frame(width: 22, height: 22)
-                .background(Circle().fill(Color.coral))
-            Text(text)
-                .font(.app(12, .medium))
-                .foregroundStyle(Color.textPrimary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity)
     }
 }
 
@@ -274,30 +382,98 @@ struct FooterLinks: View {
     }
 }
 
-/// 13d exit sheet.
+/// 13d exit sheet: "Not ready for a year?"
 struct ExitSheet: View {
     var monthlyPrice: String
-    var startMonthly: () -> Void
-    var backToPlans: () -> Void
-    var reviewPlan: () -> Void
+    var tryMonthly: () -> Void
+    var sevenDayTrial: () -> Void
+    var keepYearly: () -> Void
+    var backToPlan: () -> Void
 
     var body: some View {
-        VStack(spacing: 14) {
-            TitleText("Not ready to start?", size: 26)
+        VStack(spacing: 12) {
+            TitleText("Not ready for a year?", size: 26)
                 .padding(.top, 30)
-            BodyText("It's \(monthlyPrice) a month each. Cancel anytime.")
-            Spacer(minLength: 0)
-            PrimaryButton("Start monthly") { startMonthly() }
-            SecondaryButton("Back to plans") { backToPlans() }
-            TextLinkButton("Review the plan again") { reviewPlan() }
+                .padding(.bottom, 6)
+            sheetButton("Try monthly \(monthlyPrice)", fill: .peach, border: .coral, action: tryMonthly)
+            sheetButton("Get a 7-day free trial instead", fill: .white, border: .cardBorder, action: sevenDayTrial)
+            Button(action: keepYearly) {
+                Text("Keep yearly")
+                    .font(.app(16, .medium))
+                    .foregroundStyle(Color.textPrimary)
+                    .padding(.horizontal, 26)
+                    .frame(height: 44)
+                    .background(RoundedRectangle(cornerRadius: 10).stroke(Color.cardBorder, lineWidth: 1))
+            }
+            .padding(.top, 4)
+            TextLinkButton("Back to our plan") { backToPlan() }
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, Metrics.side)
         .padding(.bottom, 8)
         .screenBackground()
     }
+
+    private func sheetButton(_ title: String, fill: Color, border: Color, action: @escaping () -> Void) -> some View {
+        Button {
+            Haptics.tap()
+            action()
+        } label: {
+            Text(title)
+                .font(.app(18, .semibold))
+                .foregroundStyle(Color.textPrimary)
+                .frame(maxWidth: .infinity)
+                .frame(height: 58)
+                .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(fill))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(border, lineWidth: 1.2))
+        }
+        .buttonStyle(PressableStyle())
+    }
 }
 
-/// A's paywall step: purchase → "You're in. Now invite {B}." → create the couple → invite.
+/// "View all plans": both plans with their full terms.
+struct AllPlansSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    plan(title: "Yearly", price: model.purchases.yearlyPrice, period: "year",
+                         trial: model.purchases.trialDays(model.purchases.yearly))
+                    plan(title: "Monthly", price: model.purchases.monthlyPrice, period: "month", trial: nil)
+                    Text("One subscription covers you both: your partner joins free. Payment is charged to your Apple ID when you confirm, or when the free trial ends. It renews automatically unless you turn it off at least 24 hours before the end of the current period, in Settings → [your name] → Subscriptions. Cancel anytime.")
+                        .font(.app(14))
+                        .foregroundStyle(Color.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    FooterLinks()
+                }
+                .padding(Metrics.side)
+            }
+            .screenBackground()
+            .navigationTitle("All plans")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        }
+    }
+
+    private func plan(title: String, price: String?, period: String, trial: Int?) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title).font(.app(20, .bold)).foregroundStyle(Color.textPrimary)
+            Text("\(price ?? "…") per \(period), auto-renewing, for both of you.")
+                .font(.app(16)).foregroundStyle(Color.textPrimary)
+            if let trial {
+                Text("Starts with a \(trial)-day free trial. You won't be charged if you cancel before it ends.")
+                    .font(.app(14)).foregroundStyle(Color.textSecondary)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .card(radius: 16)
+    }
+}
+
+/// A's paywall: purchase → "You're in. Now invite {B}." → create the couple → invite.
 struct PaywallAView: View {
     @Environment(AppModel.self) private var model
     var onClose: () -> Void
@@ -306,7 +482,7 @@ struct PaywallAView: View {
 
     var body: some View {
         ZStack {
-            PaywallView(variant: .personA(partner: model.draft.partnerName), onClose: onClose) {
+            PaywallView(variant: .onboarding(partner: model.draft.partnerName), onClose: onClose) {
                 Task { await afterPurchase() }
             }
             if confirming {

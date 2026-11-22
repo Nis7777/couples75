@@ -145,12 +145,11 @@ private let noop: () -> Void = {}
 #Preview("10 Building plan", traits: .sizeThatFitsLayout) { screen { BuildingPlanView(next: noop) } }
 #Preview("11 Plan reveal", traits: .sizeThatFitsLayout) { screen { PlanRevealView(next: noop, back: noop) } }
 #Preview("12 Stakes", traits: .sizeThatFitsLayout) { screen { StakesView(next: noop, back: noop) } }
-#Preview("13a Outcome", traits: .sizeThatFitsLayout) { screen { OutcomeView(next: noop, back: noop) } }
-#Preview("13c Paywall", traits: .sizeThatFitsLayout) {
-    screen { PaywallView(variant: .personA(partner: "Joao"), onClose: noop, onPurchased: noop) }
+#Preview("13a–13c Paywall", traits: .sizeThatFitsLayout) {
+    screen { PaywallView(variant: .onboarding(partner: "Joao"), onClose: noop, onPurchased: noop) }
 }
 #Preview("13d Exit sheet", traits: .sizeThatFitsLayout) {
-    screen { ExitSheet(monthlyPrice: "3,99 €", startMonthly: noop, backToPlans: noop, reviewPlan: noop) }
+    screen { ExitSheet(monthlyPrice: "7,99 €", tryMonthly: noop, sevenDayTrial: noop, keepYearly: noop, backToPlan: noop) }
 }
 #Preview("14 Invite", traits: .sizeThatFitsLayout) { screen { InviteView(next: noop) } }
 #Preview("Notifications", traits: .sizeThatFitsLayout) { screen { NotificationPrimingView(next: noop) } }
@@ -162,10 +161,9 @@ private let noop: () -> Void = {}
 #Preview("26 Code entry", traits: .sizeThatFitsLayout) { screen { CodeEntryView() } }
 #Preview("25 Invited", traits: .sizeThatFitsLayout) { screen { InvitedView(next: noop) } }
 #Preview("Accept or tweak", traits: .sizeThatFitsLayout) { screen { AcceptTweakView(next: noop, back: noop) } }
-#Preview("B paywall", traits: .sizeThatFitsLayout) {
-    screen { PaywallView(variant: .personB(inviter: "Maya"), onClose: noop, onPurchased: noop) }
+#Preview("Take over subscription", traits: .sizeThatFitsLayout) {
+    screen { PaywallView(variant: .takeOver(payer: "Maya"), onClose: noop, onPurchased: noop) }
 }
-#Preview("Waiting for you", traits: .sizeThatFitsLayout) { screen { PartnerWaitingForYouView(subscribe: noop) } }
 #Preview("I'm in", traits: .sizeThatFitsLayout) { screen { ImInView(next: noop) } }
 
 // MARK: Main app

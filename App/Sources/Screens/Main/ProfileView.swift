@@ -78,7 +78,6 @@ struct ProfileView: View {
                     Button { showManage = true } label: {
                         row("Subscription", value: subscriptionText, chevron: true)
                     }
-                    row("Partner's subscription", value: partnerSubscriptionText)
                     Button {
                         Task {
                             await model.purchases.restore()
@@ -125,15 +124,15 @@ struct ProfileView: View {
         }
     }
 
+    /// One subscription covers both partners.
     private var subscriptionText: String {
-        guard let ent = model.purchases.entitlement else { return "Not active" }
-        let date = ent.expirationDate.formatted(date: .abbreviated, time: .omitted)
-        return "Active · \(ent.planName), \(ent.willAutoRenew ? "renews" : "ends") \(date)"
-    }
-
-    private var partnerSubscriptionText: String {
-        guard let p = model.partner, p.joinedAt != nil else { return "Not joined yet" }
-        return p.isSubscribed(at: model.now()) ? "Active" : "Ended"
+        if let ent = model.purchases.entitlement {
+            let date = ent.expirationDate.formatted(date: .abbreviated, time: .omitted)
+            let plan = ent.isTrial ? "\(ent.planName) (free trial)" : ent.planName
+            return "Active · \(plan), \(ent.willAutoRenew ? "renews" : "ends") \(date) · covers you both"
+        }
+        if model.coupleActive { return "Covered by \(model.payerName)'s subscription" }
+        return "Not active"
     }
 
     /// Settings rows as separate white cards.

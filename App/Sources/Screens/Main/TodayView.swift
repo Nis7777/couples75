@@ -137,10 +137,11 @@ struct TodayView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .peachBox(radius: 18)
         }
-        if let partner = model.partner, model.state.lapsedMembers.contains(partner.id), round?.status == .active {
-            Banner(text: "\(partner.name)'s subscription ended. Your run is paused until they renew.", icon: "pause.circle.fill")
-        } else if model.state.isFrozen {
-            Banner(text: "Your run is paused until the subscription is renewed.", icon: "pause.circle.fill")
+        if model.subscriptionLapsed {
+            Banner(text: model.iAmPayer
+                   ? "Your subscription ended. Your run is paused until it's renewed."
+                   : "\(model.payerName)'s subscription ended. Your run is paused until it's renewed.",
+                   icon: "pause.circle.fill")
         }
         if let t = model.tweakForMeToAnswer {
             actionCard(title: "\(model.name(of: t.tweak.proposedBy)) suggested a change", button: "Review") {
@@ -175,7 +176,7 @@ struct TodayView: View {
     private var betweenRoundsText: String {
         guard let r = round else { return "Your next round starts soon." }
         if r.status == .waiting { return "Round \(r.number) starts tomorrow. Back to Day 1." }
-        if r.status == .abandoned { return "This round ended because a subscription lapsed. It restarts when you're both subscribed." }
+        if r.status == .abandoned { return "This round ended because a subscription lapsed. It restarts once the subscription is renewed." }
         if r.status == .completed { return "You finished! Start round \(r.number + 1) from the Day 75 screen." }
         return "Back to Day 1 tomorrow."
     }

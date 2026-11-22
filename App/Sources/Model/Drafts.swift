@@ -4,8 +4,8 @@ import Foundation
 struct OnboardingDraft: Codable, Equatable {
     enum Step: String, Codable, CaseIterable {
         case hook, character, names, partnerIPhone, together, longDistance, goals, fitness, wakeUp, quit,
-             mirror, level, building, planReveal, stakes, outcome
-        // Without a step counter:
+             mirror, level, building, planReveal, stakes
+        // Without a step counter (the paywall has its own pages: outcome, trial, plans):
         case paywall, invite, notifications, android
     }
 
@@ -14,6 +14,10 @@ struct OnboardingDraft: Codable, Equatable {
     var partnerName = ""
     var avatar = Avatar(characterID: "w1")
     var characterID: String { avatar.characterID }
+    /// Filled in when B is with A during onboarding ("Hand the phone to {B}").
+    var partnerAvatar: Avatar?
+    var partnerFitness: FitnessLevel?
+    var partnerWakeTime: String?
     var partnerOnIPhone: Bool?
     var together: String?
     var longDistance: Bool?
@@ -34,15 +38,18 @@ struct OnboardingDraft: Codable, Equatable {
     /// Steps that show "Step X of N" (paywall, invite, notifications and Android are outside the count).
     static let countedSteps: [Step] = [.hook, .character, .names, .partnerIPhone, .together, .longDistance, .goals,
                                        .fitness, .wakeUp, .quit, .mirror, .level, .building, .planReveal,
-                                       .stakes, .outcome]
+                                       .stakes]
 
     var stepNumber: Int? { Self.countedSteps.firstIndex(of: step).map { $0 + 1 } }
     var stepTotal: Int { Self.countedSteps.count }
 
     var ruleKeys: [String] { PlanGenerator.ruleKeys(goals: goals) }
     var myIntensity: Intensity { level.adjust((fitness ?? .somewhatActive).intensity) }
-    /// B's draft uses Couples 75 intensity until B answers.
-    var partnerIntensity: Intensity { level.adjust(.standard) }
+    /// B's rules use Gentle intensity until B answers their own fitness question.
+    var partnerIntensity: Intensity {
+        guard let f = partnerFitness else { return .gentle }
+        return level.adjust(f.intensity)
+    }
 
     static func load() -> OnboardingDraft {
         guard let data = UserDefaults.standard.data(forKey: Prefs.draftKey),
@@ -60,7 +67,7 @@ struct OnboardingDraft: Codable, Equatable {
 /// Person B's joining answers (section 3.5).
 struct JoinDraft: Codable, Equatable {
     enum Step: String, Codable {
-        case invited, character, fitness, wakeUp, tweak, paywall, waitingForMe, imIn, notifications
+        case invited, character, fitness, wakeUp, tweak, imIn, notifications
     }
 
     var step: Step = .invited

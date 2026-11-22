@@ -46,7 +46,7 @@ struct InvitedView: View {
             }
         } actions: {
             PrimaryButton("See the plan") { next() }
-            Text("You can swap one rule and change the bet. \(Brand.appName) is \(model.purchases.monthlyPrice ?? "…") a month each, so you'll subscribe before Day 1.")
+            Text("You can swap one rule and change the bet. Free for you: \(model.nameA)'s subscription covers you both.")
                 .font(.app(13))
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)

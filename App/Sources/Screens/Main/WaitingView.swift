@@ -28,12 +28,12 @@ struct WaitingView: View {
                     TitleText(bIsJoining ? "\(model.nameB) is joining" : "Waiting for \(model.nameB)", size: 30)
                         .padding(.top, 14)
                     BodyText(bIsJoining
-                             ? "\(model.nameB) is setting up. Day 1 starts the morning after \(model.nameB) subscribes."
-                             : "Day 1 starts the morning after \(model.nameB) joins and subscribes.", size: 15)
+                             ? "\(model.nameB) is setting up. Day 1 starts the morning after \(model.nameB) joins."
+                             : "Day 1 starts the morning after \(model.nameB) joins. Your subscription covers you both.", size: 15)
                 } else {
                     TitleText("Almost there", size: 30)
                         .padding(.top, 14)
-                    BodyText("Day 1 starts the morning after you've both subscribed.", size: 15)
+                    BodyText("Day 1 starts the morning after you've both joined.", size: 15)
                 }
 
                 CoupleScene(left: model.sceneA, right: model.sceneB, crop: 0.64, overlap: 0)

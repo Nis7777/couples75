@@ -36,14 +36,8 @@ struct JoinFlow: View {
         case .wakeUp:
             JoinWakeStep(next: { go(.tweak) }, back: { go(.fitness, forward: false) })
         case .tweak:
-            AcceptTweakView(next: { go(model.hasActiveSubscription ? .imIn : .paywall) },
-                            back: { go(.wakeUp, forward: false) })
-        case .paywall:
-            PaywallView(variant: .personB(inviter: model.nameA),
-                        onClose: { go(.waitingForMe, forward: false) },
-                        onPurchased: { go(.imIn) })
-        case .waitingForMe:
-            PartnerWaitingForYouView(subscribe: { go(.paywall) })
+            // One subscription covers both: B never sees a paywall.
+            AcceptTweakView(next: { go(.imIn) }, back: { go(.wakeUp, forward: false) })
         case .imIn:
             ImInView(next: { go(.notifications) })
         case .notifications:
