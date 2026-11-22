@@ -22,6 +22,11 @@ struct RootView: View {
             case .main:
                 MainView()
             }
+            if model.curtain {
+                AppBackground()
+                    .transition(.opacity)
+                    .zIndex(10)
+            }
             if let toast = model.toast {
                 ToastView(text: toast)
                     .task {

@@ -394,11 +394,13 @@ struct TodayView: View {
                             CheckCircle(isOn: item.isChecked, color: .coral, size: 22)
                         }
                         VStack(alignment: .leading, spacing: 1) {
+                            // Wraps to 2 lines instead of cutting off ("Instrument: 30 min").
                             Text(item.rule.title)
                                 .font(.app(15, .medium))
                                 .foregroundStyle(Color.textPrimary)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .multilineTextAlignment(.leading)
                             if isMe, !warmup, !item.isChecked, item.rule.type == .honour, hour < 18 {
                                 Text("Tap tonight")
                                     .font(.app(12, .medium))
@@ -526,8 +528,7 @@ struct WhichRuleSheet: View {
                             Text(r.title)
                                 .font(.app(16, .semibold))
                                 .foregroundStyle(Color.textPrimary)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
+                                .lineLimit(2)
                             Text(r.type == .photo ? "Photo" : "Honour tap")
                                 .font(.app(12))
                                 .foregroundStyle(Color.textSecondary)

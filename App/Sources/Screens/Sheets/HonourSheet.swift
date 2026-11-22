@@ -23,7 +23,7 @@ struct HonourSheet: View {
             IconBadge(systemName: fallback ? "icloud.slash" : "hand.raised.fill",
                       color: fallback ? .coral : .sage, size: 70)
                 .padding(.top, 4)
-            TitleText("Did you stick to \(rule.title.lowercasedFirst) today?", size: 24)
+            TitleText(rule.title.contains(":") ? "Did you do “\(rule.title)” today?" : "Did you stick to \(rule.title.lowercasedFirst) today?", size: 24)
             if !enabled {
                 BodyText("Come back after 18:00 to confirm. Tap tonight.")
             } else if fallback {

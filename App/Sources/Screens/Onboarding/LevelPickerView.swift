@@ -22,8 +22,7 @@ struct LevelPickerView: View {
 
     var body: some View {
         OnboardingPage(step: step, total: total, back: back) {
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 12) {
+            VStack(spacing: 12) {
                     CoupleScene(left: left, right: right, leftPose: .stretch, rightPose: .stretch,
                                 crop: 1, overlap: 0.04)
                         .frame(height: 190)
@@ -44,9 +43,8 @@ struct LevelPickerView: View {
                                isSelected: level == .hard, minHeight: 72) {
                         pick(.hard)
                     }
-                }
-                .padding(.bottom, 16)
             }
+            .padding(.bottom, 16)
         } actions: {
             if !autoAdvances { PrimaryButton(buttonTitle) { next() } }
         }
@@ -60,7 +58,8 @@ struct OnboardingLevelStep: View {
 
     var body: some View {
         @Bindable var model = model
-        LevelPickerView(level: $model.draft.level, left: model.draftScene, right: nil,
-                        step: model.draft.stepNumber, back: back, next: next)
+        // Couples 75 is preselected, so this step keeps a pinned Continue button instead of auto-advancing.
+        LevelPickerView(level: $model.draft.level, left: model.draftScene, right: model.sceneBBuilt,
+                        step: model.draft.stepNumber, back: back, autoAdvances: false, next: next)
     }
 }

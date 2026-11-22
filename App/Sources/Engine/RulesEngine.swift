@@ -299,7 +299,7 @@ enum RulesEngine {
         let day = date ?? LocalDate(at, in: tz)
         for (p, start) in approvedProposals(for: memberID, facts: facts, at: at) {
             let r = p.rule
-            guard r.fromRound <= round, r.fromRound >= from, (1...Brand.rulesPerMember).contains(r.position),
+            guard r.fromRound <= round, r.fromRound >= from, (1...Brand.maxRules).contains(r.position),
                   day >= start else { continue }
             var applied = r
             applied.memberID = memberID

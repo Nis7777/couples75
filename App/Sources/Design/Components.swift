@@ -151,6 +151,30 @@ struct TextLinkButton: View {
     }
 }
 
+/// Fires only on a real tap: a swipe or drag across the card never triggers it (no swipe-to-advance).
+/// Keeps Button semantics for VoiceOver.
+struct TapOnlyStyle: PrimitiveButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        TapOnlyBody(configuration: configuration)
+    }
+
+    private struct TapOnlyBody: View {
+        var configuration: PrimitiveButtonStyleConfiguration
+        @GestureState private var pressed = false
+
+        var body: some View {
+            configuration.label
+                .scaleEffect(pressed ? 0.97 : 1)
+                .opacity(pressed ? 0.92 : 1)
+                .animation(.spring(response: 0.25, dampingFraction: 0.7), value: pressed)
+                .onTapGesture { configuration.trigger() }
+                .simultaneousGesture(DragGesture(minimumDistance: 0).updating($pressed) { v, state, _ in
+                    state = abs(v.translation.width) < 10 && abs(v.translation.height) < 10
+                })
+        }
+    }
+}
+
 struct PressableStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -223,7 +247,7 @@ struct OptionCard<Trailing: View>: View {
                 .stroke(isSelected ? Color.coral : Color.cardBorder, lineWidth: isSelected ? 1.5 : 1))
             .contentShape(RoundedRectangle(cornerRadius: Metrics.optionRadius, style: .continuous))
         }
-        .buttonStyle(PressableStyle())
+        .buttonStyle(TapOnlyStyle())
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
@@ -474,9 +498,23 @@ struct IconBadge: View {
 
 /// Single-answer questions move on by themselves about 0.3 s after a tap (after the selection animation).
 @MainActor
+/// Pending auto-advances. Any navigation (forward or back) bumps the generation, so a tap made just before
+/// leaving a step can never push a later step forward on its own.
+@MainActor
+enum AutoAdvanceGate {
+    static var generation = 0
+    static func cancelPending() { generation += 1 }
+}
+
+/// Single-answer steps move on ~0.3 s after a tap (never on their own, never twice).
+@MainActor
 func autoAdvance(_ next: @escaping () -> Void) {
+    AutoAdvanceGate.generation += 1
+    let mine = AutoAdvanceGate.generation
     Task { @MainActor in
-        try? await Task.sleep(nanoseconds: 320_000_000)
+        try? await Task.sleep(nanoseconds: 300_000_000)
+        guard AutoAdvanceGate.generation == mine else { return }
+        AutoAdvanceGate.generation += 1
         next()
     }
 }

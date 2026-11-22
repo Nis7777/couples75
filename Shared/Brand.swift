@@ -19,8 +19,9 @@ enum Brand {
     static let iapMonthly = "com.dinismagina.couples75.monthly"    // 7,99 € / $7.99 a month, no trial
     static let allProducts = [iapYearly, iapYearly7, iapMonthly]
     static let savesPerRound = 3
-    /// Rules per person (Part 8: at least 2 of them photo rules).
-    static let rulesPerMember = 4
+    /// 4 to 6 rules per person, at least 2 of them photo rules.
+    static let minRules = 4
+    static let maxRules = 6
     static let minPhotoRules = 2
     static let roundLengthDays = 75
     static let maxPauseDays = 3

@@ -86,6 +86,7 @@ enum PreviewData {
         m.draft = OnboardingDraft(step: .planReveal, myName: "Maya", partnerName: "Joao",
                                   avatar: Avatar(characterID: "w1"), goals: [.fitness, .discipline],
                                   fitness: .somewhatActive)
+        m.draft.generatePlan()
         m.loadPreview(facts: facts, me: a, onboardingDone: onboardingDone)
         m.tab = tab
         return m

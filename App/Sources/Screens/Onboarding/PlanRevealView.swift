@@ -10,7 +10,12 @@ struct PlanRevealView: View {
     var editable = true
     @State private var changing: ChangingRow?
 
-    private struct ChangingRow: Identifiable { var index: Int; var id: Int { index } }
+    private struct ChangingRow: Identifiable {
+        var index: Int
+        /// Trimming to 6: "Swap" replaces the row for both partners directly.
+        var swap = false
+        var id: String { "\(index)-\(swap)" }
+    }
 
     var body: some View {
         let d = model.draft
@@ -24,10 +29,24 @@ struct PlanRevealView: View {
                              progress: 0.62, centerTitle: "Day 1", centerSubtitle: "→ 75", panelRadius: 0, inset: 20)
                         .frame(height: 310)
                         .padding(.horizontal, -Metrics.side)
+                    if d.tooManyRules > 0 {
+                        Text("Up to \(Brand.maxRules) rules each. Swap or remove \(d.tooManyRules) more to continue.")
+                            .font(.app(15, .semibold))
+                            .foregroundStyle(Color.coral)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                            .padding(12)
+                            .peachBox(radius: 14)
+                    }
                     PlanRulesCard(rows: d.planRows,
                                   leftName: d.myName, rightName: d.partnerName,
                                   rightNote: d.partnerFitness == nil ? "Draft: \(d.partnerName) can adjust when they join" : nil,
-                                  onChange: editable ? { changing = ChangingRow(index: $0) } : nil)
+                                  onChange: editable && d.tooManyRules == 0 ? { changing = ChangingRow(index: $0) } : nil,
+                                  onSwap: editable && d.tooManyRules > 0 ? { changing = ChangingRow(index: $0, swap: true) } : nil,
+                                  onRemove: editable && d.tooManyRules > 0 ? { i in
+                                      withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { model.draft.removeRow(i) }
+                                  } : nil,
+                                  canRemove: { d.canRemove($0) })
                     if d.planRows.contains(where: \.pending) {
                         Text("Changed rules are pending until \(d.partnerName) approves. The original rule stays until then.")
                             .font(.app(13))
@@ -40,11 +59,45 @@ struct PlanRevealView: View {
                 .padding(.bottom, 28)
             }
         } actions: {
-            PrimaryButton("Set the stakes") { next() }
+            PrimaryButton("Set the stakes", isEnabled: d.tooManyRules == 0 && !d.planRules.isEmpty) { next() }
         }
+        .onAppear { if model.draft.planRules.isEmpty { model.draft.generatePlan() } }
         .sheet(item: $changing) { row in
-            DraftRuleChangeSheet(index: row.index)
+            if row.swap {
+                DraftRuleSwapSheet(index: row.index)
+            } else {
+                DraftRuleChangeSheet(index: row.index)
+            }
         }
+    }
+}
+
+/// Trimming to 6 rules: replace a row for both partners (no approval needed: nothing is agreed yet).
+struct DraftRuleSwapSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    var index: Int
+    @State private var who = 0
+
+    var body: some View {
+        let d = model.draft
+        let row = d.planRows.first { $0.index == index }
+        RuleChangeSheet(
+            title: "Swap a rule",
+            currentTitle: row?.left,
+            who: $who,
+            suggestions: d.suggestions(intensity: d.myIntensity, extra: d.personalIdeas),
+            intensity: d.myIntensity,
+            note: "Swaps this rule for both of you.",
+            validate: { idea in
+                let ok = d.photoCount(forPartner: false, replacing: index, with: idea) >= Brand.minPhotoRules
+                    && d.photoCount(forPartner: true, replacing: index, with: idea) >= Brand.minPhotoRules
+                return ok ? nil : "Keep at least \(Brand.minPhotoRules) photo rules each."
+            },
+            onPick: { idea in
+                model.draft.swapRow(index, idea: idea)
+                dismiss()
+            })
     }
 }
 
@@ -102,6 +155,10 @@ struct PlanRulesCard: View {
     var rightName: String
     var rightNote: String?
     var onChange: ((Int) -> Void)?
+    /// More than 6 rules: "Swap" and "Remove" on each row.
+    var onSwap: ((Int) -> Void)? = nil
+    var onRemove: ((Int) -> Void)? = nil
+    var canRemove: (Int) -> Bool = { _ in true }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -133,6 +190,19 @@ struct PlanRulesCard: View {
                                 .font(.app(13, .semibold))
                                 .foregroundStyle(Color.coral)
                                 .accessibilityLabel("Change \(r.left)")
+                        }
+                        if let onSwap {
+                            Button("Swap") { onSwap(r.index) }
+                                .font(.app(13, .semibold))
+                                .foregroundStyle(Color.coral)
+                                .accessibilityLabel("Swap \(r.left)")
+                        }
+                        if let onRemove {
+                            Button("Remove") { onRemove(r.index) }
+                                .font(.app(13, .semibold))
+                                .foregroundStyle(canRemove(r.index) ? Color.coral : Color.textSecondary.opacity(0.4))
+                                .disabled(!canRemove(r.index))
+                                .accessibilityLabel("Remove \(r.left)")
                         }
                     }
                 }

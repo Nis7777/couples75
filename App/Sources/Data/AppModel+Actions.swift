@@ -52,19 +52,12 @@ extension AppModel {
                                 invitedWakeTime: draft.partnerWakeTime)
         let config = RoundConfigFact(id: .newID(), fromRound: 1, mode: draft.level.mode, betText: draft.betText,
                                      rewardText: nil, createdBy: meID, createdAt: now)
-        let keys = draft.ruleKeys
-        let rulesA = PlanGenerator.rules(keys: keys, memberID: meID, intensity: draft.myIntensity, round: 1, now: now)
-        let rulesB = PlanGenerator.rules(keys: keys, memberID: PendingPartner.id,
-                                         intensity: draft.partnerIntensity, round: 1, now: now)
+        if draft.planRules.isEmpty { draft.generatePlan() }
+        // The one stored plan: exactly the rules shown on the plan review, for A and for B.
+        let built = draft.makeRuleFacts(memberA: meID, now: now)
         var records: [FactRecord] = [.member(a), .roundConfig(config)]
-        records += rulesA.map { FactRecord.rule($0) } + rulesB.map { FactRecord.rule($0) }
-        // Rules changed on the plan reveal wait for B's approval; the generated rule stays until then.
-        for c in draft.ruleChanges where c.index < Brand.rulesPerMember {
-            let forMember = c.forPartner ? PendingPartner.id : meID
-            let rule = c.idea.ruleFact(memberID: forMember, position: c.index + 1, round: 1, now: now)
-            records.append(.ruleProposal(RuleProposalFact(id: .newID(), proposedBy: meID, forMember: forMember,
-                                                          ruleJSON: rule, effectiveFrom: nil, createdAt: now)))
-        }
+        records += built.rules.map { FactRecord.rule($0) }
+        records += built.proposals.map { FactRecord.ruleProposal($0) }
         do {
             invite = try await store.createCouple(couple: couple, records: records, inviterName: a.name)
             UserDefaults.standard.set(now, forKey: Prefs.invitePaidAtKey)
@@ -152,17 +145,20 @@ extension AppModel {
         RulesEngine.effectiveRules(for: PendingPartner.id, round: 1, facts: facts, at: now())
     }
 
-    /// B's own rules from B's fitness level (same library keys A picked), with an optional swap.
+    /// B's rules: an exact copy of the rules A's plan stored for B (one source of truth), with an optional swap.
     func proposedRulesForMe(_ jd: JoinDraft) -> [RuleFact] {
-        let keys = draftRulesForB.map { $0.libraryKey }
-        let level = Level(mode: RulesEngine.config(for: 1, facts: facts)?.mode ?? .standard)
-        let intensity = level.adjust((jd.fitness ?? .somewhatActive).intensity)
-        var rules = PlanGenerator.rules(keys: keys.isEmpty ? PlanGenerator.ruleKeys(goals: [.fitness, .discipline]) : keys,
-                                        memberID: meID, intensity: intensity, round: 1, now: now())
+        let now = self.now()
+        var rules = PlanGenerator.joinerRules(from: draftRulesForB, memberID: meID, now: now)
+        if rules.isEmpty {
+            rules = PlanGenerator.rules(keys: PlanGenerator.ruleKeys(goals: [.fitness, .discipline]),
+                                        memberID: meID, intensity: .gentle, round: 1, now: now)
+        }
         if let pos = jd.swappedPosition, let key = jd.swapKey, let lib = RuleLibrary.rule(key),
            let i = rules.firstIndex(where: { $0.position == pos }) {
+            let level = Level(mode: RulesEngine.config(for: 1, facts: facts)?.mode ?? .standard)
+            let intensity = level.adjust((jd.fitness ?? .somewhatActive).intensity)
             rules[i] = RuleFact(id: rules[i].id, memberID: meID, fromRound: 1, position: pos, libraryKey: key,
-                                title: lib.title(for: intensity), type: lib.type, createdAt: now())
+                                title: lib.title(for: intensity), type: lib.type, createdAt: now)
         }
         return rules
     }
@@ -504,6 +500,15 @@ extension AppModel {
 
     /// Leave couple, then clear every local cache and the iCloud key-value store, then back to the hook.
     func deleteMyData() async {
+        // Fade to ivory first, reset behind the curtain, then fade into onboarding.
+        withAnimation(.easeInOut(duration: 0.35)) { curtain = true }
+        try? await Task.sleep(nanoseconds: 380_000_000)
+        defer {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 150_000_000)
+                withAnimation(.easeInOut(duration: 0.45)) { self.curtain = false }
+            }
+        }
         if me != nil { _ = await leaveCouple() }
         store.wipeLocalData()
         SeenEvents.wipe()

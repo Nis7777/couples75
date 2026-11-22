@@ -27,8 +27,12 @@ struct OnboardingDraft: Codable, Equatable {
     /// "Anything personal you want to work on?" (skippable).
     var personalGoals: [PersonalGoal] = []
     var personalOther = ""
-    /// Ideas for `personalOther` (on-device model or keyword match), offered under "Suggested for you".
+    /// Goals typed into "Something else?", each with its cleaned name. Every one becomes a daily rule.
+    var customGoals: [CustomGoal] = []
+    /// Ideas for the typed goals (on-device model or keyword match), offered under "Suggested for you".
     var personalIdeas: [RuleIdea] = []
+    /// THE plan: generated once when the plan is built (Building step) and stored. Everything else reads it.
+    var planRules: [PlanRuleRow] = []
     /// Rules changed on the plan reveal ("Change"). They are saved as proposals the partner must approve.
     var ruleChanges: [DraftRuleChange] = []
     var fitness: FitnessLevel?
@@ -50,52 +54,90 @@ struct OnboardingDraft: Codable, Equatable {
                                        .fitness, .wakeUp, .quit, .mirror, .level, .building, .planReveal,
                                        .stakes]
 
-    /// The steps actually shown: B's own steps only count when B is with A ("Hand the phone to {B}").
-    var shownSteps: [Step] {
-        var steps = Self.countedSteps
-        if partnerWithYou == true, let i = steps.firstIndex(of: .togetherNow) {
-            steps.insert(contentsOf: [.partnerAvatar, .partnerFitness, .partnerWake], at: i + 1)
-        }
-        return steps
-    }
-    var stepNumber: Int? { shownSteps.firstIndex(of: step).map { $0 + 1 } }
-    var stepTotal: Int { shownSteps.count }
+    /// The counted steps. Branch-only steps (handing the phone to the partner and B's answers there,
+    /// the Android waitlist) never count and show no counter, so the total never jumps mid-flow.
+    var shownSteps: [Step] { Self.countedSteps }
+    var stepNumber: Int? { Self.countedSteps.firstIndex(of: step).map { $0 + 1 } }
+    var stepTotal: Int { Self.countedSteps.count }
 
-    /// The plan follows the quiz (each rule knows why it's there).
-    var plan: [PlannedRule] { PlanGenerator.plan(goals: goals, personal: personalGoals) }
-    var ruleKeys: [String] { plan.map { $0.key } }
+    /// Generates the plan from the answers. Called once, when the plan is built; going back and changing
+    /// answers builds it again (and clears changes made on the old plan).
+    mutating func generatePlan() {
+        planRules = PlanGenerator.rows(goals: goals, personal: personalGoals, custom: customGoals, level: level,
+                                       intensityA: myIntensity, intensityB: partnerIntensity)
+        ruleChanges = []
+    }
+
+    var ruleKeys: [String] { planRules.compactMap { $0.a.libraryKey } }
 
     /// Rows for the plan reveal: reason, A's title, B's title; changed rules show as pending.
     var planRows: [PlanRow] {
-        plan.enumerated().map { i, p in
+        planRules.enumerated().map { i, r in
             let a = change(at: i, forPartner: false)
             let b = change(at: i, forPartner: true)
-            return PlanRow(index: i, reason: p.reason,
-                           left: a?.title ?? RuleLibrary.rule(p.key)?.title(for: myIntensity) ?? p.key,
-                           right: b?.title ?? RuleLibrary.rule(p.key)?.title(for: partnerIntensity) ?? p.key,
+            return PlanRow(index: i, reason: r.reason, left: a?.title ?? r.a.title, right: b?.title ?? r.b.title,
                            pending: a != nil || b != nil)
         }
     }
 
+    /// More than 6 rules: the plan review asks to swap or remove rules before "Set the stakes".
+    var tooManyRules: Int { max(0, planRules.count - Brand.maxRules) }
+
     func change(at index: Int, forPartner: Bool) -> RuleIdea? {
-        ruleChanges.last { $0.index == index && $0.forPartner == forPartner }?.idea
+        guard planRules.indices.contains(index) else { return nil }
+        let id = planRules[index].id
+        return ruleChanges.last { $0.rowID == id && $0.forPartner == forPartner }?.idea
     }
 
-    /// The rule types one side would end up with if `idea` replaced row `index`.
-    func photoCount(forPartner: Bool, replacing index: Int? = nil, with idea: RuleIdea? = nil) -> Int {
-        plan.enumerated().filter { i, p in
+    /// Photo rules one side would end up with if `idea` replaced row `index` (or row `removing` were removed).
+    func photoCount(forPartner: Bool, replacing index: Int? = nil, with idea: RuleIdea? = nil,
+                    removing: Int? = nil) -> Int {
+        planRules.enumerated().filter { i, r in
+            if i == removing { return false }
             if i == index, let idea { return idea.type == .photo }
             if let c = change(at: i, forPartner: forPartner) { return c.type == .photo }
-            return RuleLibrary.rule(p.key)?.type == .photo
+            return (forPartner ? r.b : r.a).type == .photo
         }.count
     }
 
-    mutating func setChange(index: Int, forPartner: Bool, idea: RuleIdea?) {
-        ruleChanges.removeAll { $0.index == index && $0.forPartner == forPartner }
-        if let idea { ruleChanges.append(DraftRuleChange(index: index, forPartner: forPartner, idea: idea)) }
+    /// Removing keeps at least 2 photo rules each and never goes below 4 rules.
+    func canRemove(_ index: Int) -> Bool {
+        planRules.count > Brand.minRules
+            && photoCount(forPartner: false, removing: index) >= Brand.minPhotoRules
+            && photoCount(forPartner: true, removing: index) >= Brand.minPhotoRules
     }
 
-    /// Suggestions for the Change sheet: the personal picks first, then the other goals' rules.
+    mutating func removeRow(_ index: Int) {
+        guard planRules.indices.contains(index), canRemove(index) else { return }
+        let id = planRules[index].id
+        planRules.remove(at: index)
+        ruleChanges.removeAll { $0.rowID == id }
+    }
+
+    /// "Swap" while trimming: replaces the row for both partners directly (each at their own intensity).
+    mutating func swapRow(_ index: Int, idea: RuleIdea) {
+        guard planRules.indices.contains(index) else { return }
+        var row = planRules[index]
+        row.reason = "You picked this"
+        if let key = idea.libraryKey {
+            row.a = RuleIdea.library(key, intensity: myIntensity) ?? idea
+            row.b = RuleIdea.library(key, intensity: partnerIntensity) ?? idea
+        } else {
+            row.a = idea
+            row.b = idea
+        }
+        planRules[index] = row
+        ruleChanges.removeAll { $0.rowID == row.id }
+    }
+
+    mutating func setChange(index: Int, forPartner: Bool, idea: RuleIdea?) {
+        guard planRules.indices.contains(index) else { return }
+        let id = planRules[index].id
+        ruleChanges.removeAll { $0.rowID == id && $0.forPartner == forPartner }
+        if let idea { ruleChanges.append(DraftRuleChange(rowID: id, forPartner: forPartner, idea: idea)) }
+    }
+
+    /// Suggestions for the Change sheet: the typed-goal ideas, the personal picks, then the other goals' rules.
     func suggestions(intensity: Intensity, extra: [RuleIdea]) -> [RuleIdea] {
         var keys = personalGoals.map(\.ruleKey) + goals.flatMap(\.ruleKeys)
         keys = keys.filter { k in !ruleKeys.contains(k) }
@@ -103,6 +145,25 @@ struct OnboardingDraft: Codable, Equatable {
         for k in keys { if let i = RuleIdea.library(k, intensity: intensity), !out.contains(i) { out.append(i) } }
         return Array(out.prefix(6))
     }
+
+    /// The rule facts written when the couple is created: the stored rows, positions 1…n, for A and for B
+    /// (B's placeholder id), plus a proposal for every changed row (the partner approves it later).
+    func makeRuleFacts(memberA: MemberID, now: Date) -> (rules: [RuleFact], proposals: [RuleProposalFact]) {
+        let rules = PlanGenerator.ruleFacts(rows: planRules, partner: false, memberID: memberA, now: now)
+            + PlanGenerator.ruleFacts(rows: planRules, partner: true, memberID: PendingPartner.id, now: now)
+        var proposals: [RuleProposalFact] = []
+        for (i, row) in planRules.enumerated() {
+            for forPartner in [false, true] {
+                guard let c = ruleChanges.last(where: { $0.rowID == row.id && $0.forPartner == forPartner }) else { continue }
+                let forMember = forPartner ? PendingPartner.id : memberA
+                let rule = c.idea.ruleFact(memberID: forMember, position: i + 1, round: 1, now: now)
+                proposals.append(RuleProposalFact(id: .newID(), proposedBy: memberA, forMember: forMember,
+                                                  ruleJSON: rule, effectiveFrom: nil, createdAt: now))
+            }
+        }
+        return (rules, proposals)
+    }
+
     var myIntensity: Intensity { level.adjust((fitness ?? .somewhatActive).intensity) }
     /// B's rules use Gentle intensity until B answers their own fitness question.
     var partnerIntensity: Intensity {
@@ -125,7 +186,7 @@ struct OnboardingDraft: Codable, Equatable {
 
 /// One rule changed on the plan reveal, for A (forPartner false) or B.
 struct DraftRuleChange: Codable, Equatable {
-    var index: Int
+    var rowID: String
     var forPartner: Bool
     var idea: RuleIdea
 }

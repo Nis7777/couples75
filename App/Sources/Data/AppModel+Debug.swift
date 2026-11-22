@@ -18,14 +18,18 @@ extension AppModel {
         guard isMock, let a = memberA, memberB == nil || memberB?.joinedAt == nil else { return }
         let now = self.now()
         let periods = MockData.farFutureSubscription(from: now)
-        let b = MemberFact(id: a.id == MockData.simulatedB ? MockData.simulatedA : MockData.simulatedB, role: .b,
+        var b = MemberFact(id: a.id == MockData.simulatedB ? MockData.simulatedA : MockData.simulatedB, role: .b,
                            name: facts.couple?.invitedName ?? "Joao", characterID: "m1",
                            timeZone: TimeZone.current.identifier, wakeTime: "07:30", fitnessLevel: .somewhatActive,
                            joinedAt: now, subscribedUntil: periods.last?.end,
                            subscriptionProduct: Brand.iapMonthly, subscriptionPeriods: periods, leftAt: nil)
-        let keys = draftRulesForB.map { $0.libraryKey }
-        let rules = PlanGenerator.rules(keys: keys.isEmpty ? PlanGenerator.ruleKeys(goals: [.fitness]) : keys,
-                                        memberID: b.id, intensity: .standard, round: 1, now: now)
+        // Exactly the rules A's plan stored for B (one source of truth).
+        var rules = PlanGenerator.joinerRules(from: draftRulesForB, memberID: b.id, now: now)
+        if rules.isEmpty {
+            rules = PlanGenerator.rules(keys: PlanGenerator.ruleKeys(goals: [.fitness]), memberID: b.id,
+                                        intensity: .gentle, round: 1, now: now)
+        }
+        if let avatar = facts.couple?.invitedAvatar { b.avatar = avatar }
         await save([FactRecord.member(b)] + rules.map { FactRecord.rule($0) })
     }
 

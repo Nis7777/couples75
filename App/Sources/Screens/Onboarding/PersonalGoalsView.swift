@@ -1,8 +1,9 @@
 import SwiftUI
 
 /// After the goals: "Anything personal you want to work on?" Multi-select chips plus "Something else?"
-/// (60 characters). Skippable. Picks become rules in the plan; the free text becomes suggestions
-/// (on-device model or keyword match) under "Suggested for you" in the plan's Change sheet.
+/// (60 characters). Skippable. Every picked chip AND every typed goal becomes a daily rule in the plan
+/// (10 / 15 / 30 min by level). A typed goal gets a clean name ("Learn to speak chinese" → "Learn Chinese")
+/// and shows as its own pill.
 struct PersonalGoalsView: View {
     @Environment(AppModel.self) private var model
     var next: () -> Void
@@ -24,21 +25,30 @@ struct PersonalGoalsView: View {
                         .padding(.bottom, 14)
                     FlowLayout(spacing: 10) {
                         ForEach(PersonalGoal.allCases) { chip($0) }
+                        ForEach(model.draft.customGoals) { customChip($0) }
                     }
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Something else?")
                             .font(.app(15, .medium))
                             .foregroundStyle(Color.textSecondary)
-                        TextField("e.g. Learn to draw", text: $model.draft.personalOther)
-                            .font(.app(18, .medium))
-                            .foregroundStyle(Color.textPrimary)
-                            .focused($typing)
-                            .submitLabel(.done)
-                            .onChange(of: model.draft.personalOther) { _, new in
-                                if new.count > PersonalGoal.otherMaxLength {
-                                    model.draft.personalOther = String(new.prefix(PersonalGoal.otherMaxLength))
+                        HStack(spacing: 10) {
+                            TextField("e.g. Learn to draw", text: $model.draft.personalOther)
+                                .font(.app(18, .medium))
+                                .foregroundStyle(Color.textPrimary)
+                                .focused($typing)
+                                .submitLabel(.done)
+                                .onSubmit { Task { await addTyped() } }
+                                .onChange(of: model.draft.personalOther) { _, new in
+                                    if new.count > PersonalGoal.otherMaxLength {
+                                        model.draft.personalOther = String(new.prefix(PersonalGoal.otherMaxLength))
+                                    }
                                 }
-                            }
+                            Button("Add") { Task { await addTyped() } }
+                                .font(.app(16, .semibold))
+                                .foregroundStyle(Color.coral)
+                                .disabled(trimmedText.isEmpty || thinking)
+                                .opacity(trimmedText.isEmpty ? 0.4 : 1)
+                        }
                     }
                     .padding(16)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -55,25 +65,64 @@ struct PersonalGoalsView: View {
         }
     }
 
+    private var trimmedText: String { model.draft.personalOther.trimmingCharacters(in: .whitespacesAndNewlines) }
+
     private var hasAnswer: Bool {
-        !model.draft.personalGoals.isEmpty || !model.draft.personalOther.trimmingCharacters(in: .whitespaces).isEmpty
+        !model.draft.personalGoals.isEmpty || !model.draft.customGoals.isEmpty || !trimmedText.isEmpty
+    }
+
+    /// Turns the typed text into a pill with a clean name (on-device model or keyword rules).
+    private func addTyped() async {
+        let text = trimmedText
+        guard !text.isEmpty, !thinking else { return }
+        thinking = true
+        let name = await GoalNamer.name(for: text)
+        let goal = CustomGoal(text: text, name: name.isEmpty ? GoalNamer.keywordName(text) : name)
+        if !model.draft.customGoals.contains(where: { $0.id == goal.id || $0.name == goal.name }) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) { model.draft.customGoals.append(goal) }
+        }
+        model.draft.personalOther = ""
+        thinking = false
     }
 
     private func finish() {
         typing = false
-        let text = model.draft.personalOther
-        guard !text.trimmingCharacters(in: .whitespaces).isEmpty else {
-            model.draft.personalIdeas = []
-            next()
-            return
-        }
-        thinking = true
         Task {
-            let ideas = await RuleIdeas.ideas(for: text, intensity: model.draft.myIntensity)
+            // Text still in the field counts too: it becomes a rule like the pills.
+            if !trimmedText.isEmpty { await addTyped() }
+            thinking = true
+            var ideas: [RuleIdea] = []
+            if let first = model.draft.customGoals.first {
+                ideas = await RuleIdeas.ideas(for: first.text, intensity: model.draft.myIntensity)
+            }
             model.draft.personalIdeas = ideas
             thinking = false
             next()
         }
+    }
+
+    private func customChip(_ g: CustomGoal) -> some View {
+        Button {
+            Haptics.tap()
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                model.draft.customGoals.removeAll { $0.id == g.id }
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark").font(.system(size: 13, weight: .bold))
+                Text(g.name)
+                    .font(.app(16, .semibold))
+                    .lineLimit(1)
+                Image(systemName: "xmark").font(.system(size: 11, weight: .bold)).opacity(0.8)
+            }
+            .foregroundStyle(Color.white)
+            .padding(.horizontal, 16)
+            .frame(height: 44)
+            .background(Capsule().fill(Color.coral))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityLabel("\(g.name), selected. Tap to remove")
     }
 
     private func chip(_ g: PersonalGoal) -> some View {

@@ -22,19 +22,20 @@ struct LibraryRule: Identifiable, Equatable {
 }
 
 enum RuleLibrary {
+    /// Titles use the short "Name: amount" format so they fit on Today ("Instrument: 30 min").
     static let all: [LibraryRule] = [
-        LibraryRule(key: "workout", type: .photo, gentle: "20 min walk", standard: "45 min workout",
-                    hard: "Two 45 min workouts",
+        LibraryRule(key: "workout", type: .photo, gentle: "Walk: 20 min", standard: "Workout: 45 min",
+                    hard: "Workout: 2 × 45 min",
                     photoPrompt: "Photo of where you trained, your gear or your shoes after."),
-        LibraryRule(key: "water", type: .photo, gentle: "2L of water", standard: "3L of water", hard: "4L of water",
+        LibraryRule(key: "water", type: .photo, gentle: "Water: 2L", standard: "Water: 3L", hard: "Water: 4L",
                     photoPrompt: "Photo of your bottle or today's glasses."),
-        LibraryRule(key: "reading", type: .photo, gentle: "Read 5 pages", standard: "Read 10 pages",
-                    hard: "Read 20 pages",
+        LibraryRule(key: "reading", type: .photo, gentle: "Read: 5 pages", standard: "Read: 10 pages",
+                    hard: "Read: 20 pages",
                     photoPrompt: "Photo of the page you got to."),
         LibraryRule(key: "coldShower", type: .photo, gentle: "Cold shower", standard: "Cold shower",
                     hard: "Cold shower",
                     photoPrompt: "Photo of the running shower or your face after. Never your body."),
-        LibraryRule(key: "steps", type: .photo, gentle: "6k steps", standard: "8k steps", hard: "10k steps",
+        LibraryRule(key: "steps", type: .photo, gentle: "Steps: 6k", standard: "Steps: 8k", hard: "Steps: 10k",
                     photoPrompt: "Photo of your step counter."),
         LibraryRule(key: "noSugar", type: .honour, gentle: "No sugar", standard: "No sugar", hard: "No sugar",
                     photoPrompt: ""),
@@ -44,30 +45,30 @@ enum RuleLibrary {
                     hard: "No phone in bed", photoPrompt: ""),
         LibraryRule(key: "noJunk", type: .honour, gentle: "No junk food", standard: "No junk food",
                     hard: "No junk food", photoPrompt: ""),
-        LibraryRule(key: "bedtime", type: .honour, gentle: "In bed by 23:30", standard: "In bed by 23:30",
-                    hard: "In bed by 23:30", photoPrompt: ""),
+        LibraryRule(key: "bedtime", type: .honour, gentle: "Bed by 23:30", standard: "Bed by 23:30",
+                    hard: "Bed by 23:30", photoPrompt: ""),
         LibraryRule(key: "noTakeaway", type: .honour, gentle: "No takeaway spending", standard: "No takeaway spending",
                     hard: "No takeaway spending", photoPrompt: ""),
-        // Personal goals (Part 8): the curated recommendations, Gentle / Couples 75 / Hard.
-        LibraryRule(key: "language", type: .photo, gentle: "10 min language practice",
-                    standard: "15 min language practice", hard: "30 min language practice",
+        // Personal goals: Gentle 10 min, Couples 75 15 min, Hard mode 30 min (set by the level, see PlanGenerator).
+        LibraryRule(key: "language", type: .photo, gentle: "Language: 10 min", standard: "Language: 15 min",
+                    hard: "Language: 30 min",
                     photoPrompt: "Photo of your lesson, app streak or notebook."),
-        LibraryRule(key: "meditate", type: .honour, gentle: "5 min meditation", standard: "10 min meditation",
-                    hard: "20 min meditation", photoPrompt: ""),
-        LibraryRule(key: "lessSocial", type: .photo, gentle: "Under 1h social media",
-                    standard: "Under 45 min social media", hard: "Under 30 min social media",
+        LibraryRule(key: "meditate", type: .honour, gentle: "Meditate: 10 min", standard: "Meditate: 15 min",
+                    hard: "Meditate: 30 min", photoPrompt: ""),
+        LibraryRule(key: "lessSocial", type: .photo, gentle: "Social media: max 1h",
+                    standard: "Social media: max 45 min", hard: "Social media: max 30 min",
                     photoPrompt: "Screenshot or photo of today's Screen Time."),
-        LibraryRule(key: "instrument", type: .photo, gentle: "10 min instrument practice",
-                    standard: "20 min instrument practice", hard: "30 min instrument practice",
+        LibraryRule(key: "instrument", type: .photo, gentle: "Instrument: 10 min", standard: "Instrument: 15 min",
+                    hard: "Instrument: 30 min",
                     photoPrompt: "Photo of your instrument or sheet music."),
         LibraryRule(key: "cookAtHome", type: .photo, gentle: "Cook one meal", standard: "Cook one meal",
                     hard: "Cook one meal", photoPrompt: "Photo of the meal you cooked."),
-        LibraryRule(key: "journal", type: .photo, gentle: "Journal 3 lines", standard: "Journal 5 lines",
-                    hard: "Journal 10 lines", photoPrompt: "Photo of today's page (cover the words if you like)."),
-        LibraryRule(key: "stretch", type: .photo, gentle: "5 min stretch", standard: "10 min stretch",
-                    hard: "15 min stretch", photoPrompt: "Photo of your mat or where you stretched."),
-        LibraryRule(key: "study", type: .photo, gentle: "25 min study", standard: "50 min study",
-                    hard: "90 min study", photoPrompt: "Photo of your desk or notes."),
+        LibraryRule(key: "journal", type: .photo, gentle: "Journal: 10 min", standard: "Journal: 15 min",
+                    hard: "Journal: 30 min", photoPrompt: "Photo of today's page (cover the words if you like)."),
+        LibraryRule(key: "stretch", type: .photo, gentle: "Stretch: 10 min", standard: "Stretch: 15 min",
+                    hard: "Stretch: 30 min", photoPrompt: "Photo of your mat or where you stretched."),
+        LibraryRule(key: "study", type: .photo, gentle: "Study: 10 min", standard: "Study: 15 min",
+                    hard: "Study: 30 min", photoPrompt: "Photo of your desk or notes."),
     ]
 
     static func rule(_ key: String) -> LibraryRule? { all.first { $0.key == key } }
@@ -205,30 +206,79 @@ enum Level: String, Codable, CaseIterable, Identifiable {
     }
 
     init(mode: RoundMode) { self = mode == .hard ? .hard : .couples75 }
+
+    /// Personal and typed goals: Gentle 10 min, Couples 75 15 min, Hard mode 30 min.
+    var personalIntensity: Intensity {
+        switch self {
+        case .gentle: return .gentle
+        case .couples75: return .standard
+        case .hard: return .hard
+        }
+    }
+
+    var personalMinutes: Int {
+        switch self {
+        case .gentle: return 10
+        case .couples75: return 15
+        case .hard: return 30
+        }
+    }
+}
+
+/// A goal typed into "Something else?": "Learn to speak chinese" → name "Learn Chinese" → "Learn Chinese: 15 min".
+struct CustomGoal: Codable, Equatable, Hashable, Identifiable {
+    var text: String
+    /// Clean, short, capitalised name without brands (GoalNamer).
+    var name: String
+    var type: RuleType = .photo
+    var id: String { text.lowercased() }
+
+    func title(level: Level) -> String {
+        String("\(name): \(level.personalMinutes) min".prefix(RuleLibrary.customTitleMaxLength))
+    }
+
+    var photoHint: String { "Photo that shows you did it today." }
 }
 
 /// One rule in a generated plan and why it's there.
 struct PlannedRule: Equatable {
     var key: String
-    /// The goal that added it; nil for a filler (to keep 2 photo rules or reach 4 rules).
+    /// The goal that added it; nil for personal goals and fillers.
     var goal: Goal?
     /// A personal goal's title, for rules that came from "Anything personal you want to work on?".
     var personal: String? = nil
+    var custom: CustomGoal? = nil
 
     var reason: String {
         if let goal { return "Because you picked \(goal.title)" }
         if let personal { return "Because you picked \(personal)" }
+        if let custom { return "Because you picked \(custom.name)" }
         return "To round out your plan"
+    }
+
+    var isPhoto: Bool {
+        if let custom { return custom.type == .photo }
+        return RuleLibrary.rule(key)?.type == .photo
     }
 }
 
+/// One row of a plan: the same rule for both partners, each at their own intensity. Generated ONCE
+/// (when the plan is built) and stored; the plan review, the rules written at "Set the stakes", B's rules
+/// when joining, Today, the invite card and the widgets all come from these stored rows.
+struct PlanRuleRow: Codable, Equatable, Identifiable {
+    var id: String
+    var reason: String
+    var a: RuleIdea
+    var b: RuleIdea
+}
+
 enum PlanGenerator {
-    /// Photo rules added when there aren't enough rules or photo rules. A workout only comes last.
+    /// Photo rules added when there aren't 4 rules or 2 photo rules yet. A workout only comes last.
     static let photoFillers = ["reading", "water", "steps", "coldShower", "workout"]
 
-    /// The plan follows the quiz: each chosen goal maps to one rule; 4 rules, at least 2 photo rules.
-    /// Personal goals come after the quiz goals (and before fillers).
-    static func plan(goals: [Goal], personal: [PersonalGoal] = []) -> [PlannedRule] {
+    /// Every chosen goal, personal goal and typed goal becomes a rule; fillers bring it to at least 4 rules
+    /// with at least 2 photo rules. More than 6 is allowed here: the plan review asks the user to trim.
+    static func plan(goals: [Goal], personal: [PersonalGoal] = [], custom: [CustomGoal] = []) -> [PlannedRule] {
         var picked: [PlannedRule] = []
         for g in Goal.allCases where goals.contains(g) {
             if let key = g.ruleKeys.first(where: { k in !picked.contains { $0.key == k } }) {
@@ -238,31 +288,69 @@ enum PlanGenerator {
         for p in PersonalGoal.allCases where personal.contains(p) && !picked.contains(where: { $0.key == p.ruleKey }) {
             picked.append(PlannedRule(key: p.ruleKey, goal: nil, personal: p.title))
         }
+        for c in custom where !picked.contains(where: { $0.custom?.id == c.id }) {
+            picked.append(PlannedRule(key: RuleFact.customKey, goal: nil, custom: c))
+        }
         return complete(picked)
     }
 
-    /// Trims or fills a list of planned rules to exactly 4 with at least 2 photo rules (goal rules first).
     static func complete(_ picked: [PlannedRule]) -> [PlannedRule] {
-        func isPhoto(_ r: PlannedRule) -> Bool { RuleLibrary.rule(r.key)?.type == .photo }
-        var photos = picked.filter(isPhoto)
-        let honours = picked.filter { !isPhoto($0) }
-        let honourCount = min(honours.count, 4 - max(2, min(photos.count, 4)))
-        let needed = 4 - honourCount
-        for k in photoFillers where photos.count < needed && !picked.contains(where: { $0.key == k }) {
-            photos.append(PlannedRule(key: k, goal: nil))
+        var result = picked
+        var photos = result.filter(\.isPhoto).count
+        for k in photoFillers where result.count < Brand.minRules || photos < Brand.minPhotoRules {
+            guard !result.contains(where: { $0.key == k }) else { continue }
+            result.append(PlannedRule(key: k, goal: nil))
+            photos += 1
         }
-        let chosen = Array(photos.prefix(needed)) + Array(honours.prefix(honourCount))
-        // Keep the quiz order (goal rules in the order they were picked, fillers last).
-        return picked.filter { p in chosen.contains(p) } + chosen.filter { c in !picked.contains(c) }
+        return result
+    }
+
+    /// The stored rows for a plan. Personal and typed goals follow the level (10 / 15 / 30 min);
+    /// the quiz goals follow each partner's intensity.
+    static func rows(goals: [Goal], personal: [PersonalGoal], custom: [CustomGoal], level: Level,
+                     intensityA: Intensity, intensityB: Intensity) -> [PlanRuleRow] {
+        plan(goals: goals, personal: personal, custom: custom).map { p in
+            PlanRuleRow(id: .newID(), reason: p.reason,
+                        a: idea(p, level: level, intensity: intensityA),
+                        b: idea(p, level: level, intensity: intensityB))
+        }
+    }
+
+    static func idea(_ p: PlannedRule, level: Level, intensity: Intensity) -> RuleIdea {
+        if let c = p.custom {
+            return RuleIdea(title: c.title(level: level), type: c.type, libraryKey: nil,
+                            photoHint: c.type == .photo ? c.photoHint : nil)
+        }
+        let personal = p.personal != nil
+        return RuleIdea.library(p.key, intensity: personal ? level.personalIntensity : intensity)
+            ?? RuleIdea(title: p.key, type: .honour, libraryKey: nil, photoHint: nil)
     }
 
     static func ruleKeys(goals: [Goal]) -> [String] { plan(goals: goals).map { $0.key } }
 
     static func rules(keys: [String], memberID: MemberID, intensity: Intensity, round: Int, now: Date) -> [RuleFact] {
-        keys.prefix(4).enumerated().compactMap { index, key in
+        keys.prefix(Brand.maxRules).enumerated().compactMap { index, key in
             guard let lib = RuleLibrary.rule(key) else { return nil }
             return RuleFact(id: .newID(), memberID: memberID, fromRound: round, position: index + 1,
                             libraryKey: key, title: lib.title(for: intensity), type: lib.type, createdAt: now)
+        }
+    }
+
+    /// The stored rows as rule facts for one side (positions 1…n).
+    static func ruleFacts(rows: [PlanRuleRow], partner: Bool, memberID: MemberID, now: Date) -> [RuleFact] {
+        rows.enumerated().map { i, r in
+            (partner ? r.b : r.a).ruleFact(memberID: memberID, position: i + 1, round: 1, now: now)
+        }
+    }
+
+    /// B's rules when joining: an exact copy of the rules A stored for B (same titles, types and positions).
+    static func joinerRules(from pending: [RuleFact], memberID: MemberID, now: Date) -> [RuleFact] {
+        pending.sorted { $0.position < $1.position }.map { r in
+            var copy = r
+            copy.id = .newID()
+            copy.memberID = memberID
+            copy.createdAt = now
+            return copy
         }
     }
 

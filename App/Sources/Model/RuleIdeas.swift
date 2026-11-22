@@ -39,11 +39,12 @@ enum RuleIdeas {
         }
         let clean = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if !clean.isEmpty {
-            let short = String(clean.prefix(RuleLibrary.customTitleMaxLength - 10))
+            let name = GoalNamer.keywordName(clean)
+            let minutes = intensity == .gentle ? 10 : intensity == .hard ? 30 : 15
             let generic = [
-                RuleIdea(title: "10 min: \(short)", type: .photo, libraryKey: nil, photoHint: "Photo that shows you did it."),
-                RuleIdea(title: String(clean.prefix(RuleLibrary.customTitleMaxLength)), type: .honour,
-                         libraryKey: nil, photoHint: nil),
+                RuleIdea(title: "\(name): \(minutes) min", type: .photo, libraryKey: nil,
+                         photoHint: "Photo that shows you did it today."),
+                RuleIdea(title: name, type: .honour, libraryKey: nil, photoHint: nil),
             ]
             for g in generic where ideas.count < 3 && !ideas.contains(g) { ideas.append(g) }
         }
@@ -74,6 +75,9 @@ enum RuleIdeas {
             guard kind == "PHOTO" || kind == "HONOUR" || kind == "HONOR" else { continue }
             let title = String(parts[1].prefix(RuleLibrary.customTitleMaxLength))
             guard !title.isEmpty else { continue }
+            // Never another app's brand name in a rule title.
+            let padded = " " + title.lowercased() + " "
+            guard GoalNamer.removeBrands(padded) == padded else { continue }
             let type: RuleType = kind == "PHOTO" ? .photo : .honour
             let hint = parts.count > 2 && type == .photo ? String(parts[2].prefix(80)) : nil
             let idea = RuleIdea(title: title, type: type, libraryKey: nil, photoHint: hint)
@@ -92,7 +96,8 @@ private enum OnDeviceIdeas {
         let instructions = """
         You suggest daily habit rules for a 75-day challenge a couple does together. \
         Each rule must be something one person can do every single day and prove. \
-        Never suggest anything about bodies, weight or intimacy.
+        Use the short format "Name: amount", like "Guitar: 15 min". \
+        Never suggest anything about bodies, weight or intimacy. Never use app, company or brand names.
         """
         let prompt = """
         Someone wants to work on: "\(text)".

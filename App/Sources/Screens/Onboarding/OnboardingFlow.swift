@@ -15,6 +15,28 @@ struct OnboardingFlow: View {
         }
         .animation(.easeInOut(duration: 0.32), value: model.draft.step)
         .screenBackground()
+        // Swiping back from the left edge is allowed; there is no swipe forward (answers need a tap).
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 24)
+                .onEnded { g in
+                    guard g.startLocation.x < 28, g.translation.width > 80,
+                          abs(g.translation.height) < 80 else { return }
+                    edgeBack()
+                })
+    }
+
+    private func edgeBack() {
+        switch model.draft.step {
+        case .hook, .building, .paywall, .invite, .notifications: return
+        case .handOff: go(.togetherNow, forward: false)
+        case .partnerAvatar: go(.handOff, forward: false)
+        case .partnerFitness: go(.partnerAvatar, forward: false)
+        case .partnerWake: go(.partnerFitness, forward: false)
+        case .handBack: go(.partnerWake, forward: false)
+        case .planReveal: go(.level, forward: false)
+        case .android: go(.partnerIPhone, forward: false)
+        default: back()
+        }
     }
 
     @ViewBuilder
@@ -28,11 +50,12 @@ struct OnboardingFlow: View {
         case .handOff: HandOffView(handTo: model.draft.partnerName, from: model.draft.myName,
                                    isHandBack: false, next: { go(.partnerAvatar) }, back: { go(.togetherNow, forward: false) })
         case .partnerAvatar: PartnerAvatarStep(next: { go(.partnerFitness) }, back: { go(.handOff, forward: false) })
-        case .partnerFitness: PartnerFitnessStep(next: { go(.partnerWake) }, back: back)
-        case .partnerWake: PartnerWakeStep(next: { go(.handBack) }, back: back)
+        case .partnerFitness: PartnerFitnessStep(next: { go(.partnerWake) }, back: { go(.partnerAvatar, forward: false) })
+        case .partnerWake: PartnerWakeStep(next: { go(.handBack) }, back: { go(.partnerFitness, forward: false) })
         case .handBack: HandOffView(handTo: model.draft.myName, from: model.draft.partnerName,
                                     isHandBack: true, next: { go(.together) }, back: { go(.partnerWake, forward: false) })
-        case .together: TogetherView(next: { go(.longDistance) }, back: back)
+        case .together: TogetherView(next: { go(.longDistance) },
+                                     back: { go(model.draft.partnerWithYou == true ? .handBack : .togetherNow, forward: false) })
         case .longDistance: LongDistanceView(next: { go(.goals) }, back: back)
         case .goals: GoalsView(next: { go(.personal) }, back: back)
         case .personal: PersonalGoalsView(next: { go(.fitness) }, back: back)
@@ -41,7 +64,10 @@ struct OnboardingFlow: View {
         case .quit: QuitSliderView(next: { go(.mirror) }, back: back)
         case .mirror: MirrorView(next: { go(.level) }, back: back)
         case .level: OnboardingLevelStep(next: { go(.building) }, back: back)
-        case .building: BuildingPlanView(next: { go(.planReveal) })
+        case .building:
+            // The plan is generated ONCE here and stored in the draft (one source of truth).
+            BuildingPlanView(next: { go(.planReveal) })
+                .onAppear { model.draft.generatePlan() }
         case .planReveal: PlanRevealView(next: { go(.stakes) }, back: { go(.level, forward: false) })
         case .stakes: StakesView(next: { go(.paywall) }, back: back)
         // × on any paywall page opens the exit sheet; closing the paywall goes back to the plan, never into the app.
@@ -53,6 +79,7 @@ struct OnboardingFlow: View {
     }
 
     private func go(_ step: OnboardingDraft.Step, forward: Bool = true) {
+        AutoAdvanceGate.cancelPending()
         self.forward = forward
         model.draft.step = step
     }
@@ -99,9 +126,19 @@ struct OnboardingPage<Content: View, Actions: View>: View {
             }
             .padding(.top, 10)
 
-            content
-                .padding(.horizontal, Metrics.side)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // The content scrolls when it doesn't fit; the actions stay pinned to the bottom safe area.
+            // Proposing the visible height as the ideal height keeps Spacers and flexible illustrations
+            // filling the page when everything fits.
+            GeometryReader { geo in
+                ScrollView(showsIndicators: false) {
+                    content
+                        .padding(.horizontal, Metrics.side)
+                        .frame(maxWidth: .infinity)
+                        .frame(minHeight: geo.size.height, idealHeight: geo.size.height, alignment: .top)
+                }
+                .scrollBounceBehavior(.basedOnSize)
+                .scrollDismissesKeyboard(.interactively)
+            }
 
             BottomActions { actions }
         }

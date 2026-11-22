@@ -47,6 +47,7 @@ struct JoinFlow: View {
     }
 
     private func go(_ s: JoinDraft.Step, forward: Bool = true) {
+        AutoAdvanceGate.cancelPending()
         self.forward = forward
         model.joinDraft?.step = s
     }

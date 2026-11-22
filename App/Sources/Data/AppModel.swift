@@ -161,6 +161,8 @@ final class AppModel {
     var proofFocus: String?
     var errorMessage: String?
     var toast: String?
+    /// A full-screen ivory curtain that fades in and out around "Delete my data" (no hard cut to onboarding).
+    var curtain = false
     /// The error from the last failed save (e.g. iCloud full).
     var lastSaveError: StoreError?
 
