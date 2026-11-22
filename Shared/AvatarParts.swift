@@ -63,7 +63,7 @@ struct AvatarConfig: Codable, Equatable, Hashable {
             facialHair: masc ? ["none", "none", "stubble", "shortBeard"].randomElement() ?? "none" : "none",
             top: ["zip", "tee", "hoodie", "sweater"].randomElement() ?? "zip",
             topColor: ["#F08A73", "#7FA38A", "#E2A93B", "#2F7F7C", "#B9A3D9", "#2E3F66"].randomElement() ?? "#F08A73",
-            bottoms: ["jeans", "trousers"].randomElement() ?? "jeans",
+            bottoms: ["joggers", "jeans", "trousers"].randomElement() ?? "joggers",
             bottomsColor: ["#2E3F66", "#4A4A4F", "#1E1A18", "#F3E6D3"].randomElement() ?? "#2E3F66",
             shoes: ["sneakers", "boots", "flats"].randomElement() ?? "sneakers",
             accessory: "none")
@@ -185,7 +185,7 @@ enum AvatarParts {
     ].map { AvatarPart(id: $0.0, name: $0.1, layer: .top) }
 
     static let bottoms: [AvatarPart] = [
-        ("jeans", "Jeans"), ("trousers", "Trousers"), ("leggings", "Leggings"), ("shorts", "Shorts"), ("skirt", "Skirt"),
+        ("joggers", "Joggers"), ("jeans", "Jeans"), ("trousers", "Trousers"), ("leggings", "Leggings"), ("shorts", "Shorts"), ("skirt", "Skirt"),
     ].map { AvatarPart(id: $0.0, name: $0.1, layer: .bottoms) }
 
     static let shoes: [AvatarPart] = [

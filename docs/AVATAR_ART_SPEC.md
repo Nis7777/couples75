@@ -91,6 +91,18 @@ Next, to make skin and clothes changeable: the head and body as flat shapes + `_
 the clothes split off the body: `avatar_body_neutral_stand` = skin only (arms, hands, neck, legs), then
 `avatar_top_zip_stand`, `avatar_bottoms_joggers`… on the same base.
 
+## Batch 2 (in the app)
+
+Tintable head (`avatar_head_head` + shade), skin-only body (`avatar_body_neutral_stand` + shade), and the
+clothes as their own layers: `avatar_top_zip_stand`, `avatar_bottoms_joggers_stand` (delivered as
+`avatar_bottom_…`, renamed: the layer is **bottoms**), `avatar_shoes_sneakers_stand`, each with `_shade`.
+The builder now offers Hair (4 + bald), Hair colour, Skin (10 tones), Top colour and Bottoms colour.
+A saved look whose garment has no art yet is shown in the nearest garment that has (jeans → joggers, tee → zip).
+Shoes have no colour setting: they're drawn as delivered (white).
+
+Next useful batches: more hairstyles (any of the 28 ids), a second top (tee or hoodie) and bottom
+(jeans or skirt) so the garment pickers appear, then faces (eyes/brows/mouth/facial hair as separate layers).
+
 ## First test batch (suggested)
 
 `avatar_head_head`, `avatar_body_neutral_stand`, and 4 hairstyles as `avatar_hairBack_<id>` + `avatar_hairFront_<id>`

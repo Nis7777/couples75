@@ -61,6 +61,23 @@ enum AvatarArt {
         return ["short", "wavy", "curly", "ponytail"].first(where: hairHasArt) ?? id
     }
 
+    /// For clothes: the chosen garment if it has art, else the first garment in the catalogue that does
+    /// (so a saved look with jeans or a tee still comes out dressed).
+    static func partWithArt(_ id: String, in parts: [AvatarPart], layer: AvatarLayer) -> String {
+        if !layeredEnabled || hasArt(layer, id) { return id }
+        return parts.first { hasArt(layer, $0.id) }?.id ?? id
+    }
+
+    /// A config with every part swapped for one that has art (what's actually drawn and shown selected).
+    static func drawable(_ c: AvatarConfig) -> AvatarConfig {
+        var d = c
+        d.hairStyle = hairWithArt(c.hairStyle)
+        d.top = partWithArt(c.top, in: AvatarParts.tops, layer: .top)
+        d.bottoms = partWithArt(c.bottoms, in: AvatarParts.bottoms, layer: .bottoms)
+        d.shoes = partWithArt(c.shoes, in: AvatarParts.shoes, layer: .shoes)
+        return d
+    }
+
     /// The best art name for a part and pose, if any art exists.
     /// Lookup order: this pose, no pose, the stand pose (so a first batch drawn only in `stand` works for
     /// every pose); for the body, the neutral body as a last resort.
@@ -104,21 +121,29 @@ struct LayeredAvatarView: View {
 /// Draws the avatar from the art in the asset catalogue only. A part without art is simply not drawn;
 /// there are no code-drawn shapes.
 struct AvatarPainter {
+    /// The look as drawn: parts without art are swapped for their closest relative with art.
     var config: AvatarConfig
     var pose: CharacterPose
+
+    init(config: AvatarConfig, pose: CharacterPose) {
+        self.config = AvatarArt.drawable(config)
+        self.pose = pose
+    }
 
     private var skin: Color { Color(hexString: config.skinTone) ?? Color(hex: 0xE0AC84) }
     private var hair: Color { Color(hexString: config.hairColor) ?? Color(hex: 0x3B2A20) }
     private var topColor: Color { Color(hexString: config.topColor) ?? Color(hex: 0xF08A73) }
     private var bottomsColor: Color { Color(hexString: config.bottomsColor) ?? Color(hex: 0x2E3F66) }
 
-    /// The hairstyle actually drawn: the chosen one, or its closest relative with art.
-    private var hairStyle: String { AvatarArt.hairWithArt(config.hairStyle) }
+    private var hairStyle: String { config.hairStyle }
 
     func draw(in ctx: inout GraphicsContext) {
         layer(&ctx, .hairBack, hairStyle, tint: hair)
         layer(&ctx, .body, config.body.rawValue, tint: skin)
-        if config.top != "dress" { layer(&ctx, .bottoms, config.bottoms, tint: bottomsColor) }
+        // A dress covers the bottoms (only once a dress with art is actually drawn).
+        if !(config.top == "dress" && AvatarArt.hasArt(.top, "dress")) {
+            layer(&ctx, .bottoms, config.bottoms, tint: bottomsColor)
+        }
         layer(&ctx, .shoes, config.shoes, tint: nil)
         layer(&ctx, .top, config.top, tint: topColor)
         layer(&ctx, .hands, "skin", tint: skin)          // hands in front of the top (hands on hips, crossed arms)

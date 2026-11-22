@@ -36,9 +36,7 @@ struct LayeredAvatarBuilderView: View {
 
     /// The look being edited (a hairstyle without art shows as its closest relative that has art).
     private var config: AvatarConfig {
-        var c = avatar.resolvedConfig
-        c.hairStyle = AvatarArt.hairWithArt(c.hairStyle)
-        return c
+        AvatarArt.drawable(avatar.resolvedConfig)
     }
 
     /// With final art, only parts that have art are offered ("none" options always are).
@@ -49,6 +47,10 @@ struct LayeredAvatarBuilderView: View {
     }
 
     private static func hasChoices(_ parts: [AvatarPart]) -> Bool { parts.filter(available).count > 1 }
+
+    private static func tintable(_ parts: [AvatarPart], _ layer: AvatarLayer) -> Bool {
+        parts.contains { AvatarArt.name(layer, $0.id, pose: .stand).map(AvatarArt.isTintable) ?? false }
+    }
 
     /// Tabs with something to choose. Colour tabs need tintable art (hair now; skin once the head is a shape).
     private var visibleTabs: [AvatarTab] {
@@ -67,8 +69,9 @@ struct LayeredAvatarBuilderView: View {
             case .skin: return skinTint
             case .face: return bodies || [AvatarParts.eyes, AvatarParts.brows, AvatarParts.mouths,
                                           AvatarParts.facialHair].contains(where: Self.hasChoices)
-            case .top: return Self.hasChoices(AvatarParts.tops)
-            case .bottoms: return Self.hasChoices(AvatarParts.bottoms)
+            // Shown for a garment choice, or for its colour once the garment is a tintable shape.
+            case .top: return Self.hasChoices(AvatarParts.tops) || Self.tintable(AvatarParts.tops, .top)
+            case .bottoms: return Self.hasChoices(AvatarParts.bottoms) || Self.tintable(AvatarParts.bottoms, .bottoms)
             case .shoes: return Self.hasChoices(AvatarParts.shoes)
             case .extras: return Self.hasChoices(AvatarParts.accessories)
             }
@@ -248,18 +251,29 @@ struct LayeredAvatarBuilderView: View {
             }
         case .top:
             VStack(alignment: .leading, spacing: 12) {
-                swatchRow(AvatarPalette.clothing, selected: config.topColor) { c, hex in c.topColor = hex }
-                partGrid(AvatarParts.tops, selected: config.top, headOnly: false) { c, id in c.top = id }
+                // One garment so far: just its colours, as big named swatches.
+                if Self.hasChoices(AvatarParts.tops) {
+                    swatchRow(AvatarPalette.clothing, selected: config.topColor) { c, hex in c.topColor = hex }
+                    partGrid(AvatarParts.tops, selected: config.top, headOnly: false) { c, id in c.top = id }
+                } else {
+                    swatchGrid(AvatarPalette.clothing, selected: config.topColor) { c, hex in c.topColor = hex }
+                }
             }
         case .bottoms:
             VStack(alignment: .leading, spacing: 12) {
-                swatchRow(AvatarPalette.clothing, selected: config.bottomsColor) { c, hex in c.bottomsColor = hex }
+                if !Self.hasChoices(AvatarParts.bottoms) {
+                    swatchGrid(AvatarPalette.clothing, selected: config.bottomsColor) { c, hex in c.bottomsColor = hex }
+                } else {
+                    swatchRow(AvatarPalette.clothing, selected: config.bottomsColor) { c, hex in c.bottomsColor = hex }
+                }
                 if config.top == "dress" {
                     Text("Wearing a dress. Pick another top to choose bottoms.")
                         .font(.app(13))
                         .foregroundStyle(Color.textSecondary)
                 }
-                partGrid(AvatarParts.bottoms, selected: config.bottoms, headOnly: false) { c, id in c.bottoms = id }
+                if Self.hasChoices(AvatarParts.bottoms) {
+                    partGrid(AvatarParts.bottoms, selected: config.bottoms, headOnly: false) { c, id in c.bottoms = id }
+                }
             }
         case .shoes:
             partGrid(AvatarParts.shoes, selected: config.shoes, headOnly: false) { c, id in c.shoes = id }
