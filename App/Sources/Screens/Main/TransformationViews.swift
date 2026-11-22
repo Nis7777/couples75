@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 import UIKit
 
 /// Progress tab → "Transformation": a before/after slider (Day 1 vs the latest photo), a timeline of every
@@ -358,6 +359,7 @@ struct ActivityView: UIViewControllerRepresentable {
 struct MilestoneView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.requestReview) private var requestReview
     var day: Int
     @State private var partnerFirst: UIImage?
     @State private var partnerLatest: UIImage?
@@ -385,7 +387,15 @@ struct MilestoneView: View {
             .padding(.bottom, 24)
         }
         .safeAreaInset(edge: .bottom) {
-            BottomActions { PrimaryButton("Keep going") { dismiss() } }
+            BottomActions {
+                PrimaryButton("Keep going") {
+                    if ReviewPrompt.canAsk {
+                        ReviewPrompt.markAsked()
+                        requestReview()
+                    }
+                    dismiss()
+                }
+            }
                 .background(Color.ivory.opacity(0.95))
         }
         .background(AppBackground())

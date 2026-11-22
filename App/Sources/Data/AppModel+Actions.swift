@@ -516,6 +516,7 @@ extension AppModel {
         }
         if me != nil { _ = await leaveCouple() }
         await progress.deleteAll()
+        RuleReminders.wipe()
         store.wipeLocalData()
         SeenEvents.wipe()
         Prefs.wipe()

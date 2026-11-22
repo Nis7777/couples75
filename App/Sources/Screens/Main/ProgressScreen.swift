@@ -6,6 +6,7 @@ struct ProgressScreen: View {
     @Environment(AppModel.self) private var model
     @State private var viewing: CheckInFact?
     @State private var showProgressCamera = false
+    @State private var recap: WeeklyRecap?
 
     private var round: RoundState? { model.currentRound }
     private var columns: [GridItem] { Array(repeating: GridItem(.flexible(), spacing: 6), count: 12) }
@@ -23,6 +24,22 @@ struct ProgressScreen: View {
                         .foregroundStyle(Color.textSecondary)
                 }
                 .padding(.top, 14)
+
+                if let r = model.weeklyRecap {
+                    Button { recap = r } label: {
+                        HStack {
+                            Image(systemName: "calendar").foregroundStyle(Color.coral)
+                            Text("Our week: \(r.me.completeDays)/7 days")
+                                .font(.app(16, .semibold))
+                                .foregroundStyle(Color.textPrimary)
+                            Spacer()
+                            Text("See recap ›").font(.app(14, .semibold)).foregroundStyle(Color.coral)
+                        }
+                        .padding(14)
+                        .card(radius: 16, shadow: false)
+                    }
+                    .buttonStyle(PressableStyle())
+                }
 
                 TransformationSection(takePhoto: { showProgressCamera = true })
 
@@ -55,6 +72,7 @@ struct ProgressScreen: View {
         .refreshable { await model.refresh() }
         .fullScreenCover(item: $viewing) { c in PhotoViewer(checkIn: c) }
         .fullScreenCover(isPresented: $showProgressCamera) { ProgressCameraView() }
+        .sheet(item: $recap) { r in WeeklyRecapView(recap: r) }
     }
 
     // MARK: 75-day grid

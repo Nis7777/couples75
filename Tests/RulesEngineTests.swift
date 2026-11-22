@@ -494,6 +494,24 @@ final class RulesEngineTests: XCTestCase {
         XCTAssertEqual(rules[1].memberID, f.b)
     }
 
+    // MARK: Weekly recap
+
+    func testWeeklyRecapCountsTheLastSevenDays() {
+        var f = Fixture()
+        f.completeBoth(1...7)
+        let s = f.state(at: f.noon(9))
+        // Window: Day 2 … Day 8 (the 7 days ending yesterday). Day 8 was missed by both.
+        let r = WeeklyRecap.make(state: s, facts: f.facts, meID: f.a, partnerID: f.b, today: f.date(9))
+        XCTAssertEqual(r?.me.countedDays, 7)
+        XCTAssertEqual(r?.me.completeDays, 6)
+        XCTAssertEqual(r?.partner?.completeDays, 6)
+        XCTAssertEqual(r?.bothCompleteDays, 6)
+        XCTAssertEqual(r?.weekStart, f.date(2))
+        // Nothing counted yet: no recap.
+        XCTAssertNil(WeeklyRecap.make(state: f.state(at: f.joined), facts: f.facts, meID: f.a, partnerID: f.b,
+                                      today: f.date(0)))
+    }
+
     // MARK: Determinism
 
     func testSameFactsSameState() {

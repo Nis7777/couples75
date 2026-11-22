@@ -14,6 +14,8 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     private enum ID {
         static let wakePrefix = "wake-"
         static let evening = "evening-warning"
+        static let rulePrefix = "rule-reminder-"
+        static let recap = "weekly-recap"
         static let nudgePrefix = "invite-nudge-"
     }
 
@@ -66,7 +68,8 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     func reschedule(model: AppModel) async {
         guard await authorizationStatus() == .authorized else { return }
         let pending = await center.pendingNotificationRequests().map { $0.identifier }
-        let ours = pending.filter { $0.hasPrefix(ID.wakePrefix) || $0 == ID.evening || $0.hasPrefix(ID.nudgePrefix) }
+        let ours = pending.filter { $0.hasPrefix(ID.wakePrefix) || $0 == ID.evening || $0.hasPrefix(ID.nudgePrefix)
+            || $0.hasPrefix(ID.rulePrefix) || $0 == ID.recap }
         center.removePendingNotificationRequests(withIdentifiers: ours)
         await addTrialReminderIfNeeded()
         guard let me = model.me, me.leftAt == nil else { return }
@@ -107,6 +110,32 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
                     body = "Rules done. Just your progress pic left. \(hours) hours to go."
                 }
                 schedule(id: ID.evening, title: Brand.appName, body: body, at: fire, route: "today")
+            }
+        }
+
+        // Per-rule reminder times: today (if the rule isn't done yet) and tomorrow.
+        if let t = today, t.dayNumber != nil || model.isWarmup {
+            for item in t.items {
+                guard let time = RuleReminders.time(for: item.rule) else { continue }
+                for offset in 0...1 {
+                    if offset == 0 && item.isChecked { continue }
+                    guard let day = cal.date(byAdding: .day, value: offset, to: now) else { continue }
+                    let fire = ClockTime.date(from: time, on: day)
+                    guard fire > now else { continue }
+                    schedule(id: ID.rulePrefix + "\(item.rule.position)-\(offset)", title: Brand.appName,
+                             body: "Time for \(item.rule.title).", at: fire, route: "today")
+                }
+            }
+        }
+
+        // Weekly recap: Monday 09:00 local.
+        if model.partner?.joinedAt != nil {
+            var comps = DateComponents()
+            comps.weekday = 2
+            comps.hour = 9
+            if let fire = cal.nextDate(after: now, matching: comps, matchingPolicy: .nextTime) {
+                schedule(id: ID.recap, title: Brand.appName, body: "Your week together is ready. See your recap.",
+                         at: fire, route: "progress")
             }
         }
 

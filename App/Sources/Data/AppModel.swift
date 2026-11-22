@@ -162,6 +162,7 @@ final class AppModel {
     /// My private daily progress photos (Part 4).
     let progress = ProgressPhotoStore()
     var presentedMilestone: Int?
+    var presentedRecap: WeeklyRecap?
     /// A rule to open on Today (widget tap on a photo rule).
     var openRuleID: String?
     /// Today's Apple Health totals per rule id (only for rules Health can prove).
@@ -441,6 +442,7 @@ final class AppModel {
         state = RulesEngine.state(facts: facts, now: now())
         evaluatePresentations()
         evaluateMilestone()
+        evaluateRecap()
     }
 
     func afterStateChange() async {

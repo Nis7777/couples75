@@ -43,6 +43,7 @@ struct MainView: View {
         .fullScreenCover(item: $model.presentedRoundEnd) { round in
             RoundEndView(round: round) { model.dismissRoundEnd() }
         }
+        .sheet(item: $model.presentedRecap) { r in WeeklyRecapView(recap: r) }
         .fullScreenCover(isPresented: Binding(get: { model.presentedMilestone != nil && model.presentedDay75 == nil },
                                               set: { if !$0 { model.presentedMilestone = nil } })) {
             MilestoneView(day: model.presentedMilestone ?? 25)

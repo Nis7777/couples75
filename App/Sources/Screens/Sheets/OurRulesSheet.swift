@@ -30,6 +30,7 @@ struct OurRulesSheet: View {
                             }
                         }
                     }
+                    RuleRemindersCard()
                     Text(model.ruleChangeTiming.note)
                         .font(.app(14))
                         .foregroundStyle(Color.textSecondary)
@@ -117,5 +118,54 @@ struct RequestChangeSheet: View {
                     if await model.requestRuleChange(position: rule.position, idea: idea) { dismiss() }
                 }
             })
+    }
+}
+
+/// Per-rule reminder times ("Meditate at 07:00"). Local notifications on this phone.
+struct RuleRemindersCard: View {
+    @Environment(AppModel.self) private var model
+    @State private var times: [String: String] = RuleReminders.all
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Reminders").font(.app(18, .bold)).foregroundStyle(Color.textPrimary)
+            Text("Get a nudge at a set time for any rule. Skipped once it's done.")
+                .font(.app(13))
+                .foregroundStyle(Color.textSecondary)
+            ForEach(model.rules(for: model.meID)) { r in
+                let key = RuleReminders.key(for: r)
+                HStack(spacing: 10) {
+                    Text(r.title)
+                        .font(.app(15, .medium))
+                        .foregroundStyle(Color.textPrimary)
+                        .lineLimit(2)
+                    Spacer(minLength: 6)
+                    if let t = times[key] {
+                        DatePicker("Time", selection: Binding(
+                            get: { ClockTime.date(from: t) },
+                            set: { set(ClockTime.string(from: $0), r) }), displayedComponents: .hourAndMinute)
+                            .labelsHidden()
+                        Button { set(nil, r) } label: {
+                            Image(systemName: "xmark.circle.fill").foregroundStyle(Color.textSecondary)
+                        }
+                        .accessibilityLabel("Remove reminder for \(r.title)")
+                    } else {
+                        Button("Add time") { set(r.type == .honour ? "20:00" : "09:00", r) }
+                            .font(.app(14, .semibold))
+                            .foregroundStyle(Color.coral)
+                    }
+                }
+                .frame(minHeight: 40)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .card(radius: 18)
+    }
+
+    private func set(_ time: String?, _ rule: RuleFact) {
+        RuleReminders.set(time, for: rule)
+        times = RuleReminders.all
+        Task { await NotificationManager.shared.reschedule(model: model) }
     }
 }
