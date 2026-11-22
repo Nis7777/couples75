@@ -7,10 +7,18 @@ import BackgroundTasks
 struct CouplesApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @Environment(\.scenePhase) private var scenePhase
+    /// The opening animation runs once per launch, on top of the app (which loads underneath it).
+    @State private var showSplash = true
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            ZStack {
+                RootView()
+                if showSplash {
+                    SplashView { showSplash = false }
+                        .zIndex(100)
+                }
+            }
                 .environment(delegate.model)
                 .onOpenURL { delegate.model.handle(url: $0) }
                 .task { await delegate.model.bootstrap() }
