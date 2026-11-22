@@ -1,10 +1,28 @@
 import SwiftUI
 
+/// Picks the builder: the layered one once its art exists, the original preset builder until then.
+struct AvatarBuilderView: View {
+    @Binding var avatar: Avatar
+    var step: Int?
+    var total: Int? = nil
+    var back: (() -> Void)?
+    var title = "Build your avatar"
+    var next: () -> Void
+
+    var body: some View {
+        if AvatarArt.layeredEnabled {
+            LayeredAvatarBuilderView(avatar: $avatar, step: step, total: total, back: back, title: title, next: next)
+        } else {
+            PresetAvatarBuilderView(avatar: $avatar, step: step, total: total, back: back, title: title, next: next)
+        }
+    }
+}
+
 /// Avatar builder (02_avatar_builder): the same screen as before (big live preview on the gold pedestal, a
 /// white card with tabs, the options and "Looks like me ›"), now with a layered avatar: hair, hair colour,
 /// skin, face, top, bottoms, shoes and extras are chosen independently.
 /// Used by A (onboarding step 2), B on A's phone ("Hand the phone to {B}") and B when joining.
-struct AvatarBuilderView: View {
+struct LayeredAvatarBuilderView: View {
     @Binding var avatar: Avatar
     var step: Int?
     var total: Int? = nil

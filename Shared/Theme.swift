@@ -105,7 +105,9 @@ struct Avatar: Codable, Equatable, Hashable {
     }
 
     /// A hijab: the hair colour tab recolours the hijab instead.
-    var hasHijab: Bool { config.map(\.hasHijab) ?? (characterID == "w5") }
+    var hasHijab: Bool {
+        AvatarArt.layeredEnabled ? (config.map(\.hasHijab) ?? (characterID == "w5")) : characterID == "w5"
+    }
 }
 
 /// Who appears in a scene.
@@ -140,7 +142,7 @@ enum Characters {
     /// Width ÷ height of an image asset (used to lay figures out without cropping heads).
     /// Characters are drawn by the layered avatar, so they use its canvas proportions.
     static func aspect(of assetName: String, fallback: CGFloat = 0.37) -> CGFloat {
-        if assetName.hasPrefix("char_") {
+        if assetName.hasPrefix("char_"), AvatarArt.layeredEnabled {
             return assetName.hasSuffix("_bust") ? AvatarCanvas.bustAspect : AvatarCanvas.fullAspect
         }
         if let a = aspectCache[assetName] { return a }
@@ -205,7 +207,8 @@ extension Color {
     }
 }
 
-/// One person in a scene: the layered avatar (see `LayeredAvatarView`), in the given pose.
+/// One person in a scene, in the given pose: the layered avatar once its art exists (see
+/// `AvatarArt.layeredEnabled`), otherwise the illustrated character recoloured with its masks.
 struct CharacterView: View {
     var avatar: Avatar
     var pose: CharacterPose
@@ -220,7 +223,39 @@ struct CharacterView: View {
     }
 
     var body: some View {
-        LayeredAvatarView(config: avatar.resolvedConfig, pose: pose)
+        if AvatarArt.layeredEnabled {
+            LayeredAvatarView(config: avatar.resolvedConfig, pose: pose)
+        } else {
+            IllustratedCharacterView(characterID: avatar.characterID, pose: pose,
+                                     skin: Color(hexString: avatar.skin), hairColor: Color(hexString: avatar.hair),
+                                     jacketColor: Color(hexString: avatar.jacket))
+        }
+    }
+}
+
+/// One illustrated character, recoloured: the original image, then each shading layer (skin, hair, jacket)
+/// masked and multiplied by the chosen colour, so the original shadows stay.
+struct IllustratedCharacterView: View {
+    var characterID: String
+    var pose: CharacterPose
+    var skin: Color? = nil
+    var hairColor: Color? = nil
+    var jacketColor: Color? = nil
+
+    var body: some View {
+        ZStack {
+            Image(Characters.assetName(characterID, pose)).resizable().scaledToFit()
+            if let skin { layer("skin", skin) }
+            if let hairColor { layer("hair", hairColor) }
+            if let jacketColor { layer("jacket", jacketColor) }
+        }
+    }
+
+    private func layer(_ part: String, _ color: Color) -> some View {
+        Image(Characters.maskName(characterID, pose, part))
+            .resizable()
+            .scaledToFit()
+            .colorMultiply(color)
     }
 }
 

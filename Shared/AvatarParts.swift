@@ -230,6 +230,11 @@ extension Avatar {
     /// The layered look: the saved config, or the closest one for an old preset.
     var resolvedConfig: AvatarConfig { config ?? AvatarConfig.migrated(from: self) }
 
+    /// The starting avatar for a new person: a random layered look, or the preset until the layered art exists.
+    static func newDefault(preset: String) -> Avatar {
+        AvatarArt.layeredEnabled ? Avatar(config: .random()) : Avatar(characterID: preset)
+    }
+
     /// A new layered avatar (characterID is kept for older app versions and records).
     init(config: AvatarConfig) {
         self.init(characterID: config.body == .masculine ? "m1" : "w1")

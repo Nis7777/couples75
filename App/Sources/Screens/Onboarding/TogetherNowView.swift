@@ -72,10 +72,10 @@ struct PartnerAvatarStep: View {
                               if model.draft.partnerAvatar == nil { model.draft.partnerAvatar = Self.fallback }
                               next()
                           })
-        .onAppear { if model.draft.partnerAvatar == nil { model.draft.partnerAvatar = Avatar(config: .random()) } }
+        .onAppear { if model.draft.partnerAvatar == nil { model.draft.partnerAvatar = Self.fallback } }
     }
 
-    private static let fallback = Avatar(config: .random())
+    private static let fallback = Avatar.newDefault(preset: "m1")
 }
 
 struct PartnerFitnessStep: View {

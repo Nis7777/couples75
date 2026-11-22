@@ -5,6 +5,19 @@ Every part already works with a flat vector placeholder drawn in code. Drop real
 `Shared/Assets.xcassets` with the names below and the app uses it automatically, part by part (no code change).
 To add a brand-new part: add the art and one line to the catalogue in `AvatarParts.swift`.
 
+## How it switches on
+
+Until `avatar_head_head` and `avatar_body_neutral_stand` are in the asset catalogue, the app keeps the 12
+illustrated characters and the original builder (the code-drawn placeholders never show). As soon as both
+exist, the layered avatar and the new builder turn on by themselves. Parts without art yet fall back to the
+placeholder, so a first batch can be tested on its own.
+
+Fallbacks for small batches: a part drawn only for `stand` is used in every pose; the neutral body is used for
+the other body shapes until they exist.
+
+Template and style references: `docs/avatar-art/canvas_template.png` (the anchor guides below, drawn on the
+canvas) and `docs/avatar-art/reference_*_stand.png` (the current art, for the style).
+
 ## Canvas (all layers)
 
 - **600 × 1200 px** transparent PNG (or PDF with "Preserve Vector Data"), i.e. a 200 × 400 pt canvas at @3x.
@@ -62,6 +75,12 @@ and I'll add the body to the lookup.
 - **Tops**: zip (the current high-collar zip jacket), tee, tank, hoodie, jacket (open), sweater, dress (covers the bottoms).
 - **Bottoms**: jeans, trousers, leggings, shorts, skirt. **Shoes**: sneakers, boots, flats, sandals.
 - **Extras**: none, glasses, sunglasses, earrings, cap, beanie.
+
+## First test batch (suggested)
+
+`avatar_head_head`, `avatar_body_neutral_stand`, and 4 hairstyles as `avatar_hairBack_<id>` + `avatar_hairFront_<id>`
+(e.g. short, wavy, curly, ponytail). Put them in a folder with exactly these names; I'll drop them into
+`Shared/Assets.xcassets` (template rendering for the tinted ones) and check the alignment.
 
 ## Minimum set to replace the placeholders well
 

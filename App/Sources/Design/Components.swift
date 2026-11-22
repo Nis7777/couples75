@@ -548,8 +548,9 @@ struct IconBadge: View {
 /// Pending auto-advances. Any navigation (forward or back) bumps the generation, so a tap made just before
 /// leaving a step can never push a later step forward on its own. Only touched on the main thread.
 enum AutoAdvanceGate {
-    static var generation = 0
-    static func cancelPending() { generation += 1 }
+    /// Only read and written on the main thread (taps and navigation).
+    nonisolated(unsafe) static var generation = 0
+    nonisolated static func cancelPending() { generation += 1 }
 }
 
 /// Single-answer steps move on ~0.3 s after a tap (never on their own, never twice).

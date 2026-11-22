@@ -26,6 +26,13 @@ enum AvatarCanvas {
 enum AvatarArt {
     private static var cache: [String: Bool] = [:]
 
+    /// The layered avatar turns on by itself once the base art is in the asset catalogue
+    /// (`avatar_head_head` and `avatar_body_neutral_stand`). Until then the app keeps the 12 illustrated
+    /// characters and the original builder, so the code-drawn placeholders never ship.
+    static var layeredEnabled: Bool {
+        exists("avatar_head_head") && exists("avatar_body_neutral_stand")
+    }
+
     static func exists(_ name: String) -> Bool {
         if let v = cache[name] { return v }
         let v = UIImage(named: name) != nil
@@ -34,11 +41,17 @@ enum AvatarArt {
     }
 
     /// The best art name for a part and pose, if any art exists.
+    /// Lookup order: this pose, no pose, the stand pose (so a first batch drawn only in `stand` works for
+    /// every pose); for the body, the neutral body as a last resort.
     static func name(_ layer: AvatarLayer, _ id: String, pose: CharacterPose) -> String? {
-        let posed = "avatar_\(layer.rawValue)_\(id)_\(pose.rawValue)"
-        if exists(posed) { return posed }
-        let plain = "avatar_\(layer.rawValue)_\(id)"
-        return exists(plain) ? plain : nil
+        let ids = layer == .body && id != "neutral" ? [id, "neutral"] : [id]
+        for i in ids {
+            for candidate in ["avatar_\(layer.rawValue)_\(i)_\(pose.rawValue)", "avatar_\(layer.rawValue)_\(i)",
+                              "avatar_\(layer.rawValue)_\(i)_stand"] where exists(candidate) {
+                return candidate
+            }
+        }
+        return nil
     }
 }
 
