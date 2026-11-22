@@ -43,7 +43,9 @@ extension AppModel {
         }
         let couple = CoupleFact(id: .newID(), createdAt: now, ownerMemberID: meID,
                                 title: "\(a.name)'s \(Brand.appName)",
-                                invitedName: draft.partnerName.trimmingCharacters(in: .whitespaces))
+                                invitedName: draft.partnerName.trimmingCharacters(in: .whitespaces),
+                                invitedAvatar: draft.partnerAvatar, invitedFitness: draft.partnerFitness,
+                                invitedWakeTime: draft.partnerWakeTime)
         let config = RoundConfigFact(id: .newID(), fromRound: 1, mode: draft.level.mode, betText: draft.betText,
                                      rewardText: nil, createdBy: meID, createdAt: now)
         let keys = draft.ruleKeys
@@ -109,7 +111,7 @@ extension AppModel {
                 throw StoreError.coupleFull
             }
             pendingInvite = lookup
-            if joinDraft == nil { joinDraft = JoinDraft(code: lookup.code) }
+            if joinDraft == nil { joinDraft = JoinDraft.prefilled(from: f.couple, code: lookup.code) }
             seenCodeEntry = true
             apply(f)
             return true
@@ -127,7 +129,7 @@ extension AppModel {
             if let b = f.memberB, b.id != meID { throw StoreError.coupleFull }
             let inviter = f.memberA?.name ?? "Your partner"
             pendingInvite = InviteLookup(code: "", inviterName: inviter, shareURL: metadata.share.url)
-            if joinDraft == nil { joinDraft = JoinDraft() }
+            if joinDraft == nil { joinDraft = JoinDraft.prefilled(from: f.couple, code: "") }
             seenCodeEntry = true
             apply(f)
         } catch {

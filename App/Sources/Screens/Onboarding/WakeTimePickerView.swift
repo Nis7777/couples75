@@ -4,7 +4,7 @@ import SwiftUI
 struct WakeTimePickerView: View {
     @Binding var wakeTime: String
     var step: Int?
-    var total: Int = OnboardingDraft.countedSteps.count
+    var total: Int? = nil
     var back: (() -> Void)?
     var buttonTitle = "Continue"
     var next: () -> Void

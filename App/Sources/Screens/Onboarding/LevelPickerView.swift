@@ -8,10 +8,17 @@ struct LevelPickerView: View {
     /// nil: the partner hasn't built an avatar yet (dashed outline).
     var right: SceneCharacter?
     var step: Int?
-    var total: Int = OnboardingDraft.countedSteps.count
+    var total: Int? = nil
     var back: (() -> Void)?
     var buttonTitle = "Continue"
+    /// Onboarding moves on by itself after a tap; "Start round 2" keeps its button.
+    var autoAdvances = true
     var next: () -> Void
+
+    private func pick(_ l: Level) {
+        level = l
+        if autoAdvances { autoAdvance(next) }
+    }
 
     var body: some View {
         OnboardingPage(step: step, total: total, back: back) {
@@ -25,23 +32,23 @@ struct LevelPickerView: View {
                         .padding(.vertical, 6)
                     OptionCard(title: Level.gentle.title, subtitle: "Lighter daily rules · 3 saves",
                                isSelected: level == .gentle, minHeight: 72) {
-                        level = .gentle
+                        pick(.gentle)
                     }
                     OptionCard(title: Level.couples75.title, subtitle: "The full plan · 3 shared saves",
                                isSelected: level == .couples75, minHeight: 72) {
-                        level = .couples75
+                        pick(.couples75)
                     } trailing: {
                         Pill(text: "Most popular", fill: .gold, size: 13)
                     }
                     OptionCard(title: Level.hard.title, subtitle: "The full plan · no saves, one miss restarts",
                                isSelected: level == .hard, minHeight: 72) {
-                        level = .hard
+                        pick(.hard)
                     }
                 }
                 .padding(.bottom, 16)
             }
         } actions: {
-            PrimaryButton(buttonTitle) { next() }
+            if !autoAdvances { PrimaryButton(buttonTitle) { next() } }
         }
     }
 }

@@ -6,6 +6,8 @@ struct PlanRevealView: View {
     @Environment(AppModel.self) private var model
     var next: () -> Void
     var back: () -> Void
+    /// "Change" on a rule (personal and custom rules, Part 8). nil hides the buttons.
+    var onChange: ((Int) -> Void)? = nil
 
     var body: some View {
         let d = model.draft
@@ -15,22 +17,101 @@ struct PlanRevealView: View {
                     TitleText("\(d.myName) & \(d.partnerName)'s 75-day plan", size: 28)
                         .padding(.top, 10)
                         .padding(.bottom, 4)
-                    RingHero(left: SceneCharacter(avatar: d.avatar, name: d.myName), right: nil,
+                    RingHero(left: SceneCharacter(avatar: d.avatar, name: d.myName), right: model.sceneBBuilt,
                              progress: 0.62, centerTitle: "Day 1", centerSubtitle: "→ 75", panelRadius: 0, inset: 20)
                         .frame(height: 310)
                         .padding(.horizontal, -Metrics.side)
-                    RulesColumnsCard(
-                        leftName: d.myName, leftRules: PlanGenerator.titles(keys: d.ruleKeys, intensity: d.myIntensity),
-                        rightName: d.partnerName,
-                        rightRules: PlanGenerator.titles(keys: d.ruleKeys, intensity: d.partnerIntensity),
-                        rightNote: "Draft: \(d.partnerName) can adjust when they join")
+                    PlanRulesCard(rows: d.planRows,
+                                  leftName: d.myName, rightName: d.partnerName,
+                                  rightNote: d.partnerFitness == nil ? "Draft: \(d.partnerName) can adjust when they join" : nil,
+                                  onChange: onChange)
                     SavesCard(mode: d.level.mode)
                 }
                 .padding(.bottom, 28)
             }
         } actions: {
-            PrimaryButton("See our plan") { next() }
+            PrimaryButton("Set the stakes") { next() }
         }
+    }
+}
+
+/// One row of the plan: why it's there, A's version and B's version.
+struct PlanRow: Identifiable, Equatable {
+    var index: Int
+    var reason: String
+    var left: String
+    var right: String
+    /// Waiting for the partner's approval (Part 8).
+    var pending: Bool = false
+    var id: Int { index }
+}
+
+/// The plan reveal's rules: a row per rule with A (coral) and B (sage) side by side,
+/// "Because you picked {goal}" under it, and an optional "Change" button.
+struct PlanRulesCard: View {
+    var rows: [PlanRow]
+    var leftName: String
+    var rightName: String
+    var rightNote: String?
+    var onChange: ((Int) -> Void)?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Daily rules")
+                .font(.app(20, .bold))
+                .foregroundStyle(Color.textPrimary)
+            HStack {
+                Text(leftName).font(.app(16, .bold)).foregroundStyle(Color.coral)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text(rightName).font(.app(16, .bold)).foregroundStyle(Color.sage)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            ForEach(rows) { r in
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        ruleText(r.left, color: .coral)
+                        ruleText(r.right, color: .sage)
+                    }
+                    HStack(spacing: 8) {
+                        Text(r.reason)
+                            .font(.app(12))
+                            .foregroundStyle(Color.textSecondary)
+                        if r.pending {
+                            Pill(text: "Pending", fill: .brownChip, size: 11)
+                        }
+                        Spacer(minLength: 4)
+                        if let onChange {
+                            Button("Change") { onChange(r.index) }
+                                .font(.app(13, .semibold))
+                                .foregroundStyle(Color.coral)
+                                .accessibilityLabel("Change \(r.left)")
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+                if r.index != rows.last?.index { Divider() }
+            }
+            if let rightNote {
+                Text(rightNote)
+                    .font(.app(12))
+                    .foregroundStyle(Color.textSecondary)
+            }
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .card()
+    }
+
+    private func ruleText(_ t: String, color: Color) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 7) {
+            Circle().fill(color).frame(width: 8, height: 8)
+            Text(t)
+                .font(.app(15, .medium))
+                .foregroundStyle(Color.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 }
 

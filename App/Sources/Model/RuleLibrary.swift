@@ -46,6 +46,8 @@ enum RuleLibrary {
                     hard: "No junk food", photoPrompt: ""),
         LibraryRule(key: "bedtime", type: .honour, gentle: "In bed by 23:30", standard: "In bed by 23:30",
                     hard: "In bed by 23:30", photoPrompt: ""),
+        LibraryRule(key: "noTakeaway", type: .honour, gentle: "No takeaway spending", standard: "No takeaway spending",
+                    hard: "No takeaway spending", photoPrompt: ""),
     ]
 
     static func rule(_ key: String) -> LibraryRule? { all.first { $0.key == key } }
@@ -81,15 +83,15 @@ enum Goal: String, Codable, CaseIterable, Identifiable {
         }
     }
 
-    /// Library keys this goal suggests, in priority order.
+    /// The rule this goal adds (Diet's second choice is used when the first is already taken).
     var ruleKeys: [String] {
         switch self {
-        case .fitness: return ["workout", "water"]
-        case .discipline: return ["reading", "noPhoneInBed"]
+        case .fitness: return ["workout"]
+        case .discipline: return ["reading"]
         case .sleep: return ["bedtime"]
-        case .diet: return ["noSugar", "noJunk"]
+        case .diet: return ["noJunk", "noSugar"]
         case .phoneTime: return ["noPhoneInBed"]
-        case .money: return ["noJunk"]
+        case .money: return ["noTakeaway"]
         }
     }
 }
@@ -123,20 +125,52 @@ enum Level: String, Codable, CaseIterable, Identifiable {
     init(mode: RoundMode) { self = mode == .hard ? .hard : .couples75 }
 }
 
-enum PlanGenerator {
-    /// 4 rules (library keys) for the selected goals, at least 2 of them photo rules.
-    static func ruleKeys(goals: [Goal]) -> [String] {
-        var suggested: [String] = []
-        for g in Goal.allCases where goals.contains(g) {
-            for k in g.ruleKeys where !suggested.contains(k) { suggested.append(k) }
-        }
-        let photoFillers = ["workout", "water", "reading", "steps", "coldShower"]
-        var photos = suggested.filter { RuleLibrary.rule($0)?.type == .photo }
-        for k in photoFillers where !photos.contains(k) { photos.append(k) }
-        let honours = suggested.filter { RuleLibrary.rule($0)?.type == .honour }
-        let honourCount = min(honours.count, 2)
-        return Array(photos.prefix(4 - honourCount)) + Array(honours.prefix(honourCount))
+/// One rule in a generated plan and why it's there.
+struct PlannedRule: Equatable {
+    var key: String
+    /// The goal that added it; nil for a filler (to keep 2 photo rules or reach 4 rules).
+    var goal: Goal?
+    /// A personal goal's title, for rules that came from "Anything personal you want to work on?".
+    var personal: String? = nil
+
+    var reason: String {
+        if let goal { return "Because you picked \(goal.title)" }
+        if let personal { return "Because you picked \(personal)" }
+        return "To round out your plan"
     }
+}
+
+enum PlanGenerator {
+    /// Photo rules added when there aren't enough rules or photo rules. A workout only comes last.
+    static let photoFillers = ["reading", "water", "steps", "coldShower", "workout"]
+
+    /// The plan follows the quiz: each chosen goal maps to one rule; 4 rules, at least 2 photo rules.
+    static func plan(goals: [Goal]) -> [PlannedRule] {
+        var picked: [PlannedRule] = []
+        for g in Goal.allCases where goals.contains(g) {
+            if let key = g.ruleKeys.first(where: { k in !picked.contains { $0.key == k } }) {
+                picked.append(PlannedRule(key: key, goal: g))
+            }
+        }
+        return complete(picked)
+    }
+
+    /// Trims or fills a list of planned rules to exactly 4 with at least 2 photo rules (goal rules first).
+    static func complete(_ picked: [PlannedRule]) -> [PlannedRule] {
+        func isPhoto(_ r: PlannedRule) -> Bool { RuleLibrary.rule(r.key)?.type == .photo }
+        var photos = picked.filter(isPhoto)
+        let honours = picked.filter { !isPhoto($0) }
+        let honourCount = min(honours.count, 4 - max(2, min(photos.count, 4)))
+        let needed = 4 - honourCount
+        for k in photoFillers where photos.count < needed && !picked.contains(where: { $0.key == k }) {
+            photos.append(PlannedRule(key: k, goal: nil))
+        }
+        let chosen = Array(photos.prefix(needed)) + Array(honours.prefix(honourCount))
+        // Keep the quiz order (goal rules in the order they were picked, fillers last).
+        return picked.filter { p in chosen.contains(p) } + chosen.filter { c in !picked.contains(c) }
+    }
+
+    static func ruleKeys(goals: [Goal]) -> [String] { plan(goals: goals).map { $0.key } }
 
     static func rules(keys: [String], memberID: MemberID, intensity: Intensity, round: Int, now: Date) -> [RuleFact] {
         keys.prefix(4).enumerated().compactMap { index, key in

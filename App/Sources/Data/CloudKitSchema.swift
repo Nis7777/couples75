@@ -19,8 +19,9 @@ enum CloudKitSchema {
 
     static let couple = RecordType(
         name: "Couple",
-        fields: ["createdAt": "Date/Time", "ownerMemberID": "String", "title": "String", "invitedName": "String"],
-        dateKeys: ["createdAt"], boolKeys: [], jsonKeys: [])
+        fields: ["createdAt": "Date/Time", "ownerMemberID": "String", "title": "String", "invitedName": "String",
+                 "invitedAvatar": "String (JSON)", "invitedFitness": "String", "invitedWakeTime": "String"],
+        dateKeys: ["createdAt"], boolKeys: [], jsonKeys: ["invitedAvatar"])
 
     static let member = RecordType(
         name: "Member",

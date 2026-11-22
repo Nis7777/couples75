@@ -6,8 +6,9 @@ import SwiftUI
 struct AvatarBuilderView: View {
     @Binding var avatar: Avatar
     var step: Int?
-    var total: Int = OnboardingDraft.countedSteps.count
+    var total: Int? = nil
     var back: (() -> Void)?
+    var title = "Build your avatar"
     var next: () -> Void
 
     enum Tab: String, CaseIterable, Identifiable {
@@ -20,7 +21,7 @@ struct AvatarBuilderView: View {
     var body: some View {
         OnboardingPage(step: step, total: total, back: back) {
             VStack(spacing: 6) {
-                TitleText("Build your avatar", size: 28)
+                TitleText(title, size: 28)
                     .padding(.top, 12)
                 ZStack(alignment: .bottom) {
                     Pedestal()
@@ -70,31 +71,40 @@ struct AvatarBuilderView: View {
 
     // MARK: Tabs
 
+    /// Scrollable tab row at natural widths: on narrow phones the next tab is visibly half-cut, so it's clear
+    /// there's more. The selected tab scrolls into view.
     private var tabs: some View {
-        HStack(spacing: 0) {
-            ForEach(Tab.allCases) { t in
-                Button {
-                    Haptics.tap()
-                    withAnimation(.easeInOut(duration: 0.2)) { tab = t }
-                } label: {
-                    VStack(spacing: 7) {
-                        Text(title(t))
-                            .font(.app(15, tab == t ? .semibold : .medium))
-                            .foregroundStyle(Color.textPrimary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.75)
-                        Capsule()
-                            .fill(tab == t ? Color.coral : Color.clear)
-                            .frame(width: 48, height: 3)
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 4) {
+                    ForEach(Tab.allCases) { t in
+                        Button {
+                            Haptics.tap()
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                tab = t
+                                proxy.scrollTo(t, anchor: .center)
+                            }
+                        } label: {
+                            VStack(spacing: 7) {
+                                Text(title(t))
+                                    .font(.app(16, tab == t ? .semibold : .medium))
+                                    .foregroundStyle(tab == t ? Color.textPrimary : Color.textSecondary)
+                                    .fixedSize()
+                                Capsule()
+                                    .fill(tab == t ? Color.coral : Color.clear)
+                                    .frame(height: 3)
+                            }
+                            .padding(.horizontal, 14)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .id(t)
+                        .accessibilityAddTraits(tab == t ? .isSelected : [])
                     }
-                    .frame(maxWidth: .infinity)
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(tab == t ? .isSelected : [])
             }
+            .overlay(alignment: .bottom) { Rectangle().fill(Color.cardBorder).frame(height: 1) }
         }
-        .overlay(alignment: .bottom) { Rectangle().fill(Color.cardBorder).frame(height: 1).offset(y: 1) }
     }
 
     // MARK: Hairstyles

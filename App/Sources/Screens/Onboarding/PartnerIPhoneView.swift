@@ -17,16 +17,16 @@ struct PartnerIPhoneView: View {
                     .padding(.vertical, 6)
                 OptionCard(title: "Yes, iPhone", isSelected: model.draft.partnerOnIPhone == true, minHeight: 64) {
                     model.draft.partnerOnIPhone = true
+                    autoAdvance { next(true) }
                 }
                 OptionCard(title: "No, Android", isSelected: model.draft.partnerOnIPhone == false, minHeight: 64) {
                     model.draft.partnerOnIPhone = false
+                    autoAdvance { next(false) }
                 }
                 Spacer(minLength: 0)
             }
         } actions: {
-            PrimaryButton("Continue", isEnabled: model.draft.partnerOnIPhone != nil) {
-                next(model.draft.partnerOnIPhone ?? true)
-            }
+            EmptyView()
         }
     }
 }

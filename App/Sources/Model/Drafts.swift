@@ -3,8 +3,8 @@ import Foundation
 /// Person A's onboarding answers (section 3.1), persisted so a relaunch resumes where they left off.
 struct OnboardingDraft: Codable, Equatable {
     enum Step: String, Codable, CaseIterable {
-        case hook, character, names, partnerIPhone, together, longDistance, goals, fitness, wakeUp, quit,
-             mirror, level, building, planReveal, stakes
+        case hook, character, names, partnerIPhone, togetherNow, handOff, partnerAvatar, partnerFitness, partnerWake,
+             handBack, together, longDistance, goals, fitness, wakeUp, quit, mirror, level, building, planReveal, stakes
         // Without a step counter (the paywall has its own pages: outcome, trial, plans):
         case paywall, invite, notifications, android
     }
@@ -18,6 +18,8 @@ struct OnboardingDraft: Codable, Equatable {
     var partnerAvatar: Avatar?
     var partnerFitness: FitnessLevel?
     var partnerWakeTime: String?
+    /// "Is {B} with you right now?"
+    var partnerWithYou: Bool?
     var partnerOnIPhone: Bool?
     var together: String?
     var longDistance: Bool?
@@ -36,14 +38,34 @@ struct OnboardingDraft: Codable, Equatable {
     }
 
     /// Steps that show "Step X of N" (paywall, invite, notifications and Android are outside the count).
-    static let countedSteps: [Step] = [.hook, .character, .names, .partnerIPhone, .together, .longDistance, .goals,
+    static let countedSteps: [Step] = [.hook, .character, .names, .partnerIPhone, .togetherNow,
+                                       .together, .longDistance, .goals,
                                        .fitness, .wakeUp, .quit, .mirror, .level, .building, .planReveal,
                                        .stakes]
 
-    var stepNumber: Int? { Self.countedSteps.firstIndex(of: step).map { $0 + 1 } }
-    var stepTotal: Int { Self.countedSteps.count }
+    /// The steps actually shown: B's own steps only count when B is with A ("Hand the phone to {B}").
+    var shownSteps: [Step] {
+        var steps = Self.countedSteps
+        if partnerWithYou == true, let i = steps.firstIndex(of: .togetherNow) {
+            steps.insert(contentsOf: [.partnerAvatar, .partnerFitness, .partnerWake], at: i + 1)
+        }
+        return steps
+    }
+    var stepNumber: Int? { shownSteps.firstIndex(of: step).map { $0 + 1 } }
+    var stepTotal: Int { shownSteps.count }
 
-    var ruleKeys: [String] { PlanGenerator.ruleKeys(goals: goals) }
+    /// The plan follows the quiz (each rule knows why it's there).
+    var plan: [PlannedRule] { PlanGenerator.plan(goals: goals) }
+    var ruleKeys: [String] { plan.map { $0.key } }
+
+    /// Rows for the plan reveal: reason, A's title, B's title.
+    var planRows: [PlanRow] {
+        plan.enumerated().map { i, p in
+            PlanRow(index: i, reason: p.reason,
+                    left: RuleLibrary.rule(p.key)?.title(for: myIntensity) ?? p.key,
+                    right: RuleLibrary.rule(p.key)?.title(for: partnerIntensity) ?? p.key)
+        }
+    }
     var myIntensity: Intensity { level.adjust((fitness ?? .somewhatActive).intensity) }
     /// B's rules use Gentle intensity until B answers their own fitness question.
     var partnerIntensity: Intensity {
@@ -84,6 +106,20 @@ struct JoinDraft: Codable, Equatable {
 
     var betText: String {
         bet == .custom ? String(customBet.trimmingCharacters(in: .whitespaces).prefix(BetOption.customMaxLength)) : bet.title
+    }
+
+    /// True when B already built the avatar and answered on A's phone: B just reviews and signs.
+    var prebuilt = false
+
+    static func prefilled(from couple: CoupleFact?, code: String) -> JoinDraft {
+        var d = JoinDraft(code: code)
+        if let a = couple?.invitedAvatar {
+            d.avatar = a
+            d.fitness = couple?.invitedFitness
+            d.wakeTime = couple?.invitedWakeTime ?? "07:30"
+            d.prebuilt = true
+        }
+        return d
     }
 
     static func load() -> JoinDraft? {

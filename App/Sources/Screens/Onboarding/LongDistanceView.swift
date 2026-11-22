@@ -28,7 +28,7 @@ struct LongDistanceView: View {
                 Spacer(minLength: 0)
             }
         } actions: {
-            PrimaryButton("Continue", isEnabled: model.draft.longDistance != nil) { next() }
+            EmptyView()
         }
     }
 
@@ -37,6 +37,7 @@ struct LongDistanceView: View {
         return Button {
             Haptics.tap()
             withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) { model.draft.longDistance = value }
+            autoAdvance(next)
         } label: {
             ZStack(alignment: .topTrailing) {
                 RoundedRectangle(cornerRadius: Metrics.optionRadius, style: .continuous)

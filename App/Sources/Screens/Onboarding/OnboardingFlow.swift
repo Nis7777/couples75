@@ -23,7 +23,15 @@ struct OnboardingFlow: View {
         case .hook: HookView(next: { go(.character) })
         case .character: OnboardingCharacterStep(next: { go(.names) }, back: back)
         case .names: NamesView(next: { go(.partnerIPhone) }, back: back)
-        case .partnerIPhone: PartnerIPhoneView(next: { onIPhone in go(onIPhone ? .together : .android) }, back: back)
+        case .partnerIPhone: PartnerIPhoneView(next: { onIPhone in go(onIPhone ? .togetherNow : .android) }, back: back)
+        case .togetherNow: TogetherNowView(next: { withYou in go(withYou ? .handOff : .together) }, back: back)
+        case .handOff: HandOffView(handTo: model.draft.partnerName, from: model.draft.myName,
+                                   isHandBack: false, next: { go(.partnerAvatar) }, back: { go(.togetherNow, forward: false) })
+        case .partnerAvatar: PartnerAvatarStep(next: { go(.partnerFitness) }, back: { go(.handOff, forward: false) })
+        case .partnerFitness: PartnerFitnessStep(next: { go(.partnerWake) }, back: back)
+        case .partnerWake: PartnerWakeStep(next: { go(.handBack) }, back: back)
+        case .handBack: HandOffView(handTo: model.draft.myName, from: model.draft.partnerName,
+                                    isHandBack: true, next: { go(.together) }, back: { go(.partnerWake, forward: false) })
         case .together: TogetherView(next: { go(.longDistance) }, back: back)
         case .longDistance: LongDistanceView(next: { go(.goals) }, back: back)
         case .goals: GoalsView(next: { go(.fitness) }, back: back)
@@ -49,7 +57,7 @@ struct OnboardingFlow: View {
     }
 
     private func back() {
-        let steps = OnboardingDraft.countedSteps
+        let steps = model.draft.shownSteps
         guard let i = steps.firstIndex(of: model.draft.step), i > 0 else { return }
         var target = steps[i - 1]
         if target == .building { target = .level }
@@ -60,16 +68,17 @@ struct OnboardingFlow: View {
 /// Shared page layout: "Step X of N" header (back chevron on its left), content, bottom actions.
 struct OnboardingPage<Content: View, Actions: View>: View {
     var step: Int?
-    var total: Int = OnboardingDraft.countedSteps.count
+    var total: Int? = nil
     var back: (() -> Void)?
     @ViewBuilder var content: Content
     @ViewBuilder var actions: Actions
+    @Environment(AppModel.self) private var model
 
     var body: some View {
         VStack(spacing: 0) {
             ZStack(alignment: .bottomLeading) {
                 if let step {
-                    OnboardingHeader(step: step, total: total)
+                    OnboardingHeader(step: step, total: total ?? model.draft.stepTotal)
                         .padding(.horizontal, Metrics.side + 8)
                 } else {
                     Color.clear.frame(height: back == nil ? 8 : 36)

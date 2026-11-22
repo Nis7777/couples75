@@ -28,7 +28,8 @@ struct JoinFlow: View {
     private var content: some View {
         switch step {
         case .invited:
-            InvitedView(next: { go(.character) })
+            // If B built the avatar on A's phone, it's already made: go straight to the plan.
+            InvitedView(next: { go(model.joinDraft?.prebuilt == true ? .tweak : .character) })
         case .character:
             JoinCharacterStep(next: { go(.fitness) }, back: { go(.invited, forward: false) })
         case .fitness:

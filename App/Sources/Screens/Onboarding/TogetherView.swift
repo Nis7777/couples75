@@ -16,6 +16,7 @@ struct TogetherView: View {
                 ForEach(options, id: \.self) { o in
                     OptionCard(title: o, isSelected: model.draft.together == o, minHeight: 72) {
                         model.draft.together = o
+                        autoAdvance(next)
                     }
                     .expanding()
                     .frame(maxHeight: 122)
@@ -23,7 +24,7 @@ struct TogetherView: View {
                 Spacer(minLength: 0)
             }
         } actions: {
-            PrimaryButton("Continue", isEnabled: model.draft.together != nil) { next() }
+            EmptyView()
         }
     }
 }

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// B step 7: "I'm in" → Day 1 is the next local day.
+/// B's last step: review and hold to sign. Day 1 is the next local day (no subscription needed: A's covers both).
 struct ImInView: View {
     @Environment(AppModel.self) private var model
     var next: () -> Void
@@ -20,16 +20,22 @@ struct ImInView: View {
                     .frame(maxHeight: .infinity)
             }
         } actions: {
-            PrimaryButton("I'm in", isLoading: saving) {
-                Task {
-                    saving = true
-                    let ok = await model.finishJoining()
-                    saving = false
-                    if ok {
-                        Haptics.success()
-                        next()
+            // B signs the plan, like A did on "Set the stakes".
+            VStack(spacing: 4) {
+                Text("Hold to sign").font(.app(18, .bold)).foregroundStyle(Color.textPrimary)
+                Text("We finish this together").font(.app(14)).foregroundStyle(Color.textSecondary)
+                HoldToSignButton(enabled: !saving) {
+                    Task {
+                        saving = true
+                        let ok = await model.finishJoining()
+                        saving = false
+                        if ok {
+                            Haptics.success()
+                            next()
+                        }
                     }
                 }
+                .padding(.top, 8)
             }
         }
     }

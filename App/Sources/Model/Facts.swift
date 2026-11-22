@@ -63,6 +63,10 @@ struct CoupleFact: Codable, Equatable {
     var title: String
     /// The partner's name as A typed it ("Who's in this with you?"). B's member record uses it.
     var invitedName: String?
+    /// What B chose on A's phone ("Hand the phone to {B}"); B sees it already made when joining.
+    var invitedAvatar: Avatar?
+    var invitedFitness: FitnessLevel?
+    var invitedWakeTime: String?
 }
 
 struct MemberFact: Codable, Equatable, Identifiable {

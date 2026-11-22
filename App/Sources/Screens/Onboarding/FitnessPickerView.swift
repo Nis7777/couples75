@@ -4,7 +4,7 @@ import SwiftUI
 struct FitnessPickerView: View {
     @Binding var fitness: FitnessLevel?
     var step: Int?
-    var total: Int = OnboardingDraft.countedSteps.count
+    var total: Int? = nil
     var back: (() -> Void)?
     var next: () -> Void
 
@@ -17,6 +17,7 @@ struct FitnessPickerView: View {
                 ForEach(FitnessLevel.allCases, id: \.self) { f in
                     OptionCard(title: f.title, subtitle: subtitle(f), isSelected: fitness == f, minHeight: 76) {
                         fitness = f
+                        autoAdvance(next)
                     }
                     .expanding()
                     .frame(maxHeight: 118)
@@ -24,7 +25,7 @@ struct FitnessPickerView: View {
                 Spacer(minLength: 0)
             }
         } actions: {
-            PrimaryButton("Continue", isEnabled: fitness != nil) { next() }
+            EmptyView()
         }
     }
 

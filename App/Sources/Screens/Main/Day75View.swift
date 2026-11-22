@@ -183,7 +183,7 @@ struct StartNextRoundSheet: View {
             } else {
                 LevelPickerView(level: $level, left: model.sceneA, right: model.sceneB, step: 2, total: 2,
                                 back: { step = 0 },
-                                buttonTitle: "Start round \(round.number + 1)") {
+                                buttonTitle: "Start round \(round.number + 1)", autoAdvances: false) {
                     guard !saving else { return }
                     saving = true
                     Task {

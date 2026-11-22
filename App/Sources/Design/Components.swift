@@ -471,3 +471,12 @@ struct IconBadge: View {
         .accessibilityHidden(true)
     }
 }
+
+/// Single-answer questions move on by themselves about 0.3 s after a tap (after the selection animation).
+@MainActor
+func autoAdvance(_ next: @escaping () -> Void) {
+    Task { @MainActor in
+        try? await Task.sleep(nanoseconds: 320_000_000)
+        next()
+    }
+}
