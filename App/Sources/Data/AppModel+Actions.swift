@@ -87,9 +87,8 @@ extension AppModel {
 
     /// Invite text for the share sheet (3.2).
     func inviteMessage() -> String {
-        let code = invite?.code ?? ""
         let link = invite?.shareURL?.absoluteString ?? ""
-        return "I just signed us up for 75 days. \(currentBet). You in? Download \(Brand.appName), then tap this link: \(link) (or enter code \(code))"
+        return "I just signed us up for 75 days. \(currentBet). You in? Download \(Brand.appName) and tap this link: \(link)"
     }
 
     // MARK: - Person B (3.5)

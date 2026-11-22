@@ -209,7 +209,7 @@ final class AppModel {
     var sceneB: SceneCharacter? { memberB.map { SceneCharacter(avatar: $0.avatar, name: $0.name) } }
     /// B as built so far: their member record, or the avatar B made on A's phone ("together now"); nil = outline.
     var sceneBBuilt: SceneCharacter? {
-        sceneB ?? draft.partnerAvatar.map { SceneCharacter(avatar: $0, name: nameB) }
+        sceneB ?? (facts.couple?.invitedAvatar ?? draft.partnerAvatar).map { SceneCharacter(avatar: $0, name: nameB) }
     }
     /// Couple-level subscription: one subscription covers both partners.
     var coupleActive: Bool { state.coupleActive }

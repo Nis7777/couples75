@@ -11,15 +11,51 @@ struct InviteView: View {
             VStack(spacing: 16) {
                 TitleText("Send \(model.nameB) their invite", size: 30)
                     .padding(.top, 22)
-                // A and the dashed outline at the same height, starting right under the title.
-                CoupleScene(left: model.sceneA, right: nil, crop: 0.6, overlap: 0.0, alignment: .top, fillHeight: true)
+                // A and the partner (dashed outline until built), starting right under the title.
+                CoupleScene(left: model.sceneA, right: model.sceneBBuilt, crop: 0.6, overlap: 0.0,
+                            alignment: .top, fillHeight: true)
                     .padding(.horizontal, -8)
                     .frame(maxHeight: .infinity)
-                InviteCodeCard()
+                Text("Free for \(model.nameB): your subscription covers you both.")
+                    .font(.app(15, .medium))
+                    .foregroundStyle(Color.textSecondary)
+                    .multilineTextAlignment(.center)
             }
         } actions: {
             InviteShareButton(title: "Send invite")
+            InviteCodeLine()
             TextLinkButton("Done for now") { next() }
+        }
+    }
+}
+
+/// "Or share code K7M2QP" in smaller text under the button (tap to copy).
+struct InviteCodeLine: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        if let code = model.invite?.code {
+            Button {
+                UIPasteboard.general.string = code
+                Haptics.success()
+                model.toast = "Code copied."
+            } label: {
+                HStack(spacing: 6) {
+                    Text("Or share code")
+                        .foregroundStyle(Color.textSecondary)
+                    Text(code)
+                        .font(.app(16, .bold))
+                        .tracking(2)
+                        .foregroundStyle(Color.textPrimary)
+                    Image(systemName: "doc.on.doc").font(.system(size: 13))
+                        .foregroundStyle(Color.textSecondary)
+                }
+                .font(.app(15, .medium))
+            }
+            .accessibilityLabel("Or share code \(code.map(String.init).joined(separator: " ")). Double tap to copy.")
+        } else {
+            Button("Get a code") { Task { await model.regenerateInvite() } }
+                .font(.app(15, .semibold))
         }
     }
 }
@@ -103,22 +139,26 @@ struct InviteShareButton: View {
     }
 
     private func render() {
-        let rules = model.memberB.map { model.rules(for: $0.id) } ?? model.draftRulesForB
-        let view = InviteCardView(inviter: model.sceneA, rules: rules.map { $0.title }, bet: model.currentBet,
-                                  code: model.invite?.code ?? "", monthlyPrice: model.purchases.monthlyPrice)
+        let aRules = model.memberA.map { model.rules(for: $0.id) } ?? []
+        let bRules = model.memberB.map { model.rules(for: $0.id) } ?? model.draftRulesForB
+        let view = InviteCardView(inviter: model.sceneA, partner: model.sceneBBuilt, partnerName: model.nameB,
+                                  inviterRules: aRules.map { $0.title }, partnerRules: bRules.map { $0.title },
+                                  bet: model.currentBet)
         let renderer = ImageRenderer(content: view)
         renderer.scale = 3
         card = renderer.uiImage
     }
 }
 
-/// The shareable invite card image (360×480 pt rendered at 3×).
+/// The shareable invite card image (360×560 pt rendered at 3×): both avatars (the partner as the dashed outline
+/// until built), "{A} invited you to Couples 75", each partner's 4 rules, the bet and "Free for you".
 struct InviteCardView: View {
     var inviter: SceneCharacter
-    var rules: [String]
+    var partner: SceneCharacter?
+    var partnerName: String
+    var inviterRules: [String]
+    var partnerRules: [String]
     var bet: String
-    var code: String
-    var monthlyPrice: String?
 
     var body: some View {
         VStack(spacing: 12) {
@@ -127,37 +167,43 @@ struct InviteCardView: View {
                 .tracking(2)
                 .foregroundStyle(Color.coral)
             Text("\(inviter.name) invited you to \(Brand.appName)")
-                .font(.rounded(22))
+                .font(.app(22, .bold))
                 .foregroundStyle(Color.textPrimary)
                 .multilineTextAlignment(.center)
-            CoupleScene(left: inviter, right: nil)
-                .frame(height: 140)
-            VStack(alignment: .leading, spacing: 5) {
-                ForEach(Array(rules.enumerated()), id: \.offset) { _, r in
-                    HStack(spacing: 6) {
-                        Circle().fill(Color.sage).frame(width: 6, height: 6)
-                        Text(r).font(.app(13)).foregroundStyle(Color.textPrimary)
-                    }
-                }
-                HStack(spacing: 6) {
-                    Text("🏆")
-                    Text(bet).font(.app(13, .bold)).foregroundStyle(Color.textPrimary)
-                }
-                .padding(.top, 4)
+            CoupleScene(left: inviter, right: partner, crop: 0.6, overlap: 0)
+                .frame(height: 150)
+                .background(PeachPanelFill(radius: 18))
+            HStack(alignment: .top, spacing: 12) {
+                column(inviter.name, inviterRules, .coral)
+                column(partnerName, partnerRules, .sage)
             }
             .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: 14).fill(Color.white))
-            Text(code)
-                .font(.app(28, .heavy))
-                .tracking(5)
-                .foregroundStyle(Color.textPrimary)
+            HStack(spacing: 8) {
+                Image(systemName: "trophy.fill").foregroundStyle(Color.gold)
+                Text(bet).font(.app(14, .bold)).foregroundStyle(Color.textPrimary)
+            }
             Text("Free for you: \(inviter.name)'s subscription covers you both.")
-                .font(.app(12, .medium))
+                .font(.app(13, .semibold))
                 .foregroundStyle(Color.textSecondary)
+                .multilineTextAlignment(.center)
         }
         .padding(20)
-        .frame(width: 360, height: 480)
+        .frame(width: 360, height: 560)
         .background(Color.ivory)
+    }
+
+    private func column(_ name: String, _ rules: [String], _ color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(name).font(.app(13, .bold)).foregroundStyle(color)
+            ForEach(Array(rules.prefix(4).enumerated()), id: \.offset) { _, r in
+                HStack(alignment: .firstTextBaseline, spacing: 5) {
+                    Circle().fill(color).frame(width: 5, height: 5)
+                    Text(r).font(.app(12)).foregroundStyle(Color.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

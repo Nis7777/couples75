@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import StoreKit
 
 /// 18: Profile.
@@ -11,6 +12,7 @@ struct ProfileView: View {
     @State private var confirmDelete = false
     @State private var showDebug = false
     @State private var eveningOn = Prefs.eveningWarningOn
+    @State private var notificationsDenied = false
 
     private var round: RoundState? { model.currentRound }
     private var partnerLinked: Bool { model.partner?.joinedAt != nil }
@@ -71,6 +73,14 @@ struct ProfileView: View {
                     .frame(minHeight: 58)
                     .card(radius: 16, shadow: false)
                     .onChange(of: eveningOn) { _, on in Task { await model.setEveningWarning(on) } }
+                    if notificationsDenied {
+                        // The user said no to the iOS prompt: offer a way back in Settings.
+                        Button {
+                            if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                        } label: {
+                            row("Reminders are off", value: "Turn on in Settings", chevron: true)
+                        }
+                    }
                     row("Partner", value: model.partnerName)
                 }
 
@@ -113,6 +123,7 @@ struct ProfileView: View {
             .padding(.bottom, 24)
         }
         .manageSubscriptionsSheet(isPresented: $showManage)
+        .task { notificationsDenied = await NotificationManager.shared.authorizationStatus() == .denied }
         .sheet(isPresented: $showWake) { WakeReminderSheet().presentationDetents([.medium]) }
         .sheet(isPresented: $showLeave) { LeaveCoupleSheet() }
         .sheet(isPresented: $showDebug) { DebugMenuView() }
