@@ -101,14 +101,21 @@ struct MemberFact: Codable, Equatable, Identifiable {
     var skinColor: String?
     var hairColor: String?
     var jacketColor: String?
+    /// The layered avatar (hair, skin, face, clothes, accessory). nil for avatars made before it existed.
+    var avatarConfig: AvatarConfig? = nil
 
     var avatar: Avatar {
-        get { Avatar(characterID: characterID, skin: skinColor, hair: hairColor, jacket: jacketColor) }
+        get {
+            var a = Avatar(characterID: characterID, skin: skinColor, hair: hairColor, jacket: jacketColor)
+            a.config = avatarConfig
+            return a
+        }
         set {
             characterID = newValue.characterID
             skinColor = newValue.skin
             hairColor = newValue.hair
             jacketColor = newValue.jacket
+            avatarConfig = newValue.config
         }
     }
 

@@ -12,7 +12,7 @@ struct OnboardingDraft: Codable, Equatable {
     var step: Step = .hook
     var myName = ""
     var partnerName = ""
-    var avatar = Avatar(characterID: "w1")
+    var avatar = Avatar(config: .random())   // new people start from a random, tasteful look
     var characterID: String { avatar.characterID }
     /// Filled in when B is with A during onboarding ("Hand the phone to {B}").
     var partnerAvatar: Avatar?
@@ -199,7 +199,7 @@ struct JoinDraft: Codable, Equatable {
 
     var step: Step = .invited
     var code: String = ""
-    var avatar = Avatar(characterID: "m1")
+    var avatar = Avatar(config: .random())
     var characterID: String { avatar.characterID }
     var fitness: FitnessLevel?
     var wakeTime = "07:30"

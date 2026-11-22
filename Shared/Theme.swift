@@ -87,13 +87,15 @@ enum CharacterPose: String, CaseIterable {
     case stand, crossed, cheer, stretch, bust
 }
 
-/// A member's avatar: one of the 12 base characters (the "hairstyle") plus optional colour overrides.
-/// nil colours mean the character's original colours.
+/// A member's avatar. New avatars are layered (`config`: hair, skin, face, clothes, accessory, chosen
+/// independently). Older avatars only have one of the 12 preset characters plus colour overrides; they're
+/// drawn with the closest layered look (`AvatarConfig.migrated`), so nobody loses their avatar.
 struct Avatar: Codable, Equatable, Hashable {
     var characterID: String
     var skin: String?
     var hair: String?
     var jacket: String?
+    var config: AvatarConfig? = nil
 
     init(characterID: String, skin: String? = nil, hair: String? = nil, jacket: String? = nil) {
         self.characterID = characterID
@@ -102,8 +104,8 @@ struct Avatar: Codable, Equatable, Hashable {
         self.jacket = jacket
     }
 
-    /// w5 wears a hijab: the hair colour tab recolours the hijab instead.
-    var hasHijab: Bool { characterID == "w5" }
+    /// A hijab: the hair colour tab recolours the hijab instead.
+    var hasHijab: Bool { config.map(\.hasHijab) ?? (characterID == "w5") }
 }
 
 /// Who appears in a scene.
@@ -136,7 +138,11 @@ enum Characters {
     private static var aspectCache: [String: CGFloat] = [:]
 
     /// Width ÷ height of an image asset (used to lay figures out without cropping heads).
+    /// Characters are drawn by the layered avatar, so they use its canvas proportions.
     static func aspect(of assetName: String, fallback: CGFloat = 0.37) -> CGFloat {
+        if assetName.hasPrefix("char_") {
+            return assetName.hasSuffix("_bust") ? AvatarCanvas.bustAspect : AvatarCanvas.fullAspect
+        }
         if let a = aspectCache[assetName] { return a }
         guard let img = UIImage(named: assetName), img.size.height > 0 else { return fallback }
         let a = img.size.width / img.size.height
@@ -199,37 +205,22 @@ extension Color {
     }
 }
 
-/// One character, recoloured: the original image, then each shading layer (skin, hair, jacket)
-/// masked and multiplied by the chosen colour, so the original shadows stay.
+/// One person in a scene: the layered avatar (see `LayeredAvatarView`), in the given pose.
 struct CharacterView: View {
-    var characterID: String
+    var avatar: Avatar
     var pose: CharacterPose
-    var skin: Color? = nil
-    var hairColor: Color? = nil
-    var jacketColor: Color? = nil
+
+    init(avatar: Avatar, pose: CharacterPose) {
+        self.avatar = avatar
+        self.pose = pose
+    }
+
+    init(characterID: String, pose: CharacterPose) {
+        self.init(avatar: Avatar(characterID: characterID), pose: pose)
+    }
 
     var body: some View {
-        ZStack {
-            Image(Characters.assetName(characterID, pose)).resizable().scaledToFit()
-            if let skin { layer("skin", skin) }
-            if let hairColor { layer("hair", hairColor) }
-            if let jacketColor { layer("jacket", jacketColor) }
-        }
-    }
-
-    private func layer(_ part: String, _ color: Color) -> some View {
-        Image(Characters.maskName(characterID, pose, part))
-            .resizable()
-            .scaledToFit()
-            .colorMultiply(color)
-    }
-}
-
-extension CharacterView {
-    init(avatar: Avatar, pose: CharacterPose) {
-        self.init(characterID: avatar.characterID, pose: pose,
-                  skin: Color(hexString: avatar.skin), hairColor: Color(hexString: avatar.hair),
-                  jacketColor: Color(hexString: avatar.jacket))
+        LayeredAvatarView(config: avatar.resolvedConfig, pose: pose)
     }
 }
 
