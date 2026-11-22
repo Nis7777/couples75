@@ -6,8 +6,11 @@ struct PlanRevealView: View {
     @Environment(AppModel.self) private var model
     var next: () -> Void
     var back: () -> Void
-    /// "Change" on a rule (personal and custom rules, Part 8). nil hides the buttons.
-    var onChange: ((Int) -> Void)? = nil
+    /// "Change" on each rule (Part 8). Changed rules wait for the partner's approval.
+    var editable = true
+    @State private var changing: ChangingRow?
+
+    private struct ChangingRow: Identifiable { var index: Int; var id: Int { index } }
 
     var body: some View {
         let d = model.draft
@@ -24,7 +27,14 @@ struct PlanRevealView: View {
                     PlanRulesCard(rows: d.planRows,
                                   leftName: d.myName, rightName: d.partnerName,
                                   rightNote: d.partnerFitness == nil ? "Draft: \(d.partnerName) can adjust when they join" : nil,
-                                  onChange: onChange)
+                                  onChange: editable ? { changing = ChangingRow(index: $0) } : nil)
+                    if d.planRows.contains(where: \.pending) {
+                        Text("Changed rules are pending until \(d.partnerName) approves. The original rule stays until then.")
+                            .font(.app(13))
+                            .foregroundStyle(Color.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                     SavesCard(mode: d.level.mode)
                 }
                 .padding(.bottom, 28)
@@ -32,6 +42,44 @@ struct PlanRevealView: View {
         } actions: {
             PrimaryButton("Set the stakes") { next() }
         }
+        .sheet(item: $changing) { row in
+            DraftRuleChangeSheet(index: row.index)
+        }
+    }
+}
+
+/// The plan reveal's Change sheet for one row: pick who it's for, then a rule.
+struct DraftRuleChangeSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    var index: Int
+    @State private var forPartner = false
+
+    var body: some View {
+        let d = model.draft
+        let intensity = forPartner ? d.partnerIntensity : d.myIntensity
+        let row = d.planRows.first { $0.index == index }
+        RuleChangeSheet(
+            title: "Change a rule",
+            currentTitle: forPartner ? row?.right : row?.left,
+            whoOptions: [d.myName, d.partnerName],
+            who: Binding(get: { forPartner ? 1 : 0 }, set: { forPartner = $0 == 1 }),
+            suggestions: d.suggestions(intensity: intensity, extra: d.personalIdeas),
+            intensity: intensity,
+            note: "\(d.partnerName) approves changes when they join. Until then the original rule stays.",
+            validate: { idea in
+                d.photoCount(forPartner: forPartner, replacing: index, with: idea) >= Brand.minPhotoRules
+                    ? nil : "Keep at least \(Brand.minPhotoRules) photo rules each."
+            },
+            canReset: d.change(at: index, forPartner: forPartner) != nil,
+            onReset: {
+                model.draft.setChange(index: index, forPartner: forPartner, idea: nil)
+                dismiss()
+            },
+            onPick: { idea in
+                model.draft.setChange(index: index, forPartner: forPartner, idea: idea)
+                dismiss()
+            })
     }
 }
 

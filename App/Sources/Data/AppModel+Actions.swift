@@ -54,6 +54,13 @@ extension AppModel {
                                          intensity: draft.partnerIntensity, round: 1, now: now)
         var records: [FactRecord] = [.member(a), .roundConfig(config)]
         records += rulesA.map { FactRecord.rule($0) } + rulesB.map { FactRecord.rule($0) }
+        // Rules changed on the plan reveal wait for B's approval; the generated rule stays until then.
+        for c in draft.ruleChanges where c.index < Brand.rulesPerMember {
+            let forMember = c.forPartner ? PendingPartner.id : meID
+            let rule = c.idea.ruleFact(memberID: forMember, position: c.index + 1, round: 1, now: now)
+            records.append(.ruleProposal(RuleProposalFact(id: .newID(), proposedBy: meID, forMember: forMember,
+                                                          ruleJSON: rule, effectiveFrom: nil, createdAt: now)))
+        }
         do {
             invite = try await store.createCouple(couple: couple, records: records, inviterName: a.name)
             UserDefaults.standard.set(now, forKey: Prefs.invitePaidAtKey)
@@ -231,6 +238,90 @@ extension AppModel {
                                                  answeredAt: now()))])
     }
 
+    // MARK: - Rule proposals (Part 8: double approval)
+
+    /// Changes the partner proposed, waiting for my answer (Proof → Plan changes).
+    var proposalsForMeToAnswer: [RuleProposalFact] {
+        guard facts.memberB != nil else { return [] }
+        return RulesEngine.pendingProposals(facts: facts, at: now()).filter { $0.proposedBy != meID }
+    }
+
+    /// My own proposals the partner hasn't answered yet.
+    var myPendingProposals: [RuleProposalFact] {
+        RulesEngine.pendingProposals(facts: facts, at: now()).filter { $0.proposedBy == meID }
+    }
+
+    func forMemberName(_ p: RuleProposalFact) -> String {
+        name(of: RulesEngine.resolvedMember(p.forMember, facts: facts))
+    }
+
+    /// The rule a proposal would replace.
+    func replacedRule(_ p: RuleProposalFact) -> RuleFact? {
+        let member = RulesEngine.resolvedMember(p.forMember, facts: facts)
+        return rules(for: member).first { $0.position == p.rule.position }
+    }
+
+    func answerProposal(_ p: RuleProposalFact, accepted: Bool) async {
+        await save([.ruleAnswer(RuleAnswerFact(id: .newID(), proposalID: p.id, accepted: accepted, answeredAt: now()))])
+        if accepted { toast = "Approved. It starts tomorrow." }
+    }
+
+    /// When a change I ask for now would start (rules lock on Day 1).
+    enum RuleChangeTiming: Equatable {
+        case beforeDay1
+        case swapTomorrow(round: Int)
+        case nextRound(Int)
+
+        var note: String {
+            switch self {
+            case .beforeDay1: return "Starts the day after your partner approves. Until then your rule stays."
+            case .swapTomorrow: return "Your one swap this round. It starts the day after your partner approves."
+            case .nextRound(let n): return "You used this round's swap, so this applies from round \(n)."
+            }
+        }
+    }
+
+    var ruleChangeTiming: RuleChangeTiming {
+        guard let round = currentRound, round.status == .active, !isWarmup else { return .beforeDay1 }
+        if RulesEngine.swapUsed(by: meID, round: round.number, facts: facts, at: now()) {
+            return .nextRound(round.number + 1)
+        }
+        return .swapTomorrow(round: round.number)
+    }
+
+    /// Profile → Our rules → Request a change: proposes one of my rules; the partner must approve.
+    func requestRuleChange(position: Int, idea: RuleIdea) async -> Bool {
+        let now = self.now()
+        let timing = ruleChangeTiming
+        let round: Int
+        var effectiveFrom: String?
+        switch timing {
+        case .beforeDay1: round = currentRound?.number ?? 1
+        case .swapTomorrow(let r):
+            round = r
+            effectiveFrom = LocalDate(now, in: me?.tz ?? .current).adding(1).string
+        case .nextRound(let r): round = r
+        }
+        let rule = idea.ruleFact(memberID: meID, position: position, round: round, now: now)
+        let ok = await save([.ruleProposal(RuleProposalFact(id: .newID(), proposedBy: meID, forMember: meID,
+                                                            ruleJSON: rule, effectiveFrom: effectiveFrom,
+                                                            createdAt: now))])
+        if ok { toast = "Sent to \(partnerName) to approve." }
+        return ok
+    }
+
+    /// "Suggest a change": decline the partner's proposal and propose another rule for them instead.
+    func suggestInstead(of p: RuleProposalFact, idea: RuleIdea) async {
+        let now = self.now()
+        let rule = idea.ruleFact(memberID: p.forMember, position: p.rule.position, round: p.rule.fromRound, now: now)
+        await save([
+            .ruleAnswer(RuleAnswerFact(id: .newID(), proposalID: p.id, accepted: false, answeredAt: now)),
+            .ruleProposal(RuleProposalFact(id: .newID(), proposedBy: meID, forMember: p.forMember, ruleJSON: rule,
+                                           effectiveFrom: p.effectiveFrom, createdAt: now)),
+        ])
+        toast = "Suggestion sent."
+    }
+
     // MARK: - Check-ins (4.1–4.3)
 
     func stampText(dayNumber: Int?, at date: Date, tz: TimeZone) -> String {
@@ -361,8 +452,15 @@ extension AppModel {
         for m in facts.members {
             let current = RulesEngine.effectiveRules(for: m.id, round: round.number, facts: facts, at: now)
             let intensity = level.adjust(m.fitnessLevel.intensity)
-            records += PlanGenerator.rules(keys: current.map { $0.libraryKey }, memberID: m.id,
-                                           intensity: intensity, round: next, now: now).map { FactRecord.rule($0) }
+            // Library rules follow the new level; custom rules carry over as written.
+            for r in current {
+                var copy = r
+                copy.id = .newID()
+                copy.fromRound = next
+                copy.createdAt = now
+                if let lib = RuleLibrary.rule(r.libraryKey) { copy.title = lib.title(for: intensity) }
+                records.append(.rule(copy))
+            }
         }
         if var mine = me {
             mine.wakeTime = wakeTime
@@ -461,6 +559,8 @@ extension AppModel {
             deepLink = .pause
         } else if route == "tweak" {
             deepLink = .tweak
+        } else if route == "proof" {
+            deepLink = .proof
         } else if route == "progress" {
             deepLink = .progress
         } else {

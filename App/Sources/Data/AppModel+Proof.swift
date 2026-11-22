@@ -19,7 +19,8 @@ extension AppModel {
     }
 
     /// The coral number on the Proof tab.
-    var proofBadge: Int { unreactedPartnerCheckIns.count }
+    /// Check-ins to react to plus rule changes to approve.
+    var proofBadge: Int { unreactedPartnerCheckIns.count + proposalsForMeToAnswer.count }
 
     /// "Today", "Yesterday", "Day 21" (or a date) for a check-in, in its member's own local days.
     func dayLabel(for checkIn: CheckInFact) -> String {

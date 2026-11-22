@@ -41,8 +41,20 @@ enum CloudKitSchema {
     static let rule = RecordType(
         name: "Rule",
         fields: ["memberID": "String", "fromRound": "Int(64)", "position": "Int(64)", "libraryKey": "String",
-                 "title": "String", "type": "String", "createdAt": "Date/Time"],
+                 "title": "String", "type": "String", "createdAt": "Date/Time", "photoHint": "String"],
         dateKeys: ["createdAt"], boolKeys: [], jsonKeys: [])
+
+    /// A custom or changed rule waiting for the partner's approval (Part 8).
+    static let ruleProposal = RecordType(
+        name: "RuleProposal",
+        fields: ["proposedBy": "String", "forMember": "String", "ruleJSON": "String (JSON)",
+                 "effectiveFrom": "String", "createdAt": "Date/Time"],
+        dateKeys: ["createdAt"], boolKeys: [], jsonKeys: ["ruleJSON"])
+
+    static let ruleAnswer = RecordType(
+        name: "RuleAnswer",
+        fields: ["proposalID": "String", "accepted": "Int(64)", "answeredAt": "Date/Time"],
+        dateKeys: ["answeredAt"], boolKeys: ["accepted"], jsonKeys: [])
 
     static let ruleTweak = RecordType(
         name: "RuleTweak",
@@ -97,7 +109,7 @@ enum CloudKitSchema {
         dateKeys: ["createdAt"], boolKeys: [], jsonKeys: [])
 
     static let zoneTypes: [RecordType] = [couple, member, roundConfig, rule, ruleTweak, tweakAnswer, checkIn,
-                                          reaction, pauseRequest, pauseAnswer, betPaid]
+                                          reaction, pauseRequest, pauseAnswer, betPaid, ruleProposal, ruleAnswer]
 
     static func type(named name: String) -> RecordType? { zoneTypes.first { $0.name == name } }
 

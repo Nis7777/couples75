@@ -82,7 +82,7 @@ struct CheckInCameraView: View {
                 Text("Live photo · not from your camera roll")
                     .font(.app(13, .medium))
                     .foregroundStyle(.white.opacity(0.85))
-                Text(RuleLibrary.photoPrompt(for: rule.libraryKey))
+                Text(RuleLibrary.photoPrompt(for: rule))
                     .font(.app(13))
                     .foregroundStyle(.white.opacity(0.7))
                     .fixedSize(horizontal: false, vertical: true)

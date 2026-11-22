@@ -276,8 +276,11 @@ enum RulesEngine {
 
     // MARK: Rules
 
-    /// The member's 4 rules for a round, with B's tweak applied as of `at` (pending counts as proposed).
-    static func effectiveRules(for memberID: MemberID, round: Int, facts: Facts, at: Date) -> [RuleFact] {
+    /// The member's 4 rules for a round, with B's tweak applied as of `at` (pending counts as proposed),
+    /// then the approved rule proposals (Part 8) for the local `date` (default: the member's date at `at`).
+    /// Pending or declined proposals never count: the original rule stays active.
+    static func effectiveRules(for memberID: MemberID, round: Int, facts: Facts, at: Date,
+                               date: LocalDate? = nil) -> [RuleFact] {
         let mine = facts.rules.filter { $0.memberID == memberID && $0.fromRound <= round }
         guard let from = mine.map({ $0.fromRound }).max() else { return [] }
         var byPosition: [Int: RuleFact] = [:]
@@ -292,7 +295,75 @@ enum RulesEngine {
                 byPosition[pos] = newRule
             }
         }
+        let tz = facts.member(memberID)?.tz ?? .current
+        let day = date ?? LocalDate(at, in: tz)
+        for (p, start) in approvedProposals(for: memberID, facts: facts, at: at) {
+            let r = p.rule
+            guard r.fromRound <= round, r.fromRound >= from, (1...Brand.rulesPerMember).contains(r.position),
+                  day >= start else { continue }
+            var applied = r
+            applied.memberID = memberID
+            byPosition[r.position] = applied
+        }
         return byPosition.keys.sorted().compactMap { byPosition[$0] }
+    }
+
+    // MARK: Rule proposals (double approval)
+
+    /// Proposals made for the partner before they joined target the placeholder id; they belong to B.
+    static func resolvedMember(_ id: MemberID, facts: Facts) -> MemberID {
+        id == PendingPartner.id ? (facts.memberB?.id ?? id) : id
+    }
+
+    /// Approved only by an answer (never automatically); the first answer counts.
+    static func proposalStatus(_ p: RuleProposalFact, facts: Facts, at: Date) -> PauseStatus {
+        guard let answer = facts.ruleAnswers
+            .filter({ $0.proposalID == p.id && $0.answeredAt <= at })
+            .min(by: { $0.answeredAt < $1.answeredAt }) else { return .pending }
+        return answer.accepted ? .accepted : .declined
+    }
+
+    /// The approved proposals for a member, oldest approval first, with the local date each starts:
+    /// the day after the approval (and never before `effectiveFrom`). Only the first approved in-round
+    /// swap per round counts; a second one in the same round is rejected.
+    static func approvedProposals(for memberID: MemberID, facts: Facts, at: Date) -> [(RuleProposalFact, LocalDate)] {
+        let tz = facts.member(memberID)?.tz ?? .current
+        var result: [(RuleProposalFact, LocalDate, Date)] = []
+        var swapRounds = Set<Int>()
+        let answered = facts.ruleProposals
+            .filter { resolvedMember($0.forMember, facts: facts) == memberID }
+            .compactMap { p -> (RuleProposalFact, Date)? in
+                guard let a = facts.ruleAnswers
+                    .filter({ $0.proposalID == p.id && $0.answeredAt <= at })
+                    .min(by: { $0.answeredAt < $1.answeredAt }), a.accepted else { return nil }
+                return (p, a.answeredAt)
+            }
+            .sorted { ($0.1, $0.0.createdAt) < ($1.1, $1.0.createdAt) }
+        for (p, answeredAt) in answered {
+            if p.isSwap {
+                guard !swapRounds.contains(p.rule.fromRound) else { continue }
+                swapRounds.insert(p.rule.fromRound)
+            }
+            var start = LocalDate(answeredAt, in: tz).adding(1)
+            if let from = p.effectiveFrom.flatMap(LocalDate.init(string:)), from > start { start = from }
+            result.append((p, start, answeredAt))
+        }
+        return result.map { ($0.0, $0.1) }
+    }
+
+    /// Proposals nobody has answered yet.
+    static func pendingProposals(facts: Facts, at: Date) -> [RuleProposalFact] {
+        facts.ruleProposals
+            .filter { proposalStatus($0, facts: facts, at: at) == .pending }
+            .sorted { $0.createdAt < $1.createdAt }
+    }
+
+    /// Whether the member already used (or is waiting on) this round's one swap.
+    static func swapUsed(by memberID: MemberID, round: Int, facts: Facts, at: Date) -> Bool {
+        facts.ruleProposals.contains { p in
+            p.isSwap && p.rule.fromRound == round && resolvedMember(p.forMember, facts: facts) == memberID
+                && proposalStatus(p, facts: facts, at: at) != .declined
+        }
     }
 
     static func config(for round: Int, facts: Facts) -> RoundConfigFact? {
@@ -437,7 +508,7 @@ enum RulesEngine {
                 } else {
                     cursors[i].counted += 1
                     let n = cursors[i].counted
-                    let rules = effectiveRules(for: cursors[i].member.id, round: number, facts: facts, at: t)
+                    let rules = effectiveRules(for: cursors[i].member.id, round: number, facts: facts, at: t, date: date)
                     let done = valid["\(cursors[i].member.id)|\(date.string)"] ?? []
                     let complete = !rules.isEmpty && rules.allSatisfy { done.contains($0.id) }
                     cursors[i].days.append(SettledDay(date: date, dayNumber: n,
@@ -564,7 +635,7 @@ enum RulesEngine {
 
     static func checklist(member m: MemberFact, round: Int, date: LocalDate, warmup: Bool,
                           facts: Facts, now: Date) -> [ChecklistItem] {
-        let rules = effectiveRules(for: m.id, round: round, facts: facts, at: now)
+        let rules = effectiveRules(for: m.id, round: round, facts: facts, at: now, date: date)
         let mine = facts.checkIns.filter {
             $0.memberID == m.id && $0.localDate == date.string && $0.isWarmup == warmup
         }

@@ -48,12 +48,94 @@ enum RuleLibrary {
                     hard: "In bed by 23:30", photoPrompt: ""),
         LibraryRule(key: "noTakeaway", type: .honour, gentle: "No takeaway spending", standard: "No takeaway spending",
                     hard: "No takeaway spending", photoPrompt: ""),
+        // Personal goals (Part 8): the curated recommendations, Gentle / Couples 75 / Hard.
+        LibraryRule(key: "language", type: .photo, gentle: "10 min language practice",
+                    standard: "15 min language practice", hard: "30 min language practice",
+                    photoPrompt: "Photo of your lesson, app streak or notebook."),
+        LibraryRule(key: "meditate", type: .honour, gentle: "5 min meditation", standard: "10 min meditation",
+                    hard: "20 min meditation", photoPrompt: ""),
+        LibraryRule(key: "lessSocial", type: .photo, gentle: "Under 1h social media",
+                    standard: "Under 45 min social media", hard: "Under 30 min social media",
+                    photoPrompt: "Screenshot or photo of today's Screen Time."),
+        LibraryRule(key: "instrument", type: .photo, gentle: "10 min instrument practice",
+                    standard: "20 min instrument practice", hard: "30 min instrument practice",
+                    photoPrompt: "Photo of your instrument or sheet music."),
+        LibraryRule(key: "cookAtHome", type: .photo, gentle: "Cook one meal", standard: "Cook one meal",
+                    hard: "Cook one meal", photoPrompt: "Photo of the meal you cooked."),
+        LibraryRule(key: "journal", type: .photo, gentle: "Journal 3 lines", standard: "Journal 5 lines",
+                    hard: "Journal 10 lines", photoPrompt: "Photo of today's page (cover the words if you like)."),
+        LibraryRule(key: "stretch", type: .photo, gentle: "5 min stretch", standard: "10 min stretch",
+                    hard: "15 min stretch", photoPrompt: "Photo of your mat or where you stretched."),
+        LibraryRule(key: "study", type: .photo, gentle: "25 min study", standard: "50 min study",
+                    hard: "90 min study", photoPrompt: "Photo of your desk or notes."),
     ]
 
     static func rule(_ key: String) -> LibraryRule? { all.first { $0.key == key } }
 
     static func photoPrompt(for libraryKey: String) -> String {
         rule(libraryKey)?.photoPrompt ?? "Snap something that proves it. Never your body."
+    }
+
+    /// The prompt under the camera: a custom rule's own hint, else the library's.
+    static func photoPrompt(for rule: RuleFact) -> String {
+        if let hint = rule.photoHint?.trimmingCharacters(in: .whitespaces), !hint.isEmpty { return hint }
+        return photoPrompt(for: rule.libraryKey)
+    }
+
+    static let customTitleMaxLength = 40
+}
+
+/// "Anything personal you want to work on?" (Part 8). Each maps to a curated library rule.
+enum PersonalGoal: String, Codable, CaseIterable, Identifiable {
+    case language, readMore, meditate, saveMoney, lessSocial, instrument, study, cookAtHome, journal, stretch
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .language: return "Learn a language"
+        case .readMore: return "Read more"
+        case .meditate: return "Meditate"
+        case .saveMoney: return "Save money"
+        case .lessSocial: return "Less social media"
+        case .instrument: return "Practise an instrument"
+        case .study: return "Study"
+        case .cookAtHome: return "Cook at home"
+        case .journal: return "Journal"
+        case .stretch: return "Stretch"
+        }
+    }
+
+    var ruleKey: String {
+        switch self {
+        case .readMore: return "reading"
+        case .saveMoney: return "noTakeaway"
+        default: return rawValue
+        }
+    }
+
+    static let otherMaxLength = 60
+}
+
+/// One rule the Change sheet can offer: a library rule (key) or a custom one.
+struct RuleIdea: Identifiable, Equatable, Hashable, Codable {
+    var title: String
+    var type: RuleType
+    var libraryKey: String?
+    var photoHint: String?
+    var id: String { (libraryKey ?? "custom") + "|" + title }
+
+    static func library(_ key: String, intensity: Intensity) -> RuleIdea? {
+        guard let lib = RuleLibrary.rule(key) else { return nil }
+        return RuleIdea(title: lib.title(for: intensity), type: lib.type, libraryKey: key, photoHint: nil)
+    }
+
+    /// The rule fact this idea becomes for a member and position.
+    func ruleFact(memberID: MemberID, position: Int, round: Int, now: Date) -> RuleFact {
+        RuleFact(id: .newID(), memberID: memberID, fromRound: round, position: position,
+                 libraryKey: libraryKey ?? RuleFact.customKey,
+                 title: String(title.trimmingCharacters(in: .whitespaces).prefix(RuleLibrary.customTitleMaxLength)),
+                 type: type, createdAt: now,
+                 photoHint: type == .photo ? photoHint.flatMap { $0.isEmpty ? nil : $0 } : nil)
     }
 }
 
@@ -145,12 +227,16 @@ enum PlanGenerator {
     static let photoFillers = ["reading", "water", "steps", "coldShower", "workout"]
 
     /// The plan follows the quiz: each chosen goal maps to one rule; 4 rules, at least 2 photo rules.
-    static func plan(goals: [Goal]) -> [PlannedRule] {
+    /// Personal goals come after the quiz goals (and before fillers).
+    static func plan(goals: [Goal], personal: [PersonalGoal] = []) -> [PlannedRule] {
         var picked: [PlannedRule] = []
         for g in Goal.allCases where goals.contains(g) {
             if let key = g.ruleKeys.first(where: { k in !picked.contains { $0.key == k } }) {
                 picked.append(PlannedRule(key: key, goal: g))
             }
+        }
+        for p in PersonalGoal.allCases where personal.contains(p) && !picked.contains(where: { $0.key == p.ruleKey }) {
+            picked.append(PlannedRule(key: p.ruleKey, goal: nil, personal: p.title))
         }
         return complete(picked)
     }

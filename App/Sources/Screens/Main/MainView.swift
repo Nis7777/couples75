@@ -76,6 +76,8 @@ struct MainView: View {
             model.tab = .today
         case .progress:
             model.tab = .progress
+        case .proof:
+            model.tab = .proof
         case .checkIn(let id):
             // "{name} finished {rule}. React?" opens that exact check-in in Proof.
             if let c = model.facts.checkIns.first(where: { $0.id == id }) {

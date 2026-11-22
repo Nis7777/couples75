@@ -32,6 +32,7 @@ struct GoalsView: View {
             Haptics.tap()
             withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                 if selected { model.draft.goals.removeAll { $0 == g } } else { model.draft.goals.append(g) }
+                model.draft.ruleChanges = []   // the plan's rows change with the goals
             }
         } label: {
             HStack(spacing: 10) {

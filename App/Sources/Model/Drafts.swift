@@ -4,7 +4,7 @@ import Foundation
 struct OnboardingDraft: Codable, Equatable {
     enum Step: String, Codable, CaseIterable {
         case hook, character, names, partnerIPhone, togetherNow, handOff, partnerAvatar, partnerFitness, partnerWake,
-             handBack, together, longDistance, goals, fitness, wakeUp, quit, mirror, level, building, planReveal, stakes
+             handBack, together, longDistance, goals, personal, fitness, wakeUp, quit, mirror, level, building, planReveal, stakes
         // Without a step counter (the paywall has its own pages: outcome, trial, plans):
         case paywall, invite, notifications, android
     }
@@ -24,6 +24,13 @@ struct OnboardingDraft: Codable, Equatable {
     var together: String?
     var longDistance: Bool?
     var goals: [Goal] = []
+    /// "Anything personal you want to work on?" (skippable).
+    var personalGoals: [PersonalGoal] = []
+    var personalOther = ""
+    /// Ideas for `personalOther` (on-device model or keyword match), offered under "Suggested for you".
+    var personalIdeas: [RuleIdea] = []
+    /// Rules changed on the plan reveal ("Change"). They are saved as proposals the partner must approve.
+    var ruleChanges: [DraftRuleChange] = []
     var fitness: FitnessLevel?
     var wakeTime = "07:30"
     var quitFrequency: Double = 1
@@ -39,7 +46,7 @@ struct OnboardingDraft: Codable, Equatable {
 
     /// Steps that show "Step X of N" (paywall, invite, notifications and Android are outside the count).
     static let countedSteps: [Step] = [.hook, .character, .names, .partnerIPhone, .togetherNow,
-                                       .together, .longDistance, .goals,
+                                       .together, .longDistance, .goals, .personal,
                                        .fitness, .wakeUp, .quit, .mirror, .level, .building, .planReveal,
                                        .stakes]
 
@@ -55,16 +62,46 @@ struct OnboardingDraft: Codable, Equatable {
     var stepTotal: Int { shownSteps.count }
 
     /// The plan follows the quiz (each rule knows why it's there).
-    var plan: [PlannedRule] { PlanGenerator.plan(goals: goals) }
+    var plan: [PlannedRule] { PlanGenerator.plan(goals: goals, personal: personalGoals) }
     var ruleKeys: [String] { plan.map { $0.key } }
 
-    /// Rows for the plan reveal: reason, A's title, B's title.
+    /// Rows for the plan reveal: reason, A's title, B's title; changed rules show as pending.
     var planRows: [PlanRow] {
         plan.enumerated().map { i, p in
-            PlanRow(index: i, reason: p.reason,
-                    left: RuleLibrary.rule(p.key)?.title(for: myIntensity) ?? p.key,
-                    right: RuleLibrary.rule(p.key)?.title(for: partnerIntensity) ?? p.key)
+            let a = change(at: i, forPartner: false)
+            let b = change(at: i, forPartner: true)
+            return PlanRow(index: i, reason: p.reason,
+                           left: a?.title ?? RuleLibrary.rule(p.key)?.title(for: myIntensity) ?? p.key,
+                           right: b?.title ?? RuleLibrary.rule(p.key)?.title(for: partnerIntensity) ?? p.key,
+                           pending: a != nil || b != nil)
         }
+    }
+
+    func change(at index: Int, forPartner: Bool) -> RuleIdea? {
+        ruleChanges.last { $0.index == index && $0.forPartner == forPartner }?.idea
+    }
+
+    /// The rule types one side would end up with if `idea` replaced row `index`.
+    func photoCount(forPartner: Bool, replacing index: Int? = nil, with idea: RuleIdea? = nil) -> Int {
+        plan.enumerated().filter { i, p in
+            if i == index, let idea { return idea.type == .photo }
+            if let c = change(at: i, forPartner: forPartner) { return c.type == .photo }
+            return RuleLibrary.rule(p.key)?.type == .photo
+        }.count
+    }
+
+    mutating func setChange(index: Int, forPartner: Bool, idea: RuleIdea?) {
+        ruleChanges.removeAll { $0.index == index && $0.forPartner == forPartner }
+        if let idea { ruleChanges.append(DraftRuleChange(index: index, forPartner: forPartner, idea: idea)) }
+    }
+
+    /// Suggestions for the Change sheet: the personal picks first, then the other goals' rules.
+    func suggestions(intensity: Intensity, extra: [RuleIdea]) -> [RuleIdea] {
+        var keys = personalGoals.map(\.ruleKey) + goals.flatMap(\.ruleKeys)
+        keys = keys.filter { k in !ruleKeys.contains(k) }
+        var out = extra
+        for k in keys { if let i = RuleIdea.library(k, intensity: intensity), !out.contains(i) { out.append(i) } }
+        return Array(out.prefix(6))
     }
     var myIntensity: Intensity { level.adjust((fitness ?? .somewhatActive).intensity) }
     /// B's rules use Gentle intensity until B answers their own fitness question.
@@ -84,6 +121,13 @@ struct OnboardingDraft: Codable, Equatable {
             UserDefaults.standard.set(data, forKey: Prefs.draftKey)
         }
     }
+}
+
+/// One rule changed on the plan reveal, for A (forPartner false) or B.
+struct DraftRuleChange: Codable, Equatable {
+    var index: Int
+    var forPartner: Bool
+    var idea: RuleIdea
 }
 
 /// Person B's joining answers (section 3.5).

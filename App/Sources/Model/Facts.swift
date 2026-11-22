@@ -6,6 +6,11 @@ import Foundation
 
 typealias MemberID = String
 
+/// Draft rules A writes for the partner before B joins use this placeholder member id.
+enum PendingPartner {
+    static let id = "pending-partner"
+}
+
 enum MemberRole: String, Codable, Equatable {
     case a = "A"
     case b = "B"
@@ -139,6 +144,34 @@ struct RuleFact: Codable, Equatable, Identifiable {
     var title: String
     var type: RuleType
     var createdAt: Date
+    /// A custom rule's "what to photograph" hint (Write your own). Library rules use the library's prompt.
+    var photoHint: String? = nil
+
+    static let customKey = "custom"
+}
+
+/// A custom or changed rule waiting for the partner's approval (Part 8: double approval).
+/// The rule replaces `ruleJSON.position` for `forMember` once the partner (never the proposer) approves.
+/// - `effectiveFrom` nil: a change made before Day 1, or one for the next round (`ruleJSON.fromRound`).
+/// - `effectiveFrom` set: the in-round swap (one per person per round), from that local date at the earliest.
+/// An approved rule always starts the local day after the approval. Nothing is ever auto-approved.
+struct RuleProposalFact: Codable, Equatable, Identifiable {
+    var id: String
+    var proposedBy: MemberID
+    var forMember: MemberID
+    var ruleJSON: RuleFact
+    var effectiveFrom: String?      // yyyy-MM-dd in forMember's time zone
+    var createdAt: Date
+
+    var rule: RuleFact { ruleJSON }
+    var isSwap: Bool { effectiveFrom != nil }
+}
+
+struct RuleAnswerFact: Codable, Equatable, Identifiable {
+    var id: String
+    var proposalID: String
+    var accepted: Bool
+    var answeredAt: Date
 }
 
 /// B's proposal while joining: swap one rule and/or change the bet.
@@ -227,6 +260,8 @@ struct Facts: Codable, Equatable {
     var pauses: [PauseRequestFact] = []
     var pauseAnswers: [PauseAnswerFact] = []
     var betPayments: [BetPaidFact] = []
+    var ruleProposals: [RuleProposalFact] = []
+    var ruleAnswers: [RuleAnswerFact] = []
 
     static let empty = Facts()
 
@@ -249,6 +284,8 @@ struct Facts: Codable, Equatable {
         case .pause(let f): Self.upsert(&pauses, f)
         case .pauseAnswer(let f): Self.upsert(&pauseAnswers, f)
         case .betPaid(let f): Self.upsert(&betPayments, f)
+        case .ruleProposal(let f): Self.upsert(&ruleProposals, f)
+        case .ruleAnswer(let f): Self.upsert(&ruleAnswers, f)
         }
     }
 
@@ -270,6 +307,8 @@ enum FactRecord {
     case pause(PauseRequestFact)
     case pauseAnswer(PauseAnswerFact)
     case betPaid(BetPaidFact)
+    case ruleProposal(RuleProposalFact)
+    case ruleAnswer(RuleAnswerFact)
 
     var id: String {
         switch self {
@@ -284,7 +323,29 @@ enum FactRecord {
         case .pause(let f): return f.id
         case .pauseAnswer(let f): return f.id
         case .betPaid(let f): return f.id
+        case .ruleProposal(let f): return f.id
+        case .ruleAnswer(let f): return f.id
         }
+    }
+}
+
+extension Facts {
+    /// Lenient decoding: caches written by older builds lack the newer lists.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        couple = try c.decodeIfPresent(CoupleFact.self, forKey: .couple)
+        members = try c.decodeIfPresent([MemberFact].self, forKey: .members) ?? []
+        roundConfigs = try c.decodeIfPresent([RoundConfigFact].self, forKey: .roundConfigs) ?? []
+        rules = try c.decodeIfPresent([RuleFact].self, forKey: .rules) ?? []
+        tweaks = try c.decodeIfPresent([RuleTweakFact].self, forKey: .tweaks) ?? []
+        tweakAnswers = try c.decodeIfPresent([TweakAnswerFact].self, forKey: .tweakAnswers) ?? []
+        checkIns = try c.decodeIfPresent([CheckInFact].self, forKey: .checkIns) ?? []
+        reactions = try c.decodeIfPresent([ReactionFact].self, forKey: .reactions) ?? []
+        pauses = try c.decodeIfPresent([PauseRequestFact].self, forKey: .pauses) ?? []
+        pauseAnswers = try c.decodeIfPresent([PauseAnswerFact].self, forKey: .pauseAnswers) ?? []
+        betPayments = try c.decodeIfPresent([BetPaidFact].self, forKey: .betPayments) ?? []
+        ruleProposals = try c.decodeIfPresent([RuleProposalFact].self, forKey: .ruleProposals) ?? []
+        ruleAnswers = try c.decodeIfPresent([RuleAnswerFact].self, forKey: .ruleAnswers) ?? []
     }
 }
 

@@ -416,6 +416,84 @@ final class RulesEngineTests: XCTestCase {
         XCTAssertEqual(RulesEngine.betText(for: 1, facts: f.facts, at: f.noon(1)), "Loser plans the date")
     }
 
+    // MARK: Rule proposals (double approval)
+
+    private func swap(_ id: String, for member: MemberID, by proposer: MemberID, position: Int, f: Fixture,
+                      createdAt: Date, effectiveFrom: LocalDate?) -> RuleProposalFact {
+        let rule = RuleFact(id: "rule-\(id)", memberID: member, fromRound: 1, position: position,
+                            libraryKey: RuleFact.customKey, title: "Custom \(id)", type: .honour, createdAt: createdAt)
+        return RuleProposalFact(id: id, proposedBy: proposer, forMember: member, ruleJSON: rule,
+                                effectiveFrom: effectiveFrom?.string, createdAt: createdAt)
+    }
+
+    func testPendingProposalDoesNotCount() {
+        var f = Fixture()
+        f.facts.ruleProposals.append(swap("p1", for: f.a, by: f.a, position: 4, f: f,
+                                          createdAt: f.joined, effectiveFrom: nil))
+        // Never auto-approved, however long it waits: the original rule stays active.
+        let rules = RulesEngine.effectiveRules(for: f.a, round: 1, facts: f.facts, at: f.noon(30))
+        XCTAssertEqual(rules.map { $0.id }, ["a1", "a2", "a3", "a4"])
+        XCTAssertEqual(RulesEngine.pendingProposals(facts: f.facts, at: f.noon(30)).map { $0.id }, ["p1"])
+        // Pending never blocks Day 1: the original rules settle the day.
+        f.completeBoth(1...1)
+        XCTAssertEqual(f.state(at: f.noon(2)).currentRound?.member(f.a)?.days.first?.outcome, .complete)
+
+        // Declined also keeps the original.
+        f.facts.ruleAnswers.append(RuleAnswerFact(id: "ra", proposalID: "p1", accepted: false, answeredAt: f.noon(1)))
+        XCTAssertEqual(RulesEngine.effectiveRules(for: f.a, round: 1, facts: f.facts, at: f.noon(5)).map { $0.id },
+                       ["a1", "a2", "a3", "a4"])
+    }
+
+    func testApprovedSwapStartsTheNextLocalDay() {
+        var f = Fixture()
+        f.completeBoth(1...3)
+        f.facts.ruleProposals.append(swap("p1", for: f.a, by: f.a, position: 4, f: f,
+                                          createdAt: f.noon(3), effectiveFrom: f.date(4)))
+        // Approved by B in the evening of Day 4: still the old rule on Day 4, the new one from Day 5.
+        f.facts.ruleAnswers.append(RuleAnswerFact(id: "ra", proposalID: "p1", accepted: true,
+                                                  answeredAt: f.noon(4).addingTimeInterval(6 * 3600)))
+        let day4 = RulesEngine.effectiveRules(for: f.a, round: 1, facts: f.facts, at: f.noon(5), date: f.date(4))
+        XCTAssertEqual(day4.map { $0.id }, ["a1", "a2", "a3", "a4"])
+        let day5 = RulesEngine.effectiveRules(for: f.a, round: 1, facts: f.facts, at: f.noon(5), date: f.date(5))
+        XCTAssertEqual(day5.map { $0.id }, ["a1", "a2", "a3", "rule-p1"])
+        XCTAssertEqual(f.state(at: f.noon(5)).today[f.a]?.items.map { $0.rule.id }, ["a1", "a2", "a3", "rule-p1"])
+
+        // Day 4 is judged on the old rules (all done), Day 5 on the new one (a4 no longer counts).
+        f.complete(f.a, day: 4); f.complete(f.b, day: 4)
+        f.complete(f.a, day: 5); f.complete(f.b, day: 5)
+        let s = f.state(at: f.noon(6))
+        let a = s.currentRound?.member(f.a)?.days
+        XCTAssertEqual(a?.first { $0.dayNumber == 4 }?.outcome, .complete)
+        XCTAssertEqual(a?.first { $0.dayNumber == 5 }?.outcome, .miss)
+    }
+
+    func testSecondSwapInARoundIsRejected() {
+        var f = Fixture()
+        f.facts.ruleProposals.append(swap("p1", for: f.a, by: f.a, position: 4, f: f,
+                                          createdAt: f.noon(2), effectiveFrom: f.date(3)))
+        f.facts.ruleProposals.append(swap("p2", for: f.a, by: f.a, position: 3, f: f,
+                                          createdAt: f.noon(3), effectiveFrom: f.date(4)))
+        XCTAssertTrue(RulesEngine.swapUsed(by: f.a, round: 1, facts: f.facts, at: f.noon(2)))
+        f.facts.ruleAnswers.append(RuleAnswerFact(id: "r1", proposalID: "p1", accepted: true, answeredAt: f.noon(2)))
+        f.facts.ruleAnswers.append(RuleAnswerFact(id: "r2", proposalID: "p2", accepted: true, answeredAt: f.noon(3)))
+        let rules = RulesEngine.effectiveRules(for: f.a, round: 1, facts: f.facts, at: f.noon(10), date: f.date(10))
+        XCTAssertEqual(rules.map { $0.id }, ["a1", "a2", "a3", "rule-p1"])
+        // B's swap is B's own: unaffected by A's.
+        XCTAssertFalse(RulesEngine.swapUsed(by: f.b, round: 1, facts: f.facts, at: f.noon(3)))
+    }
+
+    func testProposalForPendingPartnerBelongsToB() {
+        var f = Fixture()
+        f.facts.ruleProposals.append(swap("p1", for: PendingPartner.id, by: f.a, position: 2, f: f,
+                                          createdAt: f.joined.addingTimeInterval(-7200), effectiveFrom: nil))
+        f.facts.ruleAnswers.append(RuleAnswerFact(id: "r1", proposalID: "p1", accepted: true,
+                                                  answeredAt: f.joined.addingTimeInterval(600)))
+        // Approved on the warm-up day: starts on Day 1.
+        let rules = RulesEngine.effectiveRules(for: f.b, round: 1, facts: f.facts, at: f.noon(1), date: f.date(1))
+        XCTAssertEqual(rules.map { $0.id }, ["b1", "rule-p1", "b3", "b4"])
+        XCTAssertEqual(rules[1].memberID, f.b)
+    }
+
     // MARK: Determinism
 
     func testSameFactsSameState() {

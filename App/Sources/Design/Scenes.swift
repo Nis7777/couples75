@@ -448,7 +448,7 @@ struct FloatingTabBar: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(tab == .proof && proofBadge > 0 ? "Proof, \(proofBadge) to react" : tab.title)
+                .accessibilityLabel(tab == .proof && proofBadge > 0 ? "Proof, \(proofBadge) waiting" : tab.title)
                 .accessibilityAddTraits(active ? .isSelected : [])
             }
         }

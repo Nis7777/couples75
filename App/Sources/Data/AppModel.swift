@@ -117,6 +117,7 @@ enum Prefs {
 enum DeepLink: Equatable {
     case today
     case progress
+    case proof
     case checkIn(String)
     case pause
     case tweak

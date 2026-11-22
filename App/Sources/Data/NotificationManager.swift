@@ -187,6 +187,17 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             post(a.accepted ? "\(name) accepted your change." : "\(name) kept the original plan.", route: "today")
         }
 
+        let oldProposals = Set(oldFacts.ruleProposals.map { $0.id })
+        for p in newFacts.ruleProposals where !oldProposals.contains(p.id) && p.proposedBy == partner.id {
+            post("\(name) suggested a new rule. Approve?", route: "proof")
+        }
+        let oldRuleAnswers = Set(oldFacts.ruleAnswers.map { $0.id })
+        for a in newFacts.ruleAnswers where !oldRuleAnswers.contains(a.id) {
+            guard let p = newFacts.ruleProposals.first(where: { $0.id == a.proposalID }), p.proposedBy == meID else { continue }
+            post(a.accepted ? "\(name) approved \(p.rule.title). It starts tomorrow." : "\(name) kept the original rule.",
+                 route: a.accepted ? "today" : "proof")
+        }
+
         if oldFacts.memberB?.joinedAt == nil, let b = newFacts.memberB, b.joinedAt != nil, b.id != meID {
             post("\(b.name) joined! Day 1 starts tomorrow.", route: "today")
         }

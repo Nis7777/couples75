@@ -159,7 +159,4 @@ enum MockData {
     }
 }
 
-/// Draft rules A writes for the partner before B joins use this placeholder member id.
-enum PendingPartner {
-    static let id = "pending-partner"
-}
+

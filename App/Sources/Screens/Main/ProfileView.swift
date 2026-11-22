@@ -11,6 +11,7 @@ struct ProfileView: View {
     @State private var showLeave = false
     @State private var confirmDelete = false
     @State private var showDebug = false
+    @State private var showRules = false
     @State private var eveningOn = Prefs.eveningWarningOn
     @State private var notificationsDenied = false
 
@@ -82,6 +83,9 @@ struct ProfileView: View {
                         }
                     }
                     row("Partner", value: model.partnerName)
+                    Button { showRules = true } label: {
+                        row("Our rules", value: model.myPendingProposals.isEmpty ? nil : "Pending", chevron: true)
+                    }
                 }
 
                 section {
@@ -126,6 +130,7 @@ struct ProfileView: View {
         .task { notificationsDenied = await NotificationManager.shared.authorizationStatus() == .denied }
         .sheet(isPresented: $showWake) { WakeReminderSheet().presentationDetents([.medium]) }
         .sheet(isPresented: $showLeave) { LeaveCoupleSheet() }
+        .sheet(isPresented: $showRules) { OurRulesSheet() }
         .sheet(isPresented: $showDebug) { DebugMenuView() }
         .confirmationDialog("Delete my data?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete my data", role: .destructive) { Task { await model.deleteMyData() } }

@@ -149,6 +149,8 @@ final class CloudKitStore: Store {
         case "PauseRequest": if let f = try? d.decode(PauseRequestFact.self, from: data) { state.facts.apply(.pause(f)) }
         case "PauseAnswer": if let f = try? d.decode(PauseAnswerFact.self, from: data) { state.facts.apply(.pauseAnswer(f)) }
         case "BetPaid": if let f = try? d.decode(BetPaidFact.self, from: data) { state.facts.apply(.betPaid(f)) }
+        case "RuleProposal": if let f = try? d.decode(RuleProposalFact.self, from: data) { state.facts.apply(.ruleProposal(f)) }
+        case "RuleAnswer": if let f = try? d.decode(RuleAnswerFact.self, from: data) { state.facts.apply(.ruleAnswer(f)) }
         default: break
         }
     }
@@ -248,6 +250,8 @@ final class CloudKitStore: Store {
         case .pause: return CloudKitSchema.pauseRequest.name
         case .pauseAnswer: return CloudKitSchema.pauseAnswer.name
         case .betPaid: return CloudKitSchema.betPaid.name
+        case .ruleProposal: return CloudKitSchema.ruleProposal.name
+        case .ruleAnswer: return CloudKitSchema.ruleAnswer.name
         }
     }
 
@@ -271,6 +275,8 @@ final class CloudKitStore: Store {
         case "PauseRequest": data = f.pauses.first { $0.id == id }.flatMap { try? e.encode($0) }
         case "PauseAnswer": data = f.pauseAnswers.first { $0.id == id }.flatMap { try? e.encode($0) }
         case "BetPaid": data = f.betPayments.first { $0.id == id }.flatMap { try? e.encode($0) }
+        case "RuleProposal": data = f.ruleProposals.first { $0.id == id }.flatMap { try? e.encode($0) }
+        case "RuleAnswer": data = f.ruleAnswers.first { $0.id == id }.flatMap { try? e.encode($0) }
         default: data = nil
         }
         guard let data, let dict = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return nil }

@@ -7,6 +7,7 @@ struct ProofScreen: View {
     @Environment(AppModel.self) private var model
     @State private var segment = 0
     @State private var pager: PagerStart?
+    @State private var suggesting: RuleProposalFact?
 
     struct PagerStart: Identifiable {
         var ids: [String]
@@ -27,6 +28,7 @@ struct ProofScreen: View {
                     Text("Mine").tag(1)
                 }
                 .pickerStyle(.segmented)
+                PlanChangesSection(suggest: { suggesting = $0 })
                 if segment == 0 { fromPartner } else { mine }
             }
             .padding(.horizontal, Metrics.side)
@@ -36,6 +38,7 @@ struct ProofScreen: View {
         .fullScreenCover(item: $pager) { p in
             ProofPager(ids: p.ids, start: p.start)
         }
+        .sheet(item: $suggesting) { p in SuggestInsteadSheet(proposal: p) }
         .onAppear { openFocus() }
         .onChange(of: model.proofFocus) { _, _ in openFocus() }
     }
@@ -149,6 +152,130 @@ struct ProofScreen: View {
 }
 
 /// Wrapping row of small chips ("Approved ❤️", "🔥", "Sus 🤨", "“Nice”", "Not seen yet").
+/// Proof → "Plan changes": rules waiting for approval (Part 8). Nothing shows when there are none.
+struct PlanChangesSection: View {
+    @Environment(AppModel.self) private var model
+    var suggest: (RuleProposalFact) -> Void
+
+    var body: some View {
+        let toAnswer = model.proposalsForMeToAnswer
+        let mine = model.myPendingProposals
+        if !toAnswer.isEmpty || !mine.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Plan changes")
+                    .font(.app(20, .bold))
+                    .foregroundStyle(Color.textPrimary)
+                ForEach(toAnswer) { p in answerCard(p) }
+                ForEach(mine) { p in waitingRow(p) }
+            }
+        }
+    }
+
+    private func ruleLine(_ p: RuleProposalFact) -> String {
+        let forOther = RulesEngine.resolvedMember(p.forMember, facts: model.facts) != p.proposedBy
+        let base = forOther ? "\(p.rule.title) for \(model.forMemberName(p))" : p.rule.title
+        return base
+    }
+
+    private func answerCard(_ p: RuleProposalFact) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Pill(text: "Pending", fill: .brownChip, size: 11)
+                Text(p.rule.type == .photo ? "Photo rule" : "Honour rule")
+                    .font(.app(12, .semibold))
+                    .foregroundStyle(Color.textSecondary)
+            }
+            Text("\(model.name(of: p.proposedBy)) wants to add: \(ruleLine(p))")
+                .font(.app(17, .semibold))
+                .foregroundStyle(Color.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            if let old = model.replacedRule(p) {
+                Text("Instead of \(old.title)")
+                    .font(.app(14))
+                    .foregroundStyle(Color.textSecondary)
+            }
+            HStack(spacing: 10) {
+                Button {
+                    Haptics.success()
+                    Task { await model.answerProposal(p, accepted: true) }
+                } label: {
+                    Text("Approve ›")
+                        .font(.app(16, .semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 46)
+                        .background(Capsule().fill(Color.coral))
+                }
+                .buttonStyle(PressableStyle())
+                Button { suggest(p) } label: {
+                    Text("Suggest a change")
+                        .font(.app(16, .semibold))
+                        .foregroundStyle(Color.textPrimary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 46)
+                        .background(Capsule().fill(Color.white))
+                        .overlay(Capsule().stroke(Color.buttonBorder, lineWidth: 1))
+                }
+                .buttonStyle(PressableStyle())
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .peachBox(radius: 18)
+    }
+
+    private func waitingRow(_ p: RuleProposalFact) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "hourglass")
+                .foregroundStyle(Color.brownChip)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(ruleLine(p))
+                    .font(.app(15, .semibold))
+                    .foregroundStyle(Color.textPrimary)
+                Text("Waiting for \(model.partnerName) to approve")
+                    .font(.app(12))
+                    .foregroundStyle(Color.textSecondary)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(14)
+        .card(radius: 16, shadow: false)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// "Suggest a change": pick another rule for the partner; their proposal is declined and this one sent.
+struct SuggestInsteadSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    var proposal: RuleProposalFact
+    @State private var who = 0
+
+    var body: some View {
+        let member = RulesEngine.resolvedMember(proposal.forMember, facts: model.facts)
+        let intensity = model.facts.member(member).map { $0.fitnessLevel.intensity } ?? .standard
+        let rules = model.rules(for: member)
+        RuleChangeSheet(
+            title: "Suggest a change",
+            currentTitle: proposal.rule.title,
+            who: $who,
+            suggestions: [],
+            intensity: intensity,
+            note: "\(model.forMemberName(proposal)) gets your suggestion to approve.",
+            validate: { idea in
+                let photos = rules.filter { $0.position != proposal.rule.position && $0.type == .photo }.count
+                    + (idea.type == .photo ? 1 : 0)
+                return photos >= Brand.minPhotoRules ? nil : "Keep at least \(Brand.minPhotoRules) photo rules each."
+            },
+            onPick: { idea in
+                Task { await model.suggestInstead(of: proposal, idea: idea) }
+                dismiss()
+            })
+    }
+}
+
 struct FlowChips: View {
     var items: [String]
 
