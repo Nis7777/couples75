@@ -39,7 +39,8 @@ part of the matching target automatically.
 
 ## Mock mode
 
-Mock mode keeps both members' facts in one local JSON file and runs the same `RulesEngine`. It is on when:
+Mock mode keeps both members' facts in one local JSON file and runs the same `RulesEngine`. It exists only in
+DEBUG builds (all of it is inside `#if DEBUG`) and is on when:
 
 - running in the Simulator, or
 - the DEBUG launch argument `-mock` is enabled (Scheme → Run → Arguments; it's there, unticked), or
@@ -86,16 +87,22 @@ or the code, then reads and writes the same zone through the shared database. Si
 `CKRecordZoneSubscription` (A) and a `CKDatabaseSubscription` (B); changes are also fetched on launch, when
 returning to the foreground, every few minutes while open, and in a background refresh task.
 
-## App Store Connect: the two subscriptions
+## App Store Connect: the subscriptions
+
+One subscription covers both partners: only the person who starts (A) pays; the partner joins free.
 
 1. Create the app with bundle ID `com.dinismagina.couples75`.
-2. Subscriptions → create the group **Couples 75** with two auto-renewable subscriptions, **no introductory offers**:
-   - `com.dinismagina.couples75.monthly`: 1 month, 3,99 € (Portugal base; let Apple fill other storefronts, e.g. $3.99)
-   - `com.dinismagina.couples75.yearly`: 1 year, 29,99 € (e.g. $29.99)
+2. Subscriptions → create the group **Couples 75** with three auto-renewable subscriptions:
+   - `com.dinismagina.couples75.yearly`: 1 year, 39,99 € (Portugal base; let Apple fill other storefronts, e.g. $39.99),
+     introductory offer **free trial, 3 days**. Preselected on the paywall.
+   - `com.dinismagina.couples75.yearly7`: 1 year, 39,99 €, introductory offer **free trial, 1 week**. Only offered on
+     the paywall's exit sheet ("Get a 7-day free trial instead").
+   - `com.dinismagina.couples75.monthly`: 1 month, 7,99 €, no introductory offer.
 3. Add a display name and description to each, a review screenshot of the paywall, and submit them with the
    first app version.
-4. Each person buys their own subscription. The app sends `appAccountToken` = the member's UUID and writes
-   `subscribedUntil` / `subscriptionProduct` to their own `Member` record so the partner's phone knows.
+4. The app sends `appAccountToken` = the member's UUID and writes `subscribedUntil` / `subscriptionProduct` to the
+   buyer's own `Member` record. The couple counts as active while either member's subscription is active.
+5. When a trial starts the app schedules a local reminder for Day 2 of the trial.
 
 ## Testing the invite on two iPhones
 
