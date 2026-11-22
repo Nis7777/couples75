@@ -141,27 +141,6 @@ private let noop: () -> Void = {}
 #Preview("02 Avatar builder", traits: .sizeThatFitsLayout) {
     screen { AvatarBuilderView(avatar: .constant(Avatar(characterID: "w1")), step: 2, back: noop, next: noop) }
 }
-#Preview("Layered avatars (all presets, 4 poses)", traits: .sizeThatFitsLayout) {
-    VStack(spacing: 12) {
-        ForEach(CharacterPose.allCases, id: \.self) { pose in
-            HStack(spacing: 6) {
-                ForEach(Characters.all, id: \.self) { id in
-                    CharacterView(avatar: Avatar(characterID: id), pose: pose).frame(height: pose == .bust ? 60 : 160)
-                }
-            }
-        }
-    }
-    .padding()
-    .background(Color.ivory)
-}
-#Preview("Avatar thumbnails 40/120 pt", traits: .sizeThatFitsLayout) {
-    HStack(spacing: 12) {
-        AvatarThumb(config: .default, headOnly: true, size: 40)
-        AvatarThumb(config: .default, headOnly: true, size: 120)
-        LayeredAvatarView(config: .default).frame(height: 360)
-    }
-    .padding()
-}
 #Preview("03 Names", traits: .sizeThatFitsLayout) { screen { NamesView(next: noop, back: noop) } }
 #Preview("30 Partner iPhone", traits: .sizeThatFitsLayout) { screen { PartnerIPhoneView(next: { _ in }, back: noop) } }
 #Preview("04 Together", traits: .sizeThatFitsLayout) { screen { TogetherView(next: noop, back: noop) } }

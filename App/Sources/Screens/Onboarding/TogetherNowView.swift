@@ -65,17 +65,14 @@ struct PartnerAvatarStep: View {
     var back: () -> Void
 
     var body: some View {
-        AvatarBuilderView(avatar: Binding(get: { model.draft.partnerAvatar ?? Self.fallback },
+        AvatarBuilderView(avatar: Binding(get: { model.draft.partnerAvatar ?? Avatar(characterID: "m1") },
                                           set: { model.draft.partnerAvatar = $0 }),
                           step: model.draft.stepNumber, back: back,
                           title: "\(model.draft.partnerName), build your avatar", next: {
-                              if model.draft.partnerAvatar == nil { model.draft.partnerAvatar = Self.fallback }
+                              if model.draft.partnerAvatar == nil { model.draft.partnerAvatar = Avatar(characterID: "m1") }
                               next()
                           })
-        .onAppear { if model.draft.partnerAvatar == nil { model.draft.partnerAvatar = Self.fallback } }
     }
-
-    private static let fallback = Avatar.newDefault(preset: "m1")
 }
 
 struct PartnerFitnessStep: View {
