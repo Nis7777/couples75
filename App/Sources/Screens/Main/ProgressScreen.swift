@@ -23,7 +23,8 @@ struct ProgressScreen: View {
                 }
                 .padding(.top, 14)
 
-                CoupleScene(left: model.sceneA, right: model.sceneB, crop: 0.56, overlap: -0.04)
+                // Both busts above the grid, also before the partner has joined (their avatar as made on A's phone).
+                CoupleScene(left: model.sceneA, right: model.sceneBBuilt, crop: 0.56, overlap: -0.04)
                     .frame(height: 220)
                     .padding(.bottom, -18)
                     .zIndex(0)
@@ -82,9 +83,25 @@ struct ProgressScreen: View {
 
     private var gridCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("75-day grid")
-                .font(.app(20, .semibold))
-                .foregroundStyle(Color.textPrimary)
+            HStack {
+                Text("75-day grid")
+                    .font(.app(20, .semibold))
+                    .foregroundStyle(Color.textPrimary)
+                Spacer()
+                // The warm-up day counts as done: the grid is never empty.
+                HStack(spacing: 5) {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(Color.gold)
+                    Text("Warm-up done")
+                        .font(.app(12, .semibold))
+                        .foregroundStyle(Color.textSecondary)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(Capsule().fill(Color.peach))
+                .accessibilityElement(children: .combine)
+            }
             LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(1...Brand.roundLengthDays, id: \.self) { n in
                     cellView(cell(n))
@@ -94,7 +111,7 @@ struct ProgressScreen: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("75-day grid")
             .accessibilityValue(gridSummary)
-            Text("Day \(currentDay) of \(Brand.roundLengthDays)")
+            Text(currentDay == 0 ? "Day 0 done. \(Brand.roundLengthDays) to go." : "Day \(currentDay) of \(Brand.roundLengthDays)")
                 .font(.app(18, .semibold))
                 .foregroundStyle(Color.textPrimary)
                 .frame(maxWidth: .infinity)
@@ -114,6 +131,7 @@ struct ProgressScreen: View {
     private var gridSummary: String {
         let cells = (1...Brand.roundLengthDays).map(cell)
         let both = cells.filter { if case .both = $0 { return true } else { return false } }.count
+        if currentDay == 0 { return "Warm-up done. Day 1 has not started yet." }
         return "Day \(currentDay) of 75. \(both) days complete for both."
     }
 

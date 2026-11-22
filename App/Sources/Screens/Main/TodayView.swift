@@ -15,6 +15,7 @@ struct TodayView: View {
     @State private var showPauseAnswer = false
     @State private var showTweakAnswer = false
     @State private var showDebug = false
+    @State private var showWhichRule = false
 
     private var round: RoundState? { model.currentRound }
     private var hour: Int {
@@ -50,6 +51,15 @@ struct TodayView: View {
         }
         .sheet(isPresented: $showTweakAnswer) {
             if let t = model.tweakForMeToAnswer { TweakAnswerView(info: t) }
+        }
+        .sheet(isPresented: $showWhichRule) {
+            WhichRuleSheet(rules: uncheckedRules) { r in
+                showWhichRule = false
+                // Let the sheet go away before the camera cover comes up.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { open(r) }
+            }
+            .presentationDetents([.height(CGFloat(150 + uncheckedRules.count * 62))])
+            .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $showDebug) { DebugMenuView() }
     }
@@ -203,7 +213,7 @@ struct TodayView: View {
         let title: String
         let subtitle: String?
         if warmup {
-            title = "Warm-up"; subtitle = model.memberB?.joinedAt != nil ? "Day 1 tomorrow" : "Day 1 soon"
+            title = "Day 1"; subtitle = model.memberB?.joinedAt != nil ? "tomorrow" : "soon"
         } else if model.myToday?.isPaused == true || model.state.isFrozen {
             title = "Paused"; subtitle = nil
         } else if model.myToday?.beforeStart == true {
@@ -447,12 +457,11 @@ struct TodayView: View {
 
     // MARK: Check in
 
-    private var nextRule: RuleFact? {
-        guard canCheckIn(model.myToday) else { return nil }
-        let open = (model.myToday?.items ?? []).filter { !$0.isChecked }
-        if let photo = open.first(where: { $0.rule.type == .photo }) { return photo.rule }
-        if warmup || hour >= 18 { return open.first?.rule }
-        return nil
+    /// My rules not checked in yet today, photo rules first.
+    private var uncheckedRules: [RuleFact] {
+        guard canCheckIn(model.myToday) else { return [] }
+        let open = (model.myToday?.items ?? []).filter { !$0.isChecked }.map(\.rule)
+        return open.filter { $0.type == .photo } + open.filter { $0.type == .honour }
     }
 
     @ViewBuilder
@@ -468,8 +477,9 @@ struct TodayView: View {
             .background(Capsule().fill(Color.sage))
             .accessibilityElement(children: .combine)
         } else {
-            PrimaryButton(warmup ? "Practise check-in" : "Check in", isEnabled: nextRule != nil) {
-                if let r = nextRule { open(r) }
+            // Never opens the camera directly: "Which rule?" first.
+            PrimaryButton(warmup ? "Practise check-in" : "Check in", isEnabled: !uncheckedRules.isEmpty) {
+                showWhichRule = true
             }
         }
     }
@@ -488,6 +498,55 @@ struct TodayView: View {
         .padding(.vertical, 15)
         .card(radius: 16)
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// "Which rule?": the small sheet behind the main Check in button, listing my unchecked rules.
+struct WhichRuleSheet: View {
+    var rules: [RuleFact]
+    var pick: (RuleFact) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Which rule?")
+                .font(.app(22, .bold))
+                .foregroundStyle(Color.textPrimary)
+                .padding(.top, 22)
+            ForEach(rules) { r in
+                Button { pick(r) } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: r.type == .photo ? "camera.fill" : "hand.raised.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Color.coral)
+                            .frame(width: 34, height: 34)
+                            .background(Circle().fill(Color.peach))
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(r.title)
+                                .font(.app(16, .semibold))
+                                .foregroundStyle(Color.textPrimary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                            Text(r.type == .photo ? "Photo" : "Honour tap")
+                                .font(.app(12))
+                                .foregroundStyle(Color.textSecondary)
+                        }
+                        Spacer(minLength: 4)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Color.textSecondary)
+                    }
+                    .padding(.horizontal, 14)
+                    .frame(height: 54)
+                    .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.card))
+                    .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.cardBorder, lineWidth: 1))
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, Metrics.side)
+        .background(Color.ivory.ignoresSafeArea())
     }
 }
 

@@ -177,20 +177,23 @@ struct RingHero: View {
                 RingArc(progress: progress, lineWidth: max(10, ring * 0.075))
                     .frame(width: ring, height: ring)
                     .position(x: w / 2, y: ringCenterY)
+                // Two short lines ("Day 1" / "tomorrow"), each shrinking to fit: never cut off.
                 VStack(spacing: 0) {
                     Text(centerTitle)
                         .font(.app(min(30, ring * 0.12), .bold))
                         .foregroundStyle(Color.textPrimary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.45)
                     if let centerSubtitle {
                         Text(centerSubtitle)
                             .font(.app(min(22, ring * 0.085), .semibold))
                             .foregroundStyle(Color.textPrimary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.45)
                     }
                 }
                 .multilineTextAlignment(.center)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-                .frame(width: ring * 0.34)
+                .frame(width: ring * 0.4)
                 .position(x: w / 2, y: ringCenterY - ring * 0.05)
                 // Head to waist, inside the panel with a margin on every side.
                 CoupleScene(left: left, right: right, leftPose: leftPose, rightPose: rightPose,
