@@ -21,9 +21,10 @@ final class ProgressPhotoStore {
     /// No iCloud in Mock mode: everything stays on the phone.
     var cloudEnabled = true
 
-    @ObservationIgnored private let container = CKContainer(identifier: Brand.cloudKitContainer)
     @ObservationIgnored private var zoneReady = false
-    private var db: CKDatabase { container.privateCloudDatabase }
+    /// Created only when iCloud is actually used (never in Mock mode / the Simulator): creating a CKContainer
+    /// in a build without that iCloud container crashes the app at launch.
+    private var db: CKDatabase { CKContainer(identifier: Brand.cloudKitContainer).privateCloudDatabase }
     private var zoneID: CKRecordZone.ID { CKRecordZone.ID(zoneName: CloudKitSchema.progressZoneName, ownerName: CKCurrentUserDefaultName) }
 
     private static let indexName = "progress-photos.json"
