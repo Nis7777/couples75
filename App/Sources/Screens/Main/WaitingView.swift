@@ -65,11 +65,13 @@ struct WaitingView: View {
 
                 TextLinkButton("Or start a warm-up day. It doesn't count.", color: .textSecondary) { startWarmup() }
 
+                #if DEBUG
                 if model.isMock && model.isOwner {
                     TextLinkButton("Mock: simulate \(model.nameB) joining", color: .coral) {
                         Task { await model.debugSimulatePartnerJoin() }
                     }
                 }
+                #endif
             }
             .padding(.horizontal, Metrics.side)
             .padding(.bottom, 24)

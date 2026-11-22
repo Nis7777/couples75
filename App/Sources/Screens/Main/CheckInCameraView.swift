@@ -14,7 +14,17 @@ struct CheckInCameraView: View {
     @State private var showQuotaAlert = false
     @State private var showHonourFallback = false
 
-    private var useSimulatedCamera: Bool { AppEnvironment.isSimulator || !camera.isAvailable }
+    /// No usable camera (Simulator, or access denied).
+    private var cameraMissing: Bool { AppEnvironment.isSimulator || !camera.isAvailable }
+
+    /// DEBUG only: the shutter makes a sample photo when there is no camera. Never in Release.
+    private var useSimulatedCamera: Bool {
+        #if DEBUG
+        return cameraMissing
+        #else
+        return false
+        #endif
+    }
 
     private var stamp: String {
         let tz = model.me?.tz ?? .current
@@ -33,13 +43,19 @@ struct CheckInCameraView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .clipped()
                         .accessibilityLabel("Your photo for \(rule.title)")
-                } else if useSimulatedCamera {
+                } else if cameraMissing {
                     VStack(spacing: 12) {
                         Image(systemName: "camera.metering.unknown")
                             .font(.system(size: 44))
+                        #if DEBUG
                         Text("No camera here. The shutter makes a sample photo.")
                             .font(.app(15))
                             .multilineTextAlignment(.center)
+                        #else
+                        Text("Allow camera access in Settings to check in with a photo.")
+                            .font(.app(15))
+                            .multilineTextAlignment(.center)
+                        #endif
                     }
                     .foregroundStyle(.white.opacity(0.7))
                     .padding(40)
@@ -58,7 +74,7 @@ struct CheckInCameraView: View {
         .background(Color(hex: 0x14100E).ignoresSafeArea())
         .statusBarHidden()
         .task {
-            guard !useSimulatedCamera else { return }
+            guard !cameraMissing else { return }
             await camera.start()
         }
         .onDisappear { camera.stop() }
@@ -135,10 +151,10 @@ struct CheckInCameraView: View {
                         } label: {
                             Image(systemName: "arrow.triangle.2.circlepath.camera")
                                 .font(.system(size: 22, weight: .regular))
-                                .foregroundStyle(.white.opacity(useSimulatedCamera ? 0.3 : 0.9))
+                                .foregroundStyle(.white.opacity(cameraMissing ? 0.3 : 0.9))
                                 .frame(width: 44, height: 44)
                         }
-                        .disabled(useSimulatedCamera)
+                        .disabled(cameraMissing)
                         .accessibilityLabel("Flip camera")
                     }
                     Button {
@@ -159,12 +175,15 @@ struct CheckInCameraView: View {
 
     private func shutter() {
         Haptics.tap()
+        #if DEBUG
         if useSimulatedCamera {
             if let data = ImageTools.placeholderPhoto(title: rule.title, stamp: ""), let img = UIImage(data: data) {
                 captured = img
             }
             return
         }
+        #endif
+        guard !cameraMissing else { return }
         Task {
             if let img = await camera.capture() { captured = img }
         }

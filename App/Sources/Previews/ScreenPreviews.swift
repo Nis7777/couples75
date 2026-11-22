@@ -63,6 +63,23 @@ enum PreviewData {
         return f
     }
 
+    /// Day 14 facts plus a rule change from Joao waiting for Maya, and one of Maya's waiting for Joao.
+    static func factsWithProposals() -> Facts {
+        var f = facts()
+        let now = Date()
+        let joaoRule = RuleFact(id: "p-joao", memberID: b, fromRound: 1, position: 4, libraryKey: RuleFact.customKey,
+                                title: "15 min guitar", type: .photo, createdAt: now, photoHint: "Photo of your guitar")
+        let mayaRule = RuleFact(id: "p-maya", memberID: a, fromRound: 1, position: 3, libraryKey: "language",
+                                title: "15 min language practice", type: .photo, createdAt: now)
+        f.ruleProposals = [
+            RuleProposalFact(id: "prop-joao", proposedBy: b, forMember: b, ruleJSON: joaoRule,
+                             effectiveFrom: LocalDate(now, in: .current).adding(1).string, createdAt: now),
+            RuleProposalFact(id: "prop-maya", proposedBy: a, forMember: a, ruleJSON: mayaRule,
+                             effectiveFrom: nil, createdAt: now),
+        ]
+        return f
+    }
+
     @MainActor
     static func model(_ facts: Facts = facts(), onboardingDone: Bool = true, tab: MainTab = .today) -> AppModel {
         let m = AppModel()
@@ -128,6 +145,14 @@ private let noop: () -> Void = {}
 #Preview("04 Together", traits: .sizeThatFitsLayout) { screen { TogetherView(next: noop, back: noop) } }
 #Preview("05 Long distance", traits: .sizeThatFitsLayout) { screen { LongDistanceView(next: noop, back: noop) } }
 #Preview("06 Goals", traits: .sizeThatFitsLayout) { screen { GoalsView(next: noop, back: noop) } }
+#Preview("Personal goals", traits: .sizeThatFitsLayout) { screen { PersonalGoalsView(next: noop, back: noop) } }
+#Preview("Is Joao with you?", traits: .sizeThatFitsLayout) { screen { TogetherNowView(next: { _ in }, back: noop) } }
+#Preview("Hand the phone", traits: .sizeThatFitsLayout) {
+    screen { HandOffView(handTo: "Joao", from: "Maya", isHandBack: false, next: noop, back: noop) }
+}
+#Preview("Partner avatar", traits: .sizeThatFitsLayout) { screen { PartnerAvatarStep(next: noop, back: noop) } }
+#Preview("Partner fitness", traits: .sizeThatFitsLayout) { screen { PartnerFitnessStep(next: noop, back: noop) } }
+#Preview("Partner wake-up", traits: .sizeThatFitsLayout) { screen { PartnerWakeStep(next: noop, back: noop) } }
 #Preview("Fitness", traits: .sizeThatFitsLayout) {
     screen { FitnessPickerView(fitness: .constant(.somewhatActive), step: 8, back: noop, next: noop) }
 }
@@ -144,6 +169,13 @@ private let noop: () -> Void = {}
 }
 #Preview("10 Building plan", traits: .sizeThatFitsLayout) { screen { BuildingPlanView(next: noop) } }
 #Preview("11 Plan reveal", traits: .sizeThatFitsLayout) { screen { PlanRevealView(next: noop, back: noop) } }
+#Preview("11 Plan reveal, changed rule", traits: .sizeThatFitsLayout) {
+    let m = PreviewData.model()
+    m.draft.setChange(index: 1, forPartner: false,
+                      idea: RuleIdea(title: "15 min guitar", type: .photo, libraryKey: nil, photoHint: nil))
+    return screen(m) { PlanRevealView(next: noop, back: noop) }
+}
+#Preview("Change a rule", traits: .sizeThatFitsLayout) { screen { DraftRuleChangeSheet(index: 1) } }
 #Preview("12 Stakes", traits: .sizeThatFitsLayout) { screen { StakesView(next: noop, back: noop) } }
 #Preview("13a–13c Paywall", traits: .sizeThatFitsLayout) {
     screen { PaywallView(variant: .onboarding(partner: "Joao"), onClose: noop, onPurchased: noop) }
@@ -176,6 +208,21 @@ private let noop: () -> Void = {}
     screen(PreviewData.model(PreviewData.facts(joinedB: false))) { WaitingView(startWarmup: noop) }
 }
 #Preview("Proof", traits: .sizeThatFitsLayout) { screen(PreviewData.model(tab: .proof)) { MainView() } }
+#Preview("Proof, plan changes", traits: .sizeThatFitsLayout) {
+    screen(PreviewData.model(PreviewData.factsWithProposals(), tab: .proof)) { MainView() }
+}
+#Preview("Which rule?", traits: .sizeThatFitsLayout) {
+    let rules = PlanGenerator.rules(keys: ["workout", "reading", "noSugar"], memberID: PreviewData.a,
+                                    intensity: .standard, round: 1, now: Date())
+    return screen { WhichRuleSheet(rules: rules, pick: { _ in }) }
+}
+#Preview("Our rules", traits: .sizeThatFitsLayout) {
+    screen(PreviewData.model(PreviewData.factsWithProposals(), tab: .profile)) { OurRulesSheet() }
+}
+#Preview("Request a change", traits: .sizeThatFitsLayout) {
+    let rule = PlanGenerator.rules(keys: ["water"], memberID: PreviewData.a, intensity: .standard, round: 1, now: Date())[0]
+    return screen { RequestChangeSheet(rule: rule) }
+}
 #Preview("16 Progress", traits: .sizeThatFitsLayout) { screen(PreviewData.model(tab: .progress)) { MainView() } }
 #Preview("18 Profile", traits: .sizeThatFitsLayout) { screen(PreviewData.model(tab: .profile)) { MainView() } }
 #Preview("21 Camera", traits: .sizeThatFitsLayout) {

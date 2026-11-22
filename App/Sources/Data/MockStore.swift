@@ -1,5 +1,6 @@
 import Foundation
 
+#if DEBUG
 /// Mock mode (section 7): both members' facts live in one local JSON file.
 /// Used in the Simulator, with the DEBUG `-mock` launch argument, or when DEBUG builds have no iCloud.
 @MainActor
@@ -158,5 +159,4 @@ enum MockData {
         return f
     }
 }
-
-
+#endif

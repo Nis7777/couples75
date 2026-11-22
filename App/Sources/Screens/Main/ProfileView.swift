@@ -112,9 +112,9 @@ struct ProfileView: View {
                     .padding(.horizontal, 18)
                     .padding(.vertical, 14)
                     .card(radius: 16, shadow: false)
-                    if AppEnvironment.isDebug {
-                        Button { showDebug = true } label: { row("Debug menu", chevron: true) }
-                    }
+                    #if DEBUG
+                    Button { showDebug = true } label: { row("Debug menu", chevron: true) }
+                    #endif
                 }
 
                 VStack(spacing: 0) {

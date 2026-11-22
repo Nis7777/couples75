@@ -1,5 +1,6 @@
 import SwiftUI
 
+#if DEBUG
 /// Hidden Debug menu (section 7): triple-tap the Today header in DEBUG builds.
 struct DebugMenuView: View {
     @Environment(AppModel.self) private var model
@@ -85,3 +86,9 @@ struct DebugMenuView: View {
         }
     }
 }
+#else
+/// Release builds have no Debug menu.
+struct DebugMenuView: View {
+    var body: some View { EmptyView() }
+}
+#endif

@@ -25,6 +25,15 @@ enum AppEnvironment {
         isDebug && ProcessInfo.processInfo.arguments.contains("-mock")
     }
 
+    /// Mock mode only exists in DEBUG builds (Simulator, `-mock`, tests). A Release build always uses CloudKit.
+    static var startsInMock: Bool {
+        #if DEBUG
+        return isSimulator || mockRequested || isRunningTests
+        #else
+        return false
+        #endif
+    }
+
     static var isRunningTests: Bool {
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
@@ -164,14 +173,19 @@ final class AppModel {
     @ObservationIgnored private var lastFetch: Date = .distantPast
 
     init() {
-        let mock = AppEnvironment.isSimulator || AppEnvironment.mockRequested || AppEnvironment.isRunningTests
+        let mock = AppEnvironment.startsInMock
+        #if DEBUG
         let store: Store = mock ? MockStore() : CloudKitStore()
+        let offset = (store as? MockStore)?.clockOffset ?? 0
+        #else
+        let store: Store = CloudKitStore()
+        let offset: TimeInterval = 0
+        #endif
         self.store = store
         let cached = store.cachedFacts()
         facts = cached
         let id = Identity.memberID(isMock: mock)
         meID = id
-        let offset = (store as? MockStore)?.clockOffset ?? 0
         state = RulesEngine.state(facts: cached, now: Date().addingTimeInterval(offset))
         draft = OnboardingDraft.load()
         joinDraft = JoinDraft.load()
@@ -181,10 +195,18 @@ final class AppModel {
     }
 
     var isMock: Bool { store.isMock }
+    #if DEBUG
     var mockStore: MockStore? { store as? MockStore }
+    #endif
 
     /// "Now", including Mock-mode time travel.
-    func now() -> Date { Date().addingTimeInterval(mockStore?.clockOffset ?? 0) }
+    func now() -> Date {
+        #if DEBUG
+        return Date().addingTimeInterval(mockStore?.clockOffset ?? 0)
+        #else
+        return Date()
+        #endif
+    }
 
     // MARK: - Derived
 
@@ -264,12 +286,12 @@ final class AppModel {
         if !isMock {
             let status = (try? await CKContainer(identifier: Brand.cloudKitContainer).accountStatus()) ?? .couldNotDetermine
             if status != .available {
-                if AppEnvironment.isDebug {
-                    // No iCloud on a DEBUG build: run in Mock mode so everything can be clicked through.
-                    switchToMock()
-                } else {
-                    iCloudAvailable = false
-                }
+                #if DEBUG
+                // No iCloud on a DEBUG build: run in Mock mode so everything can be clicked through.
+                switchToMock()
+                #else
+                iCloudAvailable = false
+                #endif
             }
         }
         purchases.onEntitlementChange = { [weak self] ent in
@@ -305,6 +327,7 @@ final class AppModel {
         meID = Identity.memberID(isMock: isMock)
     }
 
+    #if DEBUG
     private func switchToMock() {
         let mock = MockStore()
         store = mock
@@ -312,6 +335,7 @@ final class AppModel {
         facts = mock.cachedFacts()
         invite = mock.currentInvite
     }
+    #endif
 
     private func startTimer() {
         timer?.invalidate()

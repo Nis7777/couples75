@@ -17,7 +17,11 @@ extension AppModel {
 
     /// In Mock mode, time travel shifts "now"; shift the subscription with it so it doesn't look lapsed.
     func mockAdjusted(_ ent: Entitlement) -> (Date, Date) {
+        #if DEBUG
         let offset = mockStore?.clockOffset ?? 0
+        #else
+        let offset: TimeInterval = 0
+        #endif
         return (ent.purchaseDate.addingTimeInterval(offset), ent.expirationDate.addingTimeInterval(offset))
     }
 

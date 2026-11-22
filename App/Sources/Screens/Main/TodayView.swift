@@ -84,7 +84,9 @@ struct TodayView: View {
                 .minimumScaleFactor(0.6)
                 .accessibilityAddTraits(.isHeader)
                 .onTapGesture(count: 3) {
-                    if AppEnvironment.isDebug { showDebug = true }
+                    #if DEBUG
+                    showDebug = true
+                    #endif
                 }
             Spacer()
             if warmup {
@@ -109,13 +111,13 @@ struct TodayView: View {
                 } label: {
                     Label("Life happens", systemImage: "pause.circle")
                 }
-                if AppEnvironment.isDebug {
-                    Button {
-                        showDebug = true
-                    } label: {
-                        Label("Debug menu", systemImage: "ladybug")
-                    }
+                #if DEBUG
+                Button {
+                    showDebug = true
+                } label: {
+                    Label("Debug menu", systemImage: "ladybug")
                 }
+                #endif
             } label: {
                 Image(systemName: "ellipsis")
                     .font(.system(size: 17, weight: .bold))

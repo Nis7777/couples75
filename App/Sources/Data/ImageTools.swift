@@ -50,7 +50,8 @@ enum ImageTools {
         }
     }
 
-    /// Generated photo for the Simulator / Mock mode (no camera).
+    #if DEBUG
+    /// Generated photo for the Simulator / Mock mode (no camera). DEBUG builds only.
     static func placeholderPhoto(title: String, stamp: String) -> Data? {
         let size = CGSize(width: 1080, height: 1440)
         let format = UIGraphicsImageRendererFormat.default()
@@ -81,4 +82,5 @@ enum ImageTools {
         }
         return prepareCheckInPhoto(image, stamp: stamp)
     }
+    #endif
 }

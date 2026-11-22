@@ -1,5 +1,6 @@
 import Foundation
 
+#if DEBUG
 /// Debug menu actions (section 7). They only write ordinary facts, so the same RulesEngine computes everything.
 extension AppModel {
 
@@ -188,3 +189,4 @@ extension AppModel {
         await afterStateChange()
     }
 }
+#endif
