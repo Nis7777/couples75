@@ -34,6 +34,11 @@ struct MirrorView: View {
                             .font(.app(17, .medium))
                             .foregroundStyle(Color.textSecondary)
                     }
+                    if d.longDistance == true {
+                        Text(MirrorCopy.longDistanceLine)
+                            .font(.app(17, .medium))
+                            .foregroundStyle(Color.textSecondary)
+                    }
                 }
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -52,7 +57,7 @@ struct MirrorView: View {
                     Text("Tiny first wins for tomorrow")
                         .font(.app(17, .bold))
                         .foregroundStyle(Color.textPrimary)
-                    ForEach(Array(MirrorCopy.tinyWins(d.goals).enumerated()), id: \.offset) { _, win in
+                    ForEach(Array(MirrorCopy.tinyWins(d.goals, longDistance: d.longDistance == true).enumerated()), id: \.offset) { _, win in
                         HStack(alignment: .firstTextBaseline, spacing: 10) {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(Color.sage)

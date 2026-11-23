@@ -30,19 +30,23 @@ enum MirrorCopy {
         }
     }
 
+    /// Shown when they said they're long distance.
+    static let longDistanceLine = "Miles apart, same team: you'll see each other's check-ins the moment they happen."
+
     static let reframe = "Here's what most couples don't realize: you don't lack motivation. You lack someone watching. That's what \(Brand.appName) fixes."
 
-    static func tinyWin(_ goal: Goal) -> String {
+    /// A tiny win for tomorrow. Long distance gets versions you can do apart (same time, a call, a photo).
+    static func tinyWin(_ goal: Goal, longDistance: Bool = false) -> String {
         switch goal {
-        case .fitness: return "A 10-minute walk together counts"
-        case .diet: return "Cook one meal together"
-        case .sleep: return "Same bedtime, one night"
+        case .fitness: return longDistance ? "A 10-minute walk each, on a call if you like" : "A 10-minute walk together counts"
+        case .diet: return longDistance ? "Cook one meal each and swap photos" : "Cook one meal together"
+        case .sleep: return longDistance ? "Say goodnight, then lights out, same night" : "Same bedtime, one night"
         case .steps: return "Take the stairs all day, both of you"
-        case .skin: return "Wash your faces before bed, side by side"
+        case .skin: return longDistance ? "Wash your faces before bed, then say goodnight" : "Wash your faces before bed, side by side"
         case .glowUp: return "A full bottle of water before lunch"
-        case .posture: return "Five minutes of stretching together"
+        case .posture: return longDistance ? "Five minutes of stretching each, at the same time" : "Five minutes of stretching together"
         case .money: return "No-spend day tomorrow"
-        case .phoneTime: return "Phones out of the bedroom tonight"
+        case .phoneTime: return "No phones in bed tonight"
         case .discipline: return "Ten pages each before bed"
         case .skills: return "Twenty minutes on something new"
         }
@@ -53,8 +57,8 @@ enum MirrorCopy {
                              "One honest compliment each"]
 
     /// Three tiny first wins for tomorrow, from their goals in the order they picked them.
-    static func tinyWins(_ goals: [Goal]) -> [String] {
-        Array((goals.map(tinyWin) + fillerWins).prefix(3))
+    static func tinyWins(_ goals: [Goal], longDistance: Bool = false) -> [String] {
+        Array((goals.map { tinyWin($0, longDistance: longDistance) } + fillerWins).prefix(3))
     }
 }
 

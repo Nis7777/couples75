@@ -446,7 +446,7 @@ enum BetOption: String, Codable, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .date: return "Loser plans the date"
-        case .dinner: return "Loser cooks dinner for a week"
+        case .dinner: return "Loser treats the winner to dinner"
         case .trip: return "Loser plans the trip"
         case .custom: return "Custom"
         }

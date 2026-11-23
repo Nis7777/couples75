@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Step 13 (10): a big stretching couple, then a checklist card with green checks and a spinner on the active line.
+/// Step 13 (10): the couple cheering (breathing gently), then a checklist card with green checks and a spinner on the active line.
 /// ~3 seconds, auto-advances.
 struct BuildingPlanView: View {
     @Environment(AppModel.self) private var model
@@ -18,7 +18,7 @@ struct BuildingPlanView: View {
                         .padding(.horizontal, 24)
                     CoupleScene(left: model.draftScene,
                                 right: model.sceneBBuilt,
-                                leftPose: .stretch, rightPose: .stretch, crop: 1, overlap: 0.08)
+                                leftPose: .cheer, rightPose: .cheer, crop: 1, overlap: -0.12, alive: true)
                         .padding(.bottom, 8)
                 }
                 .frame(maxHeight: .infinity)

@@ -12,6 +12,9 @@ final class OnboardingCopyTests: XCTestCase {
         XCTAssertEqual(MirrorCopy.tinyWins(Goal.allCases).count, 3)
         XCTAssertNotNil(MirrorCopy.togetherLine("3+ yrs"))
         XCTAssertNil(MirrorCopy.togetherLine(nil))
+        // Long distance: nothing that needs you in the same room.
+        let apart = Goal.allCases.map { MirrorCopy.tinyWin($0, longDistance: true) }.joined(separator: " ").lowercased()
+        for phrase in ["side by side", "together", "bedroom"] { XCTAssertFalse(apart.contains(phrase), phrase) }
         // Every goal has its own win.
         XCTAssertEqual(Set(Goal.allCases.map(MirrorCopy.tinyWin)).count, Goal.allCases.count)
     }
