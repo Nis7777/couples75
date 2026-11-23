@@ -22,16 +22,16 @@ enum CloudKitSchema {
     }
 
     static let pactItem = RecordType(
-        name: RelayStore.itemType,
+        name: "PactItem",
         fields: ["couple": "String", "payload": "Bytes", "photo": "Asset"])
 
     static let inviteCode = RecordType(
-        name: RelayStore.inviteType,
+        name: "InviteCode",
         fields: ["code": "String", "couple": "String", "sealedKey": "Bytes", "inviterName": "String",
                  "createdAt": "Date/Time"])
 
     static let waitlist = RecordType(
-        name: RelayStore.waitlistType,
+        name: "Waitlist",
         fields: ["email": "String", "createdAt": "Date/Time"])
 
     static let progressPhoto = RecordType(
