@@ -158,13 +158,6 @@ extension AppModel {
         await save([.member(p)])
     }
 
-    /// Shows (or clears) the "iCloud is full" banner. Mock writes still go through.
-    func debugToggleICloudFull() {
-        guard let m = mockStore else { return }
-        m.iCloudFullSince = m.iCloudFullSince == nil ? now() : nil
-        apply(store.cachedFacts())
-    }
-
     func debugResetEverything() async {
         guard let mock = mockStore else { return }
         mock.wipeLocalData()

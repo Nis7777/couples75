@@ -51,7 +51,6 @@ struct DebugMenuView: View {
                     Section("Subscription") {
                         action("Simulate subscription lapse") { await model.debugPartnerLapse() }
                         action("Simulate subscription renewal") { await model.debugPartnerRenew() }
-                        action(model.iCloudFull ? "Clear \"iCloud full\"" : "Simulate iCloud full") { model.debugToggleICloudFull() }
                     }
                     Section {
                         Button("Reset everything", role: .destructive) { confirmReset = true }

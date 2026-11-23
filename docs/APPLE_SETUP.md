@@ -100,20 +100,17 @@ app version; until then they work in TestFlight as free test purchases.
 
 ## 5. iCloud: create and deploy the data layout
 
-TestFlight and the App Store use the **Production** iCloud database, which starts empty. Fill the Development one
-first, then copy its layout to Production:
+Pact uses its own **public** iCloud database: the couple's data passes between the two phones there, encrypted, and
+never counts against the users' iCloud storage. The whole layout is in `docs/pact.ckdb`.
 
-1. Run Pact from Xcode on **your iPhone** (signed into iCloud). This uses the Development database.
-2. Go through everything once so every record type exists: onboarding and pay (a test purchase), invite, a second
-   Apple ID joins with the code, a photo check-in, an honour tap, a reaction, a note and a nudge, a pause request
-   and its answer, a habit change and its answer, a bucket list item, start a challenge and give it up, a progress
-   pic with sharing on.
-3. **Protect the waitlist emails.** CloudKit Console → Schema → **Security Roles** (Development): open the
-   `Waitlist` record type and **untick Read for `_world` and `_icloud`** (keep Create for `_icloud`). Otherwise any
-   iCloud user's app could read the emails people typed. Leave `InviteCode` as it is (it must be readable so the
-   partner can look up the code).
-4. icloud.developer.apple.com → CloudKit Console → `iCloud.com.tomasbeja.pact` → **Deploy Schema Changes…** →
-   Production. Do this again whenever a new kind of data or field is added.
+1. icloud.developer.apple.com → account menu → **Settings → Tokens** → **+** → name it `cktool` → copy the token.
+2. Terminal: `xcrun cktool save-token --type management` → `e` → paste the token (nothing shows) → Enter.
+3. Terminal (from the repo folder, or after downloading the file):
+   `xcrun cktool import-schema --team-id MS2AB6H9ZG --container-id iCloud.com.tomasbeja.pact --environment development --file docs/pact.ckdb`
+4. CloudKit Console → Development → **Deploy Schema Changes…** → Deploy.
+5. Delete the token (Settings → Tokens) and run `xcrun cktool remove-token --type management`.
+
+Do this again whenever `docs/pact.ckdb` changes. Never use "Reset Environment" on Production.
 
 ## 6. TestFlight
 

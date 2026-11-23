@@ -330,6 +330,8 @@ DEFINE SCHEMA
         "shareURL" STRING,
         "inviterName" STRING,
         "createdAt" TIMESTAMP,
+        "couple" STRING,
+        "sealedKey" BYTES,
         GRANT WRITE TO "_creator",
         GRANT CREATE TO "_icloud",
         GRANT READ TO "_world"
@@ -346,4 +348,19 @@ DEFINE SCHEMA
         "createdAt" TIMESTAMP,
         GRANT WRITE TO "_creator",
         GRANT CREATE TO "_icloud"
+    );
+
+    RECORD TYPE PactItem (
+        "___createTime" TIMESTAMP,
+        "___createdBy"  REFERENCE,
+        "___etag"       STRING,
+        "___modTime"    TIMESTAMP QUERYABLE SORTABLE,
+        "___modifiedBy" REFERENCE,
+        "___recordID"   REFERENCE QUERYABLE,
+        "couple" STRING QUERYABLE,
+        "payload" BYTES,
+        "photo" ASSET,
+        GRANT WRITE TO "_creator",
+        GRANT CREATE TO "_icloud",
+        GRANT READ TO "_icloud"
     );

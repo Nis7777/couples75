@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import CloudKit
 
 extension AppModel {
 
@@ -78,8 +77,6 @@ extension AppModel {
     /// Why the last attempt to set up the couple after paying failed (shown with Try again).
     var setupErrorText: String {
         switch lastSetupError {
-        case .quotaExceeded:
-            return "Your iCloud is full. \(Brand.appName) keeps your pact in your iCloud, so it needs a little space (a few MB to start). Free some up in Settings → your name → iCloud, then tap Try again."
         case .notAuthenticated:
             return "You're not signed in to iCloud. Sign in in Settings, then tap Try again."
         case .network:
@@ -105,11 +102,7 @@ extension AppModel {
         } catch {
             apply(store.cachedFacts())
             guard !quiet else { return false }
-            if case .quotaExceeded = error as? StoreError {
-                errorMessage = "Your iCloud is full, so \(Brand.appName) can't make your invite code yet. Free up a little space in Settings → your name → iCloud, then try again."
-            } else {
-                errorMessage = (error as? StoreError)?.errorDescription ?? error.localizedDescription
-            }
+            errorMessage = (error as? StoreError)?.errorDescription ?? error.localizedDescription
             return false
         }
     }
@@ -135,8 +128,9 @@ extension AppModel {
 
     /// Invite text for the share sheet (3.2).
     func inviteMessage() -> String {
+        let code = invite?.code ?? ""
         let link = invite?.shareURL?.absoluteString ?? ""
-        return "I set up our daily habits on \(Brand.appName). Level up with me? Download it and tap this link: \(link)"
+        return "I set up our daily habits on \(Brand.appName). Level up with me? Download \(Brand.appName), tap \"My partner invited me\" and enter the code \(code). \(link)"
     }
 
     // MARK: - Person B (3.5)
@@ -165,22 +159,6 @@ extension AppModel {
         } catch {
             errorMessage = (error as? StoreError)?.errorDescription ?? error.localizedDescription
             return false
-        }
-    }
-
-    /// The iCloud share link was tapped (CloudKit only).
-    func acceptShare(_ metadata: CKShare.Metadata) async {
-        guard let cloud = store as? CloudKitStore else { return }
-        do {
-            let f = try await cloud.accept(metadata: metadata)
-            if let b = f.memberB, b.id != meID { throw StoreError.coupleFull }
-            let inviter = f.memberA?.name ?? "Your partner"
-            pendingInvite = InviteLookup(code: "", inviterName: inviter, shareURL: metadata.share.url)
-            if joinDraft == nil { joinDraft = JoinDraft.prefilled(from: f.couple, code: "") }
-            seenCodeEntry = true
-            apply(f)
-        } catch {
-            errorMessage = (error as? StoreError)?.errorDescription ?? error.localizedDescription
         }
     }
 
@@ -421,7 +399,6 @@ extension AppModel {
         let ok = await save([.checkIn(c, photo: photo)])
         if ok {
             Haptics.success()
-            if iCloudFull { toast = "Saved on your phone. It sends by itself once there's space in iCloud." }
         }
         return ok
     }

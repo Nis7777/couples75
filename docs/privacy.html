@@ -11,13 +11,13 @@
 <main>
 <p class="brand"><a href="index.html">Pact</a></p>
 <h1>Privacy Policy</h1>
-<p class="updated">Last updated: 23 November 2026</p>
+<p class="updated">Last updated: 24 November 2026</p>
 
 <div class="summary">
 <p><strong>The short version</strong></p>
 <ul>
-<li>Pact has no servers of its own. Your data is stored on your iPhone and in Apple's iCloud, in your account and, for what you share as a couple, in the iCloud account of the partner who created the couple.</li>
-<li>We (the developer) cannot see your habits, check-ins, photos, notes or Apple Health data.</li>
+<li>Pact has no servers of its own. Your data lives on your iPhone and your partner's. What you share as a couple travels between your two phones through Pact's own iCloud database at Apple, <strong>encrypted on your phones with a key only the two of you have</strong>. It doesn't use your personal iCloud storage.</li>
+<li>We (the developer) cannot see your habits, check-ins, photos, notes or Apple Health data. Neither can Apple: it only stores scrambled data.</li>
 <li>No ads, no tracking, no analytics, no third-party SDKs, and we never sell or share your data.</li>
 <li>Your partner sees what you do in the app together. Your daily progress photos are private unless you choose to share them.</li>
 <li>You can delete your data in the app at any time (Profile → Delete my data).</li>
@@ -31,9 +31,10 @@
 <h2>2. Where your data is stored</h2>
 <p>Pact uses Apple's iCloud (CloudKit) and does not run its own servers:</p>
 <ul>
-<li><strong>The couple space.</strong> When someone starts a couple, Pact creates a private space in <em>their</em> iCloud account and shares it with their partner through iCloud sharing. Everything the two of you do together is stored there. Only the two members of the couple can access it.</li>
-<li><strong>Your own iCloud.</strong> Your daily progress photos and an app identifier (used to recognise you after reinstalling) are stored in your own private iCloud.</li>
-<li><strong>Your devices.</strong> A copy of your data is kept on your iPhone so the app works offline. Widgets, the Live Activity and the Apple Watch app receive a small summary from your iPhone (names, today's habits and their status, streak).</li>
+<li><strong>Your iPhone.</strong> Everything you see in the app is kept on your iPhone, so it works offline. Widgets, the Live Activity and the Apple Watch app receive a small summary from your iPhone (names, today's habits and their status, streak).</li>
+<li><strong>Between the two of you.</strong> What you do together (habits, check-ins and their photos, reactions, notes) is sent to your partner's iPhone through Pact's own iCloud database at Apple. Before it leaves your iPhone it is encrypted (AES-256) with a key that is created on the phone of the partner who starts the couple and handed to the other partner through the invite code. Without that key the stored data is unreadable, to Apple and to us. It does not count against your personal iCloud storage.</li>
+<li><strong>Photos only pass through.</strong> A proof photo (or a progress photo you chose to share) is removed from the iCloud database once your partner's iPhone has received it, and after 30 days at the latest. Each of your iPhones keeps its own copy.</li>
+<li><strong>Your own iCloud.</strong> Your daily progress photos are backed up to your own private iCloud when there is space. Your app identifier and the couple's key are kept in your iCloud key-value storage, so you can get your pact back after reinstalling the app.</li>
 <li><strong>iCloud's public database</strong>, only for an invite code while it is open, and for the optional Android waitlist (section 6).</li>
 </ul>
 <p>iCloud data is encrypted in transit and at rest by Apple. Apple's handling of iCloud data is described in <a href="https://www.apple.com/legal/privacy/">Apple's Privacy Policy</a>. You need an iCloud account to use Pact.</p>
@@ -42,20 +43,20 @@
 <table>
 <thead><tr><th>Data</th><th>Why</th><th>Stored</th></tr></thead>
 <tbody>
-<tr><td>Your first name and avatar (character, skin, hair and jacket colours)</td><td>To show you and your partner in the app</td><td>Couple space</td></tr>
-<tr><td>Time zone, wake-up time, fitness level, the goals you pick, how long you've been together, long distance yes/no, the habit size you chose</td><td>To build your habits and your couple map, decide when each day starts and ends, and send reminders</td><td>Couple space (the goals you pick and your other onboarding answers stay on your iPhone)</td></tr>
-<tr><td>Your habits, challenges, saves, streak, XP, rank, pauses and habit changes</td><td>The core features</td><td>Couple space</td></tr>
-<tr><td>Check-ins: the time, the habit, and a photo taken with the in-app camera (or an honour tap)</td><td>To prove a habit to your partner</td><td>Couple space</td></tr>
-<tr><td>Reactions, comments, notes, nudges, bets, rewards and the bucket list</td><td>To interact with your partner</td><td>Couple space</td></tr>
-<tr><td>Daily progress photos</td><td>Your before/after comparison and timelapse</td><td>Your iPhone and your own iCloud. A copy goes to the couple space only if you turn on “Share progress pics with partner”</td></tr>
-<tr><td>Subscription status (which plan, when it started and when it ends)</td><td>One subscription covers both partners, so both phones need to know it is active</td><td>Couple space</td></tr>
+<tr><td>Your first name and avatar (character, skin, hair and jacket colours)</td><td>To show you and your partner in the app</td><td>Your iPhones; sent between them encrypted</td></tr>
+<tr><td>Time zone, wake-up time, fitness level, the goals you pick, how long you've been together, long distance yes/no, the habit size you chose</td><td>To build your habits and your couple map, decide when each day starts and ends, and send reminders</td><td>Your iPhones; sent between them encrypted (the goals you pick and your other onboarding answers stay on your iPhone)</td></tr>
+<tr><td>Your habits, challenges, saves, streak, XP, rank, pauses and habit changes</td><td>The core features</td><td>Your iPhones; sent between them encrypted</td></tr>
+<tr><td>Check-ins: the time, the habit, and a photo taken with the in-app camera (or an honour tap)</td><td>To prove a habit to your partner</td><td>Your iPhones; sent between them encrypted</td></tr>
+<tr><td>Reactions, comments, notes, nudges, bets, rewards and the bucket list</td><td>To interact with your partner</td><td>Your iPhones; sent between them encrypted</td></tr>
+<tr><td>Daily progress photos</td><td>Your before/after comparison and timelapse</td><td>Your iPhone and your own iCloud. A copy is sent to your partner (encrypted) only if you turn on “Share progress pics with partner”</td></tr>
+<tr><td>Subscription status (which plan, when it started and when it ends)</td><td>One subscription covers both partners, so both phones need to know it is active</td><td>Your iPhones; sent between them encrypted</td></tr>
 <tr><td>Apple Health readings (see section 5)</td><td>To check off matching habits for you</td><td>Read on your iPhone; only a one-line summary is saved with the check-in</td></tr>
 <tr><td>Text you type when creating a goal or habit</td><td>To suggest a short habit name and ideas</td><td>Processed on your iPhone only (section 7)</td></tr>
 </tbody>
 </table>
 
 <h2>4. What your partner can see</h2>
-<p>Pact is a shared app: your partner can see what you add to the couple space, including your name and avatar, your habits, check-ins and their photos, reactions, comments, notes, bets, your subscription status, and your streak and progress. Your daily progress photos are <strong>not</strong> shared unless you turn on “Share progress pics with partner” in Profile; turning it off again removes the shared copies.</p>
+<p>Pact is a shared app: your partner can see what you share in the app, including your name and avatar, your habits, check-ins and their photos, reactions, comments, notes, bets, your subscription status, and your streak and progress. Your daily progress photos are <strong>not</strong> shared unless you turn on “Share progress pics with partner” in Profile; turning it off again removes the shared copies from your partner's iPhone.</p>
 <p>Only take proof photos you are comfortable sharing, and don't photograph other people without their consent.</p>
 
 <h2>5. Apple Health</h2>
@@ -63,9 +64,9 @@
 <p>Apple Health data is never used for advertising or marketing, never sold, and never shared with anyone other than your partner as described above. You can revoke access at any time in the Health app or in iOS Settings, and turn the feature off in Profile.</p>
 
 <h2>6. What we (the developer) can access</h2>
-<p>We cannot access your private iCloud or your couple space. The only personal data we can access is:</p>
+<p>We cannot access your private iCloud, and what passes between your phones is encrypted with a key we never have. The only personal data we can access is:</p>
 <ul>
-<li><strong>Open invite codes.</strong> While an invite is open, iCloud's public database holds the 6-letter code, the inviter's first name, the iCloud sharing link and the date it was made, so the partner can join with the code. It is deleted when the partner joins, when a new code is made, or when the creator leaves. Anyone who has the code can see the inviter's first name.</li>
+<li><strong>Open invite codes.</strong> While an invite is open, iCloud's public database holds the 6-letter code, the inviter's first name, the date it was made and the couple's key locked with the code, so the partner can join with the code. It is deleted when the partner joins, when a new code is made, or when the creator leaves. Anyone who has the code can see the inviter's first name.</li>
 <li><strong>The Android waitlist (optional).</strong> If you tell us your partner isn't on iPhone and choose to join the waitlist, we store the email address you enter so we can tell you when an Android version exists. We use it for nothing else. To have it deleted, email us.</li>
 <li><strong>Emails you send us</strong> for support.</li>
 <li><strong>Information from Apple.</strong> Apple gives us sales and subscription reports, and crash reports and app analytics only if you have chosen to share them with app developers in iOS Settings. These do not identify you to us by name. Pact sends Apple a random identifier with each purchase, which is not linked to your name or Apple ID on our side.</li>
@@ -87,10 +88,9 @@
 
 <h2>10. How long data is kept, and deleting it</h2>
 <ul>
-<li><strong>Delete my data</strong> (Profile) removes you from the couple, deletes your progress photos from your iPhone and your iCloud, and clears the app's data on your iPhone.</li>
-<li>If you <strong>created</strong> the couple, leaving or deleting your data deletes the whole couple space for both of you, including your partner's check-ins and photos in it.</li>
-<li>If you <strong>joined</strong> a couple, leaving removes your access and your shared progress photo copies. Your past check-ins stay in the couple space, which lives in your partner's iCloud, until they leave or delete their data. You can ask your partner to do so.</li>
-<li>Otherwise, data is kept until you delete it. You can also manage or delete Pact's iCloud data in iOS Settings → [your name] → iCloud.</li>
+<li><strong>Delete my data</strong> (Profile) removes you from the couple, deletes everything you wrote from the iCloud database, deletes your progress photos from your iPhone and your iCloud, and clears the app's data on your iPhone. A small encrypted note that you left stays, so your partner's app knows.</li>
+<li><strong>Leaving</strong> the couple does the same for your data. Your partner's data is deleted when they leave or delete their data too; the app asks them to once you've left.</li>
+<li>Photos are removed from the iCloud database once delivered, and after 30 days at the latest. Otherwise data is kept until you delete it. You can also manage Pact's data in your own iCloud in iOS Settings → [your name] → iCloud.</li>
 <li>Invite codes are deleted as described in section 6. Waitlist emails are kept until an Android version is announced or you ask us to delete them.</li>
 </ul>
 

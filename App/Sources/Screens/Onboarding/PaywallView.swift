@@ -583,8 +583,9 @@ struct PaywallAView: View {
         }
     }
 
-    private var iCloudFull: Bool {
-        if case .quotaExceeded = model.lastSetupError { return true }
+    /// Not signed in to iCloud: Settings is where to fix it.
+    private var needsSettings: Bool {
+        if case .notAuthenticated = model.lastSetupError { return true }
         return false
     }
 
@@ -592,7 +593,7 @@ struct PaywallAView: View {
     private var setupFailed: some View {
         VStack(spacing: 16) {
             Spacer(minLength: 0)
-            Image(systemName: iCloudFull ? "icloud.slash" : "exclamationmark.icloud")
+            Image(systemName: "exclamationmark.icloud")
                 .font(.system(size: 52, weight: .regular))
                 .foregroundStyle(Color.coral)
             TitleText("Your pact isn't set up yet", size: 26)
@@ -603,7 +604,7 @@ struct PaywallAView: View {
                 .multilineTextAlignment(.center)
             Spacer(minLength: 0)
             PrimaryButton("Try again", isLoading: retrying) { Task { await retry() } }
-            if iCloudFull {
+            if needsSettings {
                 SecondaryButton("Open Settings") {
                     if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
                 }

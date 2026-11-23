@@ -178,19 +178,6 @@ struct TodayView: View {
             return TodayBanner(id: "tweak-\(t.tweak.id)", icon: "slider.horizontal.3", text: "\(who) suggested a change · Review",
                                title: "\(who) suggested a change", detail: "", kind: .tweakAnswer)
         }
-        if model.iCloudFull {
-            // Everything shared is stored in the owner's (A's) iCloud, so A's storage is the one that's full.
-            let mine = model.isOwner
-            let owner = model.nameA
-            return TodayBanner(
-                id: "icloudfull", icon: "icloud.slash",
-                text: mine ? "Your iCloud is full · check-ins can't be sent" : "\(owner)'s iCloud is full · check-ins can't be sent",
-                title: mine ? "Your iCloud is full" : "\(owner)'s iCloud is full",
-                detail: mine
-                    ? "Your pact is stored in your iCloud, and it's full, so check-ins (yours and \(model.partnerName)'s) can't be sent. They're saved on your phones and send by themselves as soon as there's space. A check-in counts if it's sent within \(Int(Brand.checkInUploadWindowHours)) hours, so free up space soon: Settings → your name → iCloud → Manage Account Storage, or upgrade to iCloud+."
-                    : "Your pact is stored in \(owner)'s iCloud, and it's full, so check-ins can't be sent. Yours are saved on your phone and send by themselves as soon as \(owner) frees up space. A check-in counts if it's sent within \(Int(Brand.checkInUploadWindowHours)) hours, so let \(owner) know.",
-                kind: .iCloudFull(mine: mine))
-        }
         if model.subscriptionLapsed {
             return TodayBanner(id: "lapsed", icon: "pause.circle.fill", text: "Run paused · subscription ended",
                                title: "Your run is paused",
@@ -232,7 +219,7 @@ struct TodayView: View {
         switch b.kind {
         case .pauseAnswer: showPauseAnswer = true
         case .tweakAnswer: showTweakAnswer = true
-        case .note, .info, .iCloudFull: bannerDetail = b
+        case .note, .info: bannerDetail = b
         }
     }
 
@@ -783,8 +770,6 @@ struct TodayBanner: Identifiable {
     enum Kind {
         case pauseAnswer, tweakAnswer
         case note(NudgeFact)
-        /// `mine`: this phone's owner is the one whose iCloud is full (they can fix it in Settings).
-        case iCloudFull(mine: Bool)
         case info
     }
     var id: String
@@ -830,14 +815,6 @@ struct TodayBannerSheet: View {
                     dismiss()
                 }
                 .frame(maxWidth: .infinity)
-            } else if case .iCloudFull(let mine) = banner.kind, mine {
-                // There's no public link straight to iCloud storage: this opens Settings, then your name → iCloud.
-                PrimaryButton("Open Settings") {
-                    if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
-                    dismiss()
-                }
-                TextLinkButton("Not now", color: .coral) { dismiss() }
-                    .frame(maxWidth: .infinity)
             } else {
                 PrimaryButton("OK") { dismiss() }
             }

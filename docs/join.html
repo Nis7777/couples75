@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Join your partner on Pact</title>
+<meta name="description" content="Your partner invited you to Pact. Install the app and enter the 6-letter code.">
+<link rel="stylesheet" href="style.css">
+<style>
+  .code { font-size: 2.4rem; font-weight: 800; letter-spacing: 0.35em; margin: 0.4em 0 0.2em; }
+  .steps li { margin: 0.4em 0; }
+  .open { display: inline-block; margin-top: 1em; padding: 0.8em 1.6em; border-radius: 999px;
+          background: #382A22; color: #F7F1E8; text-decoration: none; font-weight: 700; }
+</style>
+</head>
+<body>
+<main>
+<p class="brand"><a href="index.html">Pact</a></p>
+<h1>Your partner invited you to Pact</h1>
+<p>Your invite code:</p>
+<p class="code" id="code">······</p>
+<ol class="steps">
+  <li>Install <strong>Pact</strong> on your iPhone.</li>
+  <li>Open it and tap <strong>My partner invited me</strong>.</li>
+  <li>Enter the code above. You join free: your partner's subscription covers you both.</li>
+</ol>
+<a class="open" id="open" href="pactapp://join">Already have Pact? Open it</a>
+<p class="footer"><a href="privacy.html">Privacy Policy</a> · <a href="support.html">Support</a> · <a href="index.html">Pact</a></p>
+</main>
+<script>
+  // The code comes from the link (join.html?code=K7M2QP). Only letters and digits are shown.
+  var code = (new URLSearchParams(location.search).get("code") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+  if (code.length === 6) {
+    document.getElementById("code").textContent = code;
+    document.getElementById("open").href = "pactapp://join?code=" + code;
+  } else {
+    document.getElementById("code").textContent = "Ask your partner for the 6-letter code";
+    document.getElementById("code").style.fontSize = "1.1rem";
+    document.getElementById("code").style.letterSpacing = "0";
+  }
+</script>
+</body>
+</html>

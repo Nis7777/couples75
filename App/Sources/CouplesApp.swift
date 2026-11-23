@@ -1,6 +1,5 @@
 import SwiftUI
 import UIKit
-import CloudKit
 import BackgroundTasks
 
 @main
@@ -96,10 +95,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         return config
     }
 
-    /// CloudKit silent push: fetch changes and post local notifications.
-    /// CloudKit silent push. The completion-handler form is called on the main actor, so the (non-Sendable)
-    /// payload never crosses actors. The payload itself isn't needed: the app fetches the changes.
-    /// A silent CloudKit push: just fetch. `nonisolated` so the (non-Sendable) payload never crosses to the main
+    /// A silent push (the partner wrote something): just fetch. `nonisolated` so the (non-Sendable) payload never crosses to the main
     /// actor; only the completion handler does, boxed.
     nonisolated func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any],
                                  fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
@@ -113,25 +109,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {}
 }
 
-/// Receives iCloud share links ("userDidAcceptCloudKitShareWith").
-final class SceneDelegate: NSObject, UIWindowSceneDelegate {
-    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        if let metadata = connectionOptions.cloudKitShareMetadata {
-            accept(metadata)
-        }
-    }
-
-    func windowScene(_ windowScene: UIWindowScene, userDidAcceptCloudKitShareWith cloudKitShareMetadata: CKShare.Metadata) {
-        accept(cloudKitShareMetadata)
-    }
-
-    private func accept(_ metadata: CKShare.Metadata) {
-        Task { @MainActor in
-            guard let model = AppDelegate.current?.model else { return }
-            await model.acceptShare(metadata)
-        }
-    }
-}
+/// The window scene (kept so the app has one scene configuration).
+final class SceneDelegate: NSObject, UIWindowSceneDelegate {}
 
 /// Carries the push completion handler to the main actor. UIKit allows calling it from any thread.
 private final class FetchCompletion: @unchecked Sendable {
