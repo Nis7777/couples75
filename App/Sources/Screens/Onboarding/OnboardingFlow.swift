@@ -32,7 +32,8 @@ struct OnboardingFlow: View {
         case .partnerAvatar: go(.handOff, forward: false)
         case .partnerFitness: go(.partnerAvatar, forward: false)
         case .partnerWake: go(.partnerFitness, forward: false)
-        case .handBack: go(.partnerWake, forward: false)
+        case .partnerGoals: go(.partnerWake, forward: false)
+        case .handBack: go(.partnerGoals, forward: false)
         case .planReveal: go(.level, forward: false)
         case .android: go(.partnerIPhone, forward: false)
         default: back()
@@ -51,9 +52,10 @@ struct OnboardingFlow: View {
                                    isHandBack: false, next: { go(.partnerAvatar) }, back: { go(.togetherNow, forward: false) })
         case .partnerAvatar: PartnerAvatarStep(next: { go(.partnerFitness) }, back: { go(.handOff, forward: false) })
         case .partnerFitness: PartnerFitnessStep(next: { go(.partnerWake) }, back: { go(.partnerAvatar, forward: false) })
-        case .partnerWake: PartnerWakeStep(next: { go(.handBack) }, back: { go(.partnerFitness, forward: false) })
+        case .partnerWake: PartnerWakeStep(next: { go(.partnerGoals) }, back: { go(.partnerFitness, forward: false) })
+        case .partnerGoals: PartnerGoalsStep(next: { go(.handBack) }, back: { go(.partnerWake, forward: false) })
         case .handBack: HandOffView(handTo: model.draft.myName, from: model.draft.partnerName,
-                                    isHandBack: true, next: { go(.together) }, back: { go(.partnerWake, forward: false) })
+                                    isHandBack: true, next: { go(.together) }, back: { go(.partnerGoals, forward: false) })
         case .together: TogetherView(next: { go(.longDistance) },
                                      back: { go(model.draft.partnerWithYou == true ? .handBack : .togetherNow, forward: false) })
         case .longDistance: LongDistanceView(next: { go(.goals) }, back: back)

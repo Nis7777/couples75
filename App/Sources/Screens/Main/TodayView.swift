@@ -413,6 +413,12 @@ struct TodayView: View {
                         .lineLimit(1)
                 }
             }
+            if member == nil && fallback.isEmpty {
+                Text("Picks their own habits when joining")
+                    .font(.app(14))
+                    .foregroundStyle(Color.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             ForEach(today?.items ?? fallback.map { ChecklistItem(rule: $0, checkIn: nil, state: .open) }) { item in
                 Button {
                     tap(item, isMe: isMe, today: today)

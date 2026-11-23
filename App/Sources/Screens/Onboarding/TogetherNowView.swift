@@ -48,7 +48,7 @@ struct HandOffView: View {
                 TitleText(isHandBack ? "Hand it back to \(handTo)" : "Hand the phone to \(handTo)", size: 30)
                 BodyText(isHandBack
                          ? "Thanks, \(from)! \(handTo) finishes setting up your plan."
-                         : "\(handTo), build your avatar and tell us how active you are. It takes a minute.")
+                         : "\(handTo), build your avatar and pick your own goals. It takes a minute.")
                 CoupleScene(left: model.draftScene, right: model.sceneBBuilt, crop: 0.56, overlap: -0.05)
                     .frame(height: 200)
                 Spacer(minLength: 0)
@@ -98,5 +98,23 @@ struct PartnerWakeStep: View {
                                if model.draft.partnerWakeTime == nil { model.draft.partnerWakeTime = "07:30" }
                                next()
                            })
+    }
+}
+
+/// On A's phone, B picks B's own goals: B's habits come from B's answers, never from A's.
+struct PartnerGoalsStep: View {
+    @Environment(AppModel.self) private var model
+    var next: () -> Void
+    var back: () -> Void
+
+    var body: some View {
+        GoalsPicker(goals: Binding(get: { model.draft.partnerGoals ?? [] }, set: { model.draft.partnerGoals = $0 }),
+                    step: nil, total: nil,
+                    title: "\(model.draft.partnerName), what do you want to level up?",
+                    subtitle: "Pick two or more. These become your own daily habits.",
+                    next: {
+                        model.draft.generatePartnerPlan()
+                        next()
+                    }, back: back)
     }
 }

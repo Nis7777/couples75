@@ -22,7 +22,7 @@ struct PlanRevealView: View {
         OnboardingPage(step: d.stepNumber, back: back) {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 12) {
-                    TitleText("\(d.myName) & \(d.partnerName)'s daily habits", size: 28)
+                    TitleText("Your daily habits", size: 28)
                         .padding(.top, 10)
                         .padding(.bottom, 4)
                     RingHero(left: SceneCharacter(avatar: d.avatar, name: d.myName), right: model.sceneBBuilt,
@@ -31,7 +31,7 @@ struct PlanRevealView: View {
                         .frame(height: 310)
                         .padding(.horizontal, -Metrics.side)
                     if d.tooManyRules > 0 {
-                        Text("Up to \(Brand.maxRules) rules each. Swap or remove \(d.tooManyRules) more to continue.")
+                        Text("Up to \(Brand.maxRules) habits. Swap or remove \(d.tooManyRules) more to continue.")
                             .font(.app(15, .semibold))
                             .foregroundStyle(Color.coral)
                             .multilineTextAlignment(.center)
@@ -39,15 +39,16 @@ struct PlanRevealView: View {
                             .padding(12)
                             .peachBox(radius: 14)
                     }
+                    // Mine only: my partner's habits come from their own answers (card below).
                     PlanRulesCard(rows: d.planRows,
                                   leftName: d.myName, rightName: d.partnerName,
-                                  rightNote: d.partnerFitness == nil ? "Draft: \(d.partnerName) can adjust when they join" : nil,
+                                  rightNote: nil,
                                   onChange: editable && d.tooManyRules == 0 ? { changing = ChangingRow(index: $0) } : nil,
                                   onSwap: editable && d.tooManyRules > 0 ? { changing = ChangingRow(index: $0, swap: true) } : nil,
                                   onRemove: editable && d.tooManyRules > 0 ? { i in
                                       withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { model.draft.removeRow(i) }
                                   } : nil,
-                                  canRemove: { d.canRemove($0) })
+                                  canRemove: { d.canRemove($0) }, showRight: false)
                     if d.planRows.contains(where: \.pending) {
                         Text("Changed rules are pending until \(d.partnerName) approves. The original rule stays until then.")
                             .font(.app(13))
@@ -55,6 +56,7 @@ struct PlanRevealView: View {
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
                     }
+                    PartnerHabitsCard(name: d.partnerName, habits: d.partnerPlan?.map(\.title))
                     NoStakesCard()
                 }
                 .padding(.bottom, 28)
@@ -64,11 +66,8 @@ struct PlanRevealView: View {
         }
         .onAppear { if model.draft.planRules.isEmpty { model.draft.generatePlan() } }
         .sheet(item: $changing) { row in
-            if row.swap {
-                DraftRuleSwapSheet(index: row.index)
-            } else {
-                DraftRuleChangeSheet(index: row.index)
-            }
+            // My own habit: changed directly (nothing to approve, it's mine).
+            DraftRuleSwapSheet(index: row.index, title: row.swap ? "Swap a habit" : "Change habit")
         }
     }
 }
@@ -90,7 +89,7 @@ struct DraftRuleSwapSheet: View {
             who: $who,
             suggestions: d.suggestions(intensity: d.myIntensity, extra: d.personalIdeas),
             intensity: d.myIntensity,
-            note: "Swaps this rule for both of you.",
+            note: "Changes your habit. \(d.partnerName)'s habits are their own.",
             validate: { idea in
                 let ok = d.photoCount(forPartner: false, replacing: index, with: idea) >= Brand.minPhotoRules
                     && d.photoCount(forPartner: true, replacing: index, with: idea) >= Brand.minPhotoRules
@@ -161,23 +160,27 @@ struct PlanRulesCard: View {
     var onSwap: ((Int) -> Void)? = nil
     var onRemove: ((Int) -> Void)? = nil
     var canRemove: (Int) -> Bool = { _ in true }
+    /// false: only my column (my partner's habits are their own).
+    var showRight = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Daily habits")
+            Text(showRight ? "Daily habits" : "\(leftName)'s daily habits")
                 .font(.app(20, .bold))
                 .foregroundStyle(Color.textPrimary)
-            HStack {
-                Text(leftName).font(.app(16, .bold)).foregroundStyle(Color.coral)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Text(rightName).font(.app(16, .bold)).foregroundStyle(Color.sage)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            if showRight {
+                HStack {
+                    Text(leftName).font(.app(16, .bold)).foregroundStyle(Color.coral)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(rightName).font(.app(16, .bold)).foregroundStyle(Color.sage)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
             ForEach(rows) { r in
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         ruleText(r.left, color: .coral)
-                        ruleText(r.right, color: .sage)
+                        if showRight { ruleText(r.right, color: .sage) }
                     }
                     HStack(spacing: 8) {
                         Text(r.reason)
@@ -282,6 +285,40 @@ struct RulesColumnsCard: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// My partner's habits on my phone: theirs if they picked goals here, otherwise a note that they pick their own.
+struct PartnerHabitsCard: View {
+    var name: String
+    var habits: [String]?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("\(name)'s daily habits")
+                .font(.app(18, .bold))
+                .foregroundStyle(Color.sage)
+            if let habits, !habits.isEmpty {
+                ForEach(Array(habits.enumerated()), id: \.offset) { _, h in
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Circle().fill(Color.sage).frame(width: 8, height: 8)
+                        Text(h).font(.app(15, .medium)).foregroundStyle(Color.textPrimary)
+                    }
+                }
+                Text("From \(name)'s own answers. \(name) can change them when joining.")
+                    .font(.app(12))
+                    .foregroundStyle(Color.textSecondary)
+            } else {
+                Text("\(name) picks their own goals and habits when joining. Yours don't decide theirs.")
+                    .font(.app(15))
+                    .foregroundStyle(Color.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .card(shadow: false)
         .accessibilityElement(children: .combine)
     }
 }

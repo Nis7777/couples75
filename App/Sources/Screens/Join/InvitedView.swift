@@ -20,12 +20,13 @@ struct InvitedView: View {
                         .padding(.vertical, 8)
                         .accessibilityLabel(model.nameA)
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("\(model.nameA) picked these daily habits for you both")
+                        Text(bRules.isEmpty ? "\(model.nameA)'s daily habits. Next, you pick your own."
+                                            : "Your daily habits, from your answers on \(model.nameA)'s phone")
                             .font(.app(15, .medium))
                             .foregroundStyle(Color.textSecondary)
                         HStack(alignment: .top, spacing: 14) {
                             ruleColumn(model.nameA, aRules, .coral)
-                            ruleColumn(model.nameB, bRules, .sage)
+                            if !bRules.isEmpty { ruleColumn(model.nameB, bRules, .sage) }
                         }
                         HStack(spacing: 10) {
                             Circle().fill(Color.gold).frame(width: 8, height: 8)
@@ -43,8 +44,8 @@ struct InvitedView: View {
                 .padding(.bottom, 8)
             }
         } actions: {
-            PrimaryButton("See the plan") { next() }
-            Text("You can swap one habit. Free for you: \(model.nameA)'s subscription covers you both.")
+            PrimaryButton(bRules.isEmpty ? "Pick my habits" : "See my habits") { next() }
+            Text("Your habits are yours to choose. Free for you: \(model.nameA)'s subscription covers you both.")
                 .font(.app(13))
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)

@@ -146,6 +146,23 @@ extension AppModel {
         RulesEngine.effectiveRules(for: PendingPartner.id, round: 1, facts: facts, at: now())
     }
 
+    /// B's habits as ideas: what B chose on A's phone (stored for B), to start B's editable list from.
+    var pendingIdeasForB: [RuleIdea] {
+        draftRulesForB.sorted { $0.position < $1.position }.map {
+            RuleIdea(title: $0.title, type: $0.type, libraryKey: $0.libraryKey == RuleFact.customKey ? nil : $0.libraryKey,
+                     photoHint: $0.photoHint)
+        }
+    }
+
+    /// B's rules from B's own plan (their goals, edited freely), else what B chose on A's phone.
+    func myJoinRules(_ jd: JoinDraft) -> [RuleFact] {
+        let now = self.now()
+        if let plan = jd.plan, !plan.isEmpty {
+            return plan.enumerated().map { i, idea in idea.ruleFact(memberID: meID, position: i + 1, round: 1, now: now) }
+        }
+        return PlanGenerator.joinerRules(from: draftRulesForB, memberID: meID, now: now)
+    }
+
     /// B's rules: an exact copy of the rules A's plan stored for B (one source of truth), with an optional swap.
     func proposedRulesForMe(_ jd: JoinDraft) -> [RuleFact] {
         let now = self.now()
@@ -185,7 +202,8 @@ extension AppModel {
         var base = jd
         base.swappedPosition = nil
         base.swapKey = nil
-        let baseRules = proposedRulesForMe(base)
+        // B's own habits: no approval needed from A (each of you owns your habits).
+        let baseRules = myJoinRules(base)
         var records: [FactRecord] = [FactRecord.member(b)] + baseRules.map { FactRecord.rule($0) }
         let swapped = jd.swappedPosition != nil && jd.swapKey != nil
         let newBet = jd.changeBet && !jd.betText.isEmpty && jd.betText != currentBet ? jd.betText : nil

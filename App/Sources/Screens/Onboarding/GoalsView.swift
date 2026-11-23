@@ -7,16 +7,37 @@ struct GoalsView: View {
     @Environment(AppModel.self) private var model
     var next: () -> Void
     var back: () -> Void
+
+    var body: some View {
+        GoalsPicker(goals: Binding(get: { model.draft.goals }, set: { model.draft.goals = $0 }),
+                    step: model.draft.stepNumber, total: nil,
+                    title: "What do you want to level up?",
+                    subtitle: "Pick two or more. Each one becomes one of your daily habits.",
+                    onChange: { model.draft.ruleChanges = [] },   // the plan's rows change with the goals
+                    next: next, back: back)
+    }
+}
+
+/// The goals grid (Body, Looks, Mind & money), for me, for my partner on my phone, and for the partner joining.
+struct GoalsPicker: View {
+    @Binding var goals: [Goal]
+    var step: Int?
+    var total: Int?
+    var title: String
+    var subtitle: String
+    var onChange: () -> Void = {}
+    var next: () -> Void
+    var back: () -> Void
     private let columns = [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
 
     var body: some View {
-        OnboardingPage(step: model.draft.stepNumber, back: back) {
+        OnboardingPage(step: step, total: total, back: back) {
             // Three groups don't fit on one screen: this page scrolls on its own (like the plan review).
             ScrollView(showsIndicators: false) {
             VStack(spacing: 8) {
-                TitleText("What do you want to level up together?", size: 30)
+                TitleText(title, size: 30)
                     .padding(.top, 26)
-                Text("Pick two or more. Each one becomes a daily habit.")
+                Text(subtitle)
                     .font(.app(17))
                     .foregroundStyle(Color.textSecondary)
                     .multilineTextAlignment(.center)
@@ -37,17 +58,17 @@ struct GoalsView: View {
             .padding(.bottom, 16)
             }
         } actions: {
-            PrimaryButton("Continue", isEnabled: model.draft.goals.count >= 2) { next() }
+            PrimaryButton("Continue", isEnabled: goals.count >= 2) { next() }
         }
     }
 
     private func goalChip(_ g: Goal) -> some View {
-        let selected = model.draft.goals.contains(g)
+        let selected = goals.contains(g)
         return Button {
             Haptics.tap()
             withAnimation(.open(0.22)) {
-                if selected { model.draft.goals.removeAll { $0 == g } } else { model.draft.goals.append(g) }
-                model.draft.ruleChanges = []   // the plan's rows change with the goals
+                if selected { goals.removeAll { $0 == g } } else { goals.append(g) }
+                onChange()
             }
         } label: {
             HStack(spacing: 10) {

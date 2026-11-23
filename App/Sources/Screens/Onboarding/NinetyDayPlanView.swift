@@ -33,6 +33,7 @@ struct NinetyDayPlanView: View {
                     .padding(.top, 16)
                     WeekStrip()
                     habits(d)
+                    PartnerHabitsCard(name: d.partnerName, habits: d.partnerPlan?.map(\.title))
                     faq
                 }
                 .padding(.bottom, 16)
@@ -53,7 +54,7 @@ struct NinetyDayPlanView: View {
     private func habits(_ d: OnboardingDraft) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("Habits for week 1")
+                Text("Your habits for week 1")
                     .font(.app(19, .bold))
                     .foregroundStyle(Color.textPrimary)
                 Spacer()
@@ -103,7 +104,7 @@ struct NinetyDayPlanView: View {
                     .font(.app(16, .semibold))
                     .foregroundStyle(Color.textPrimary)
                     .lineLimit(2)
-                Text(row.right != row.left ? "every day · \(partner): \(row.right)" : "every day")
+                Text(rule.a.type == .photo ? "every day · photo proof" : "every day · honour tap")
                     .font(.app(12, .medium))
                     .foregroundStyle(Color.textSecondary)
                     .lineLimit(2)
@@ -247,7 +248,7 @@ struct AddHabitSheet: View {
             who: $who,
             suggestions: d.suggestions(intensity: d.myIntensity, extra: d.personalIdeas),
             intensity: d.myIntensity,
-            note: "Added for both of you.",
+            note: "Added to your habits. \(d.partnerName) picks their own.",
             validate: { idea in
                 if !d.canAddRow { return "Up to \(Brand.maxRules) habits each." }
                 if d.planRows.contains(where: { $0.left == idea.title }) { return "You already have this one." }

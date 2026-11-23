@@ -14,6 +14,11 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
 - [ ] "How big should your habits be?": Gentle / Steady (Most popular) / Hard mode.
 - [ ] "Anything personal?": type "Learn to speak chinese", tap Add → pill "Learn Chinese".
 - [ ] Plan review: "{A} & {B}'s daily habits", the "No stakes on habits" card, button "Looks good" → paywall.
+- [ ] Your habits come only from your answers. "Yes, we're together": the partner builds their avatar, answers
+      fitness and wake-up, then picks THEIR OWN goals on your phone; the plan review shows "Your daily habits" plus
+      a "{partner}'s daily habits" card from their answers. "No, I'll invite them": that card says they pick their own.
+- [ ] Partner joining (code on a second Simulator/user): Invited → avatar → fitness → wake-up → goals → "Your daily
+      habits" (from their goals, at their level): edit, delete (min 4, 2 photo), add (max 6), no approval from you.
 - [ ] Mirror: "You picked {goals} for you and {partner}", the line for how long you've been together, the reframe card,
       three tiny wins from your goals. Scrolls on iPhone SE.
 - [ ] Plan review → "Sign your pact" (hold the fingerprint 1.5 s) → couple score.

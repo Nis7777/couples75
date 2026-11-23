@@ -28,17 +28,28 @@ struct JoinFlow: View {
     private var content: some View {
         switch step {
         case .invited:
-            // If B built the avatar on A's phone, it's already made: go straight to the plan.
-            InvitedView(next: { go(model.joinDraft?.prebuilt == true ? .tweak : .character) })
+            // If B built the avatar on A's phone, it's already made: B's goals next (or B's habits, when B already
+            // picked goals there too).
+            InvitedView(next: {
+                guard model.joinDraft?.prebuilt == true else { go(.character); return }
+                go(model.pendingIdeasForB.isEmpty ? .goals : .tweak)
+            })
         case .character:
             JoinCharacterStep(next: { go(.fitness) }, back: { go(.invited, forward: false) })
         case .fitness:
             JoinFitnessStep(next: { go(.wakeUp) }, back: { go(.character, forward: false) })
         case .wakeUp:
-            JoinWakeStep(next: { go(.tweak) }, back: { go(.fitness, forward: false) })
+            JoinWakeStep(next: { go(.goals) }, back: { go(.fitness, forward: false) })
+        case .goals:
+            JoinGoalsStep(next: { go(.tweak) }, back: {
+                go(model.joinDraft?.prebuilt == true ? .invited : .wakeUp, forward: false)
+            })
         case .tweak:
-            // One subscription covers both: B never sees a paywall.
-            AcceptTweakView(next: { go(.imIn) }, back: { go(.wakeUp, forward: false) })
+            // B's own habits. One subscription covers both: B never sees a paywall.
+            JoinHabitsView(next: { go(.imIn) }, back: {
+                go(model.joinDraft?.prebuilt == true && !model.pendingIdeasForB.isEmpty ? .invited : .goals,
+                   forward: false)
+            })
         case .imIn:
             ImInView(next: { go(.notifications) })
         case .notifications:
@@ -53,9 +64,9 @@ struct JoinFlow: View {
     }
 }
 
-/// B's step numbers (character, fitness, wake-up, plan).
+/// B's step numbers (character, fitness, wake-up, goals, habits).
 enum JoinSteps {
-    static let total = 4
+    static let total = 5
 }
 
 struct JoinCharacterStep: View {

@@ -4,7 +4,7 @@ import Foundation
 struct OnboardingDraft: Codable, Equatable {
     enum Step: String, Codable, CaseIterable {
         case hook, character, names, partnerIPhone, togetherNow, handOff, partnerAvatar, partnerFitness, partnerWake,
-             handBack, together, longDistance, goals, personal, fitness, wakeUp, quit, mirror, level, building, planReveal,
+             partnerGoals, handBack, together, longDistance, goals, personal, fitness, wakeUp, quit, mirror, level, building, planReveal,
              stakes,  // no longer shown: daily habits have no stakes (bets come with challenges)
              // Between the plan review and the paywall: sign, score, the 90-day plan + FAQ, reviews, notifications.
              signPact, coupleScore, ninetyDays, socialProof, notifySetup
@@ -27,6 +27,11 @@ struct OnboardingDraft: Codable, Equatable {
     var together: String?
     var longDistance: Bool?
     var goals: [Goal] = []
+    /// The partner's own goals, when they answered on this phone ("Hand the phone to {B}"). Otherwise they pick
+    /// them when joining: nobody's habits are chosen for them.
+    var partnerGoals: [Goal]?
+    /// The partner's habits, generated from `partnerGoals` (nil until they answer).
+    var partnerPlan: [RuleIdea]?
     /// "Anything personal you want to work on?" (skippable).
     var personalGoals: [PersonalGoal] = []
     var personalOther = ""
@@ -65,10 +70,18 @@ struct OnboardingDraft: Codable, Equatable {
 
     /// Generates the plan from the answers. Called once, when the plan is built; going back and changing
     /// answers builds it again (and clears changes made on the old plan).
+    /// My habits come from my answers only; the partner's from theirs (if they answered here).
     mutating func generatePlan() {
         planRules = PlanGenerator.rows(goals: goals, personal: personalGoals, custom: customGoals, level: level,
-                                       intensityA: myIntensity, intensityB: partnerIntensity)
+                                       intensityA: myIntensity, intensityB: myIntensity)
         ruleChanges = []
+        generatePartnerPlan()
+    }
+
+    mutating func generatePartnerPlan() {
+        guard let pg = partnerGoals, !pg.isEmpty else { partnerPlan = nil; return }
+        partnerPlan = PlanGenerator.rows(goals: pg, personal: [], custom: [], level: level,
+                                         intensityA: partnerIntensity, intensityB: partnerIntensity).map(\.a)
     }
 
     var ruleKeys: [String] { planRules.compactMap { $0.a.libraryKey } }
@@ -122,12 +135,8 @@ struct OnboardingDraft: Codable, Equatable {
 
     mutating func addRow(_ idea: RuleIdea) {
         guard canAddRow else { return }
-        var row = PlanRuleRow(id: .newID(), reason: "You added this", a: idea, b: idea)
-        if let key = idea.libraryKey {
-            row.a = RuleIdea.library(key, intensity: myIntensity) ?? idea
-            row.b = RuleIdea.library(key, intensity: partnerIntensity) ?? idea
-        }
-        planRules.append(row)
+        let mine = idea.libraryKey.flatMap { RuleIdea.library($0, intensity: myIntensity) } ?? idea
+        planRules.append(PlanRuleRow(id: .newID(), reason: "You added this", a: mine, b: mine))
     }
 
     /// Why a row can't be removed (nil when it can).
@@ -142,13 +151,8 @@ struct OnboardingDraft: Codable, Equatable {
         guard planRules.indices.contains(index) else { return }
         var row = planRules[index]
         row.reason = "You picked this"
-        if let key = idea.libraryKey {
-            row.a = RuleIdea.library(key, intensity: myIntensity) ?? idea
-            row.b = RuleIdea.library(key, intensity: partnerIntensity) ?? idea
-        } else {
-            row.a = idea
-            row.b = idea
-        }
+        row.a = idea.libraryKey.flatMap { RuleIdea.library($0, intensity: myIntensity) } ?? idea
+        row.b = row.a   // my plan only: the partner's habits are their own
         planRules[index] = row
         ruleChanges.removeAll { $0.rowID == row.id }
     }
@@ -169,11 +173,13 @@ struct OnboardingDraft: Codable, Equatable {
         return Array(out.prefix(6))
     }
 
-    /// The rule facts written when the couple is created: the stored rows, positions 1…n, for A and for B
-    /// (B's placeholder id), plus a proposal for every changed row (the partner approves it later).
+    /// The rule facts written when the couple is created: my rows, positions 1…n, and, only if the partner chose
+    /// their own habits on this phone, theirs (B's placeholder id). Otherwise B picks them when joining.
     func makeRuleFacts(memberA: MemberID, now: Date) -> (rules: [RuleFact], proposals: [RuleProposalFact]) {
-        let rules = PlanGenerator.ruleFacts(rows: planRules, partner: false, memberID: memberA, now: now)
-            + PlanGenerator.ruleFacts(rows: planRules, partner: true, memberID: PendingPartner.id, now: now)
+        var rules = PlanGenerator.ruleFacts(rows: planRules, partner: false, memberID: memberA, now: now)
+        for (i, idea) in (partnerPlan ?? []).enumerated() {
+            rules.append(idea.ruleFact(memberID: PendingPartner.id, position: i + 1, round: 1, now: now))
+        }
         var proposals: [RuleProposalFact] = []
         for (i, row) in planRules.enumerated() {
             for forPartner in [false, true] {
@@ -217,7 +223,7 @@ struct DraftRuleChange: Codable, Equatable {
 /// Person B's joining answers (section 3.5).
 struct JoinDraft: Codable, Equatable {
     enum Step: String, Codable {
-        case invited, character, fitness, wakeUp, tweak, imIn, notifications
+        case invited, character, fitness, wakeUp, goals, tweak, imIn, notifications
     }
 
     var step: Step = .invited
@@ -231,6 +237,28 @@ struct JoinDraft: Codable, Equatable {
     var changeBet = false
     var bet: BetOption = .date
     var customBet = ""
+    /// B's own goals and the habits made from them (B edits these freely: they're B's).
+    var goals: [Goal]?
+    var plan: [RuleIdea]?
+
+    var myIntensity: Intensity { (fitness ?? .somewhatActive).intensity }
+
+    /// B's habits from B's goals, at B's fitness level (4–6, at least 2 photo habits, like A's).
+    mutating func generatePlan() {
+        plan = PlanGenerator.rows(goals: goals ?? [], personal: [], custom: [], level: .couples75,
+                                  intensityA: myIntensity, intensityB: myIntensity).map(\.a)
+    }
+
+    var photoHabits: Int { (plan ?? []).filter { $0.type == .photo }.count }
+
+    func removeProblem(_ index: Int) -> String? {
+        let p = plan ?? []
+        if p.count <= Brand.minRules { return "Keep at least \(Brand.minRules) habits." }
+        if p.indices.contains(index), p[index].type == .photo, photoHabits <= Brand.minPhotoRules {
+            return "Keep at least \(Brand.minPhotoRules) photo habits."
+        }
+        return nil
+    }
 
     var betText: String {
         bet == .custom ? String(customBet.trimmingCharacters(in: .whitespaces).prefix(BetOption.customMaxLength)) : bet.title

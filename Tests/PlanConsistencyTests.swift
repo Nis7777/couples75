@@ -17,6 +17,7 @@ final class PlanConsistencyTests: XCTestCase {
         d.customGoals = [CustomGoal(text: "Learn to speak chinese", name: GoalNamer.keywordName("Learn to speak chinese"))]
         d.fitness = .veryActive          // A: Hard intensity on Pact
         d.partnerFitness = nil           // B: Gentle until B answers
+        d.partnerGoals = [.sleep, .money] // B picked their own goals on A's phone
         d.level = .couples75
         d.generatePlan()
         return d
@@ -56,12 +57,13 @@ final class PlanConsistencyTests: XCTestCase {
         let storedA = RulesEngine.effectiveRules(for: a, round: 1, facts: f, at: noonDay1).map(\.title)
         let storedB = RulesEngine.effectiveRules(for: b, round: 1, facts: f, at: noonDay1).map(\.title)
         XCTAssertEqual(storedA, rows.map(\.left), "Plan review and stored rules differ for A")
-        XCTAssertEqual(storedB, rows.map(\.right), "Plan review and stored rules differ for B")
+        // B's habits come from B's own goals, never from A's.
+        XCTAssertEqual(storedB, d.partnerPlan?.map(\.title), "B's stored habits aren't B's own plan")
 
         // Today (and the widgets, which read the same engine state).
         let state = RulesEngine.state(facts: f, now: noonDay1)
         XCTAssertEqual(state.today[a]?.items.map(\.rule.title), rows.map(\.left))
-        XCTAssertEqual(state.today[b]?.items.map(\.rule.title), rows.map(\.right))
+        XCTAssertEqual(state.today[b]?.items.map(\.rule.title), d.partnerPlan?.map(\.title))
 
         // Rule types match too.
         XCTAssertEqual(RulesEngine.effectiveRules(for: a, round: 1, facts: f, at: noonDay1).map(\.type),
@@ -80,6 +82,24 @@ final class PlanConsistencyTests: XCTestCase {
         gentle.level = .gentle
         gentle.generatePlan()
         XCTAssertTrue(gentle.planRows.contains { $0.left == "Learn Chinese: 10 min" })
+    }
+
+    /// Without the partner's own answers, nothing is stored for them: they pick their habits when joining.
+    func testPartnerHabitsAreNeverChosenForThem() {
+        var d = draft()
+        d.partnerGoals = nil
+        d.generatePlan()
+        XCTAssertNil(d.partnerPlan)
+        let built = d.makeRuleFacts(memberA: a, now: Date())
+        XCTAssertFalse(built.rules.contains { $0.memberID == PendingPartner.id })
+        // B's own goals make B's own habits at B's level.
+        var jd = JoinDraft()
+        jd.fitness = .justStarting
+        jd.goals = [.skin, .money]
+        jd.generatePlan()
+        XCTAssertTrue(jd.plan?.contains { $0.libraryKey == "skincare" } ?? false)
+        XCTAssertFalse(jd.plan?.contains { $0.libraryKey == "workout" && $0.title.contains("45") } ?? true)
+        XCTAssertGreaterThanOrEqual(jd.plan?.count ?? 0, Brand.minRules)
     }
 
     func testRegeneratingOnlyHappensOnPurpose() {

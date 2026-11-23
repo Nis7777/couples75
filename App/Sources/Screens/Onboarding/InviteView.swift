@@ -196,6 +196,11 @@ struct InviteCardView: View {
     private func column(_ name: String, _ rules: [String], _ color: Color) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(name).font(.app(13, .bold)).foregroundStyle(color)
+            if rules.isEmpty {
+                Text("Picks their own habits")
+                    .font(.app(12))
+                    .foregroundStyle(Color.textSecondary)
+            }
             ForEach(Array(rules.prefix(4).enumerated()), id: \.offset) { _, r in
                 HStack(alignment: .firstTextBaseline, spacing: 5) {
                     Circle().fill(color).frame(width: 5, height: 5)
