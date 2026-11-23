@@ -39,7 +39,9 @@ struct AvatarBuilderView: View {
                 tabs
                 Group {
                     switch tab {
-                    case .hairstyle: hairstyles
+                    case .hairstyle:
+                        // 16 looks: 4 rows, so the grid scrolls inside the card.
+                        ScrollView(showsIndicators: false) { hairstyles.padding(.vertical, 4) }
                     case .skin: swatches(AvatarPalette.skin, original: original.skin, value: $avatar.skin, label: "Skin")
                     case .hair:
                         swatches(avatar.hasHijab ? AvatarPalette.hijab : AvatarPalette.hair,

@@ -125,12 +125,22 @@ struct SceneCharacter: Equatable {
 
 enum Characters {
     /// 12 presets ("hairstyles"): 6 women w1–w6 and 6 men m1–m6, shown mixed. w1 is Maya's look, m1 is Joao's.
-    static let all = ["w1", "m1", "w2", "m2", "w3", "m3", "w4", "m4", "w5", "m5", "w6", "m6"]
+    /// x1–x4: four more looks (short, wavy, curly, ponytail) in the same style. They're drawn standing only.
+    static let all = ["w1", "m1", "w2", "m2", "w3", "m3", "w4", "m4", "w5", "m5", "w6", "m6", "x1", "x2", "x3", "x4"]
 
-    static func assetName(_ id: String, _ pose: CharacterPose) -> String { "char_\(id)_\(pose.rawValue)" }
+    /// Characters drawn in the stand and bust poses only; the other poses use the stand drawing.
+    static let standOnly: Set<String> = ["x1", "x2", "x3", "x4"]
+
+    static func drawnPose(_ id: String, _ pose: CharacterPose) -> CharacterPose {
+        standOnly.contains(id) && pose != .bust ? .stand : pose
+    }
+
+    static func assetName(_ id: String, _ pose: CharacterPose) -> String {
+        "char_\(id)_\(drawnPose(id, pose).rawValue)"
+    }
 
     static func maskName(_ id: String, _ pose: CharacterPose, _ part: String) -> String {
-        "mask_\(id)_\(pose.rawValue)_\(part)"
+        "mask_\(id)_\(drawnPose(id, pose).rawValue)_\(part)"
     }
 
     private static var aspectCache: [String: CGFloat] = [:]
@@ -152,6 +162,8 @@ enum Characters {
         "m1": ("#FDBB8A", "#39281E", "#728068"), "m2": ("#985730", "#272421", "#28324B"),
         "m3": ("#FDBD8B", "#302923", "#D46D4E"), "m4": ("#E29254", "#2B241E", "#E79D39"),
         "m5": ("#FBAF78", "#38281E", "#F37B66"), "m6": ("#FDBF8F", "#E5A86B", "#BDA5CA"),
+        "x1": ("#EBC1A0", "#3B2A20", "#7FA38A"), "x2": ("#C68B5F", "#1E1A18", "#F08A73"),
+        "x3": ("#8A5233", "#1E1A18", "#2E3F66"), "x4": ("#F6D7C3", "#8C3F24", "#B9A3D9"),
     ]
 }
 
