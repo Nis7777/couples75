@@ -142,11 +142,14 @@ struct PaywallView: View {
                     .font(.app(15, .medium))
                     .foregroundStyle(Color.textSecondary)
             }
+            // A closing line, not a fifth bullet: set apart from the list and in italic.
             Text(SocialProof.line)
-                .font(.app(16, .medium))
+                .font(.app(15, .medium))
+                .italic()
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 28)
+                .padding(.top, 14)
             // No "Day 75" badge: it covered the partner, and The 75 is one challenge, not the app.
             TrophyScene(left: model.sceneA, right: model.sceneBBuilt, badge: false)
                 .frame(maxHeight: .infinity)

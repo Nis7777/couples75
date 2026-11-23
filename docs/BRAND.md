@@ -30,3 +30,8 @@ Body icons lead with sage, looks with caramel, mind and money with tan/caramel.
   `.highlight` = coral for achievements).
 - Illustrations: new Grok art in any palette can be converted with `scripts/recolor_art.py` (pick its scheme in
   `PLAN`: A caramel-led, B sage-led, C tan-led, D achievement).
+
+## Logo
+
+Two interlocking links: espresso and sage, on warm cream. It's the app icon (iPhone and Watch), the splash logo,
+the seal on the Pact Card (`pact_seal`) and the website icon.
