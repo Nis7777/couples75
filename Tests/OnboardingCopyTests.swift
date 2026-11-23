@@ -16,7 +16,7 @@ final class OnboardingCopyTests: XCTestCase {
         let apart = Goal.allCases.map { MirrorCopy.tinyWin($0, longDistance: true) }.joined(separator: " ").lowercased()
         for phrase in ["side by side", "together", "bedroom"] { XCTAssertFalse(apart.contains(phrase), phrase) }
         // Every goal has its own win.
-        XCTAssertEqual(Set(Goal.allCases.map(MirrorCopy.tinyWin)).count, Goal.allCases.count)
+        XCTAssertEqual(Set(Goal.allCases.map { MirrorCopy.tinyWin($0) }).count, Goal.allCases.count)
     }
 
     func testScoreIsDeterministicLowerWhereTheyPickedAndHonest() {
