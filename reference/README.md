@@ -1,4 +1,4 @@
-# Couples 75: design reference
+# Pact (formerly Couples 75): design reference
 
 These 32 mockups (plus overview.jpg) are visual direction only: colours, layout, illustration style, mood.
 They are AI-generated at 720x1280, so some look squashed or cropped; build real layouts for real iPhone sizes.
