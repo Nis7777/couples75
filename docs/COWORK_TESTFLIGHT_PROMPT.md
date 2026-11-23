@@ -33,7 +33,7 @@ fields were created in Development and then deployed. An **empty Development sch
 never run against real iCloud (the Simulator always uses Mock mode). The container ID is correct.
 
 **Fastest: import the schema file.** The repo has the whole layout in `docs/pact.ckdb`.
-1. In CloudKit Console (signed in), open the account menu → **Manage Tokens** (CloudKit Management Tokens) → **+**,
+1. In CloudKit Console (signed in), open the account menu → **Settings** → **Tokens** → **+**,
    name it `cktool`, create it, and copy the token.
 2. In Terminal, run `xcrun cktool save-token --type management` and paste the token when it asks.
 3. From the repo folder, run:
