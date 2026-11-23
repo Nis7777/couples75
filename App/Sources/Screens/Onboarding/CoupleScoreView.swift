@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// "Your couple score today", then (tap) "Your couple score in 90 days": the level, rank and five stats count up
-/// over 1.5 s with light haptic ticks. Numbers come from `CoupleScore` (their answers, deterministic); the 90-day
-/// rank is what 90 perfect days really earn with the app's XP rules. Labelled as a projection.
+/// "Your couple score today", then (tap) "Your couple score in 90 days": the level and rank count up over 1.5 s with
+/// light haptic ticks, and the couple map (six axes per partner, from each partner's own habits, see
+/// `CoupleMapScoring`) grows from today's shape to the 90-day one. The 90-day rank is what 90 perfect days really
+/// earn with the app's XP rules. Labelled as a projection. A partner who hasn't answered shows as a dashed outline.
 struct CoupleScoreView: View {
     @Environment(AppModel.self) private var model
     var next: () -> Void
@@ -10,6 +11,8 @@ struct CoupleScoreView: View {
     @State private var projected = false
     @State private var finished = false
     @State private var tickTask: Task<Void, Never>?
+    @State private var appeared = false
+    @State private var showValues = false
 
     private static let duration: Double = 1500
 
@@ -69,49 +72,42 @@ struct CoupleScoreView: View {
             }
             .padding(16)
             .peachBox(radius: 20)
-            VStack(spacing: 12) {
-                ForEach(CoupleStat.allCases) { stat in
-                    let from = Double(s.today[stat] ?? 0)
-                    let to = Double(s.later[stat] ?? 0)
-                    statRow(stat, value: from + (to - from) * p)
-                }
-            }
-            .padding(16)
-            .card(radius: 20, shadow: false)
+            mapCard(p: p)
             Text("Projected if you both check in daily.")
                 .font(.app(13))
                 .foregroundStyle(Color.textSecondary)
         }
     }
 
-    private func statRow(_ stat: CoupleStat, value: Double) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: stat.icon)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Color.coral)
-                .frame(width: 22)
-            Text(stat.title)
-                .font(.app(15, .semibold))
+    private func mapCard(p: Double) -> some View {
+        let d = model.draft
+        let map = model.coupleMap
+        let today = map.series(.dayOne)
+        let later = map.projectedSeries(keysA: d.planRules.map { $0.a.libraryKey ?? "custom" },
+                                        keysB: d.partnerPlan?.map { $0.libraryKey ?? "custom" })
+        return VStack(spacing: 10) {
+            Text("Your couple map")
+                .font(.app(17, .bold))
                 .foregroundStyle(Color.textPrimary)
-                .frame(width: 104, alignment: .leading)
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Color.track)
-                    Capsule()
-                        .fill(LinearGradient(colors: [Color(hex: 0xE6D7B8), Color.gold], startPoint: .leading,
-                                             endPoint: .trailing))
-                        .frame(width: geo.size.width * value / 100)
-                }
+            OneShotClock(duration: 900, play: appeared) { t in
+                CoupleMapChart(series: blendMap(today, later, p), size: 280, draw: seg(t, 0, 900), showValues: showValues)
             }
-            .frame(height: 8)
-            Text("\(Int(value.rounded()))")
-                .font(.app(15, .bold))
-                .foregroundStyle(Color.textPrimary)
-                .monospacedDigit()
-                .frame(width: 30, alignment: .trailing)
+            .frame(width: 280, height: 280)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                Haptics.tap()
+                withAnimation(.open(0.25)) { showValues.toggle() }
+            }
+            .accessibilityAddTraits(.isButton)
+            CoupleMapLegend(series: today)
+            Text(showValues ? "Based on your answers · tap to hide the numbers" : "Based on your answers · tap for the numbers")
+                .font(.app(12))
+                .foregroundStyle(Color.textSecondary)
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(stat.title) \(Int(value.rounded())) out of 100")
+        .padding(16)
+        .frame(maxWidth: .infinity)
+        .card(radius: 20, shadow: false)
+        .onAppear { appeared = true }
     }
 
     private func project() {

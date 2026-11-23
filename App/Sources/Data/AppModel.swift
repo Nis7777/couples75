@@ -230,6 +230,8 @@ final class AppModel {
     var presentedRankUp: Rank?
     /// The inviter's "{B} signed your pact" moment, once, when the partner joins.
     var presentedPartnerJoined = false
+    /// A streak milestone (Day 7, 30, 50, 90): the celebration, then the share card. Once per phone.
+    var presentedPactMilestone: PactMilestone?
     /// Shared XP and rank, recomputed with the state.
     private(set) var xp = CoupleXP(total: 0, today: 0, rank: Ranks.all[0], next: Ranks.all[1])
 
@@ -471,6 +473,7 @@ final class AppModel {
         evaluatePresentations()
         evaluateRankUp()
         evaluateMilestone()
+        evaluatePactMilestone()
         evaluateRecap()
         evaluateBadges()
     }

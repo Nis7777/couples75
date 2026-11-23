@@ -55,6 +55,9 @@ struct MainView: View {
         .fullScreenCover(item: $model.presentedRankUp) { rank in
             RankUpView(rank: rank)
         }
+        .fullScreenCover(item: $model.presentedPactMilestone) { m in
+            MilestoneShareView(milestone: m, celebrate: true) { model.presentedPactMilestone = nil }
+        }
         .fullScreenCover(isPresented: $model.presentedPartnerJoined) {
             PartnerJoinedView()
         }

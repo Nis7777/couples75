@@ -17,6 +17,7 @@ struct TodayView: View {
     @State private var showDebug = false
     @State private var showWhichRule = false
     @State private var showProgressCamera = false
+    @State private var showPactCard = false
 
     private var round: RoundState? { model.currentRound }
     private var hour: Int {
@@ -33,6 +34,8 @@ struct TodayView: View {
                 SyncStatusLine()
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, -8)
+                Button { showPactCard = true } label: { PactCardMini(data: model.pactCard) }
+                    .buttonStyle(PressableStyle())
                 if let note = model.unreadNote { NoteBanner(note: note) }
                 banners
                 hero
@@ -78,6 +81,7 @@ struct TodayView: View {
             .presentationCornerRadius(28)
         }
         .sheet(isPresented: $showDebug) { DebugMenuView() }
+        .sheet(isPresented: $showPactCard) { PactCardSheet().presentationDragIndicator(.visible) }
     }
 
     // MARK: Header

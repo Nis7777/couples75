@@ -146,7 +146,8 @@ extension AppModel {
     /// Shows the rank-up celebration once per rank. The first time this phone sees a rank it just remembers it.
     func evaluateRankUp() {
         guard route == .main, me != nil, presentedRankUp == nil, presentedDay75 == nil, presentedRoundEnd == nil,
-              presentedSave == nil, presentedMilestone == nil, !presentedPartnerJoined else { return }
+              presentedSave == nil, presentedMilestone == nil, presentedPactMilestone == nil,
+              !presentedPartnerJoined else { return }
         let key = "rank-seen-level"
         let seen = UserDefaults.standard.integer(forKey: key)
         let level = xp.rank.level

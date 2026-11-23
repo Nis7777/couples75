@@ -45,11 +45,14 @@ extension AppModel {
             let (s, e) = mockAdjusted(ent)
             a.recordSubscription(product: ent.productID, purchaseDate: min(s, now), expiration: e)
         }
-        let couple = CoupleFact(id: .newID(), createdAt: now, ownerMemberID: meID,
+        var couple = CoupleFact(id: draft.coupleID ?? .newID(), createdAt: now, ownerMemberID: meID,
                                 title: "\(a.name)'s \(Brand.appName)",
                                 invitedName: draft.partnerName.trimmingCharacters(in: .whitespaces),
                                 invitedAvatar: draft.partnerAvatar, invitedFitness: draft.partnerFitness,
                                 invitedWakeTime: draft.partnerWakeTime)
+        couple.together = draft.together
+        couple.longDistance = draft.longDistance
+        couple.level = draft.level.rawValue
         // Round 1 is the couple's daily habits: no stakes, no end. Challenges (with optional bets) come later.
         let config = RoundConfigFact(id: .newID(), fromRound: 1, mode: .maintenance, betText: "",
                                      rewardText: nil, createdBy: meID, createdAt: now)

@@ -7,6 +7,12 @@ struct DebugMenuView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var confirmReset = false
 
+    /// Closes this sheet first, so the full-screen moment can come up.
+    private func present(_ show: @escaping () -> Void) {
+        dismiss()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { show() }
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -15,6 +21,12 @@ struct DebugMenuView: View {
                     LabeledContent("You are", value: model.me.map { "\($0.name) (\($0.role.rawValue))" } ?? "—")
                     LabeledContent("Mock clock", value: model.now().formatted(date: .abbreviated, time: .shortened))
                     LabeledContent("Phase", value: phaseText)
+                }
+                Section("Milestones") {
+                    Button("Simulate day 30") { present { model.presentedPactMilestone = PactMilestones.streak(30) } }
+                    Button("Simulate rank-up") {
+                        present { model.presentedRankUp = Ranks.next(after: model.xp.rank) ?? model.xp.rank }
+                    }
                 }
                 if model.isMock {
                     Section("Who") {

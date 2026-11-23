@@ -3,7 +3,7 @@ import Foundation
 /// Person A's onboarding answers (section 3.1), persisted so a relaunch resumes where they left off.
 struct OnboardingDraft: Codable, Equatable {
     enum Step: String, Codable, CaseIterable {
-        case hook, character, names, partnerIPhone, togetherNow, handOff, partnerAvatar, partnerFitness, partnerWake,
+        case hook, character, names, pactCard, partnerIPhone, togetherNow, handOff, partnerAvatar, partnerFitness, partnerWake,
              partnerGoals, handBack, together, longDistance, goals, personal, fitness, wakeUp, quit, mirror, level, building, planReveal,
              stakes,  // no longer shown: daily habits have no stakes (bets come with challenges)
              // Between the plan review and the paywall: sign, score, the 90-day plan + FAQ, reviews, notifications.
@@ -14,6 +14,8 @@ struct OnboardingDraft: Codable, Equatable {
     }
 
     var step: Step = .hook
+    /// The couple's ID, made when the Pact Card is first shown, so its card number never changes.
+    var coupleID: String?
     var myName = ""
     var partnerName = ""
     var avatar = Avatar(characterID: "w1")
@@ -58,7 +60,7 @@ struct OnboardingDraft: Codable, Equatable {
     }
 
     /// Steps that show "Step X of N" (paywall, invite, notifications and Android are outside the count).
-    static let countedSteps: [Step] = [.hook, .character, .names, .partnerIPhone, .togetherNow,
+    static let countedSteps: [Step] = [.hook, .character, .names, .pactCard, .partnerIPhone, .togetherNow,
                                        .together, .longDistance, .goals, .personal,
                                        .fitness, .wakeUp, .quit, .mirror, .level, .building, .planReveal,
                                        .signPact, .coupleScore, .ninetyDays, .notifySetup]

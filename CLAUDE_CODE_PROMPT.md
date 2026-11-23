@@ -376,7 +376,7 @@ Your character, your name, "Partner linked" pill (sage; make sure it isn't cut o
 - A missed day is noticed the next time either phone computes (app open, foreground, background refresh or widget refresh). When the computed state shows a new save used or a round end since the last time this phone looked, show 4.4 / 4.5 once (remember what was shown in UserDefaults).
 
 ### 6.2 Record types (all in the couple's zone, all children of the `Couple` root record so the share includes them)
-- `Couple`: createdAt, ownerMemberID, title, invitedName, invitedAvatar (JSON), invitedFitness, invitedWakeTime (what B chose on A's phone).
+- `Couple`: createdAt, ownerMemberID, title, invitedName, invitedAvatar (JSON), invitedFitness, invitedWakeTime (what B chose on A's phone), together, longDistance (Int 0/1), level (for the couple map).
 - `Member`: memberID (UUID created on first launch and stored in the iCloud key-value store so it survives reinstalls), role `A|B`, name, characterID, skinColor, hairColor, jacketColor (avatar colours as "#RRGGBB"; empty = the character's original), timeZone (IANA; update on every launch), wakeTime, fitnessLevel, joinedAt, subscribedUntil, subscriptionProduct, subscriptionPeriods (JSON), leftAt.
 - `RoundConfig`: fromRound (the round number it applies from), mode `standard|hard`, betText, rewardText, createdBy, createdAt. The latest config whose fromRound ≤ the round number applies.
 - `Rule`: memberID, fromRound, position 1–4, libraryKey (`custom` for custom rules), title, type `photo|honour`, photoHint.

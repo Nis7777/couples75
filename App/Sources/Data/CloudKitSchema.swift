@@ -20,8 +20,9 @@ enum CloudKitSchema {
     static let couple = RecordType(
         name: "Couple",
         fields: ["createdAt": "Date/Time", "ownerMemberID": "String", "title": "String", "invitedName": "String",
-                 "invitedAvatar": "String (JSON)", "invitedFitness": "String", "invitedWakeTime": "String"],
-        dateKeys: ["createdAt"], boolKeys: [], jsonKeys: ["invitedAvatar"])
+                 "invitedAvatar": "String (JSON)", "invitedFitness": "String", "invitedWakeTime": "String",
+                 "together": "String", "longDistance": "Int(64)", "level": "String"],
+        dateKeys: ["createdAt"], boolKeys: ["longDistance"], jsonKeys: ["invitedAvatar"])
 
     static let member = RecordType(
         name: "Member",

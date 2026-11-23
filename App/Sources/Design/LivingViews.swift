@@ -282,6 +282,7 @@ struct BadgeReveal<Art: View>: View {
 struct RankUpView: View {
     @Environment(AppModel.self) private var model
     var rank: Rank
+    @State private var sharing = false
 
     var body: some View {
         OnboardingPage(step: nil, back: nil) {
@@ -297,8 +298,10 @@ struct RankUpView: View {
                 Spacer(minLength: 0)
             }
         } actions: {
-            PrimaryButton("Keep going") { model.presentedRankUp = nil }
+            PrimaryButton("Share our card") { sharing = true }
+            TextLinkButton("Keep going", color: .coral) { model.presentedRankUp = nil }
         }
         .screenBackground()
+        .sheet(isPresented: $sharing) { MilestoneShareView(milestone: PactMilestones.rank(rank), celebrate: false) }
     }
 }

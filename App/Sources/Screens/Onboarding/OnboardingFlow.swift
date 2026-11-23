@@ -45,7 +45,8 @@ struct OnboardingFlow: View {
         switch model.draft.step {
         case .hook: HookView(next: { go(.character) })
         case .character: OnboardingCharacterStep(next: { go(.names) }, back: back)
-        case .names: NamesView(next: { go(.partnerIPhone) }, back: back)
+        case .names: NamesView(next: { go(.pactCard) }, back: back)
+        case .pactCard: CardCreatedView(next: { go(.partnerIPhone) }, back: back)
         case .partnerIPhone: PartnerIPhoneView(next: { onIPhone in go(onIPhone ? .togetherNow : .android) }, back: back)
         case .togetherNow: TogetherNowView(next: { withYou in go(withYou ? .handOff : .together) }, back: back)
         case .handOff: HandOffView(handTo: model.draft.partnerName, from: model.draft.myName,

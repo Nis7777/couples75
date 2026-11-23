@@ -81,6 +81,10 @@ struct CoupleFact: Codable, Equatable {
     var invitedAvatar: Avatar?
     var invitedFitness: FitnessLevel?
     var invitedWakeTime: String?
+    /// Onboarding answers both phones need for the couple map's Connection axis.
+    var together: String? = nil        // "<1 yr", "1–3 yrs", "3+ yrs"
+    var longDistance: Bool? = nil
+    var level: String? = nil           // Level raw value: "gentle", "steady", "hard"
 }
 
 struct MemberFact: Codable, Equatable, Identifiable {

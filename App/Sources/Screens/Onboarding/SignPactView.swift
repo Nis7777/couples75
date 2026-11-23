@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// After the plan review: "Sign your pact". A commitment to the daily habits, no bet (bets come with challenges).
-/// Hold the fingerprint, then your Pact Card appears and your signature writes itself on (your partner's line
-/// waits for them).
+/// Hold the fingerprint, then your Pact Card appears, your signature writes itself on (your partner's line
+/// waits for them), the seal stamps and it ends on a "SIGNED" stamp.
 struct SignPactView: View {
     @Environment(AppModel.self) private var model
     var next: () -> Void
@@ -23,7 +23,7 @@ struct SignPactView: View {
                     SmallLabel(text: "Signed")
                         .padding(.top, 26)
                     TitleText("Your \(Brand.appName) card", size: 30)
-                    PactCardReveal(data: model.pactCard, signA: true, signB: false)
+                    PactCardReveal(data: model.pactCard, signA: true, signB: false, stampSigned: true)
                         .padding(.vertical, 10)
                     BodyText("\(d.partnerName.isEmpty ? "Your partner" : d.partnerName) signs it when they join. Day 1 starts the day after.")
                         .padding(.horizontal, 12)

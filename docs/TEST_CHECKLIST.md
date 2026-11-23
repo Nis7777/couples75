@@ -9,7 +9,10 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
 
 ## 1. Launch and onboarding
 - [ ] Hook: "Level up as a couple." with the one-line pitch; the couple breathes gently (try Reduce Motion: still).
-- [ ] Step counter reads "of 20" on every counted step and never jumps.
+- [ ] Step counter reads "of 21" on every counted step and never jumps.
+- [ ] After the names: "This is your pact." The card rises in, both names type themselves on, "Made {today}" stamps
+      on with a light haptic, then the empty grid ("Your first 30 days", 0 done) fades in. Your partner is the dashed
+      outline. The card number ("Pact #0427") is the same if you go back and come forward again, and after a relaunch.
 - [ ] Goals: three groups (Body, Looks, Mind & money) with icons; Continue needs 2 picks.
 - [ ] "How big should your habits be?": Gentle / Steady (Most popular) / Hard mode.
 - [ ] "Anything personal?": type "Learn to speak chinese", tap Add → pill "Learn Chinese".
@@ -21,9 +24,13 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
       habits" (from their goals, at their level): edit, delete (min 4, 2 photo), add (max 6), no approval from you.
 - [ ] Mirror: "You picked {goals} for you and {partner}", the line for how long you've been together, the reframe card,
       three tiny wins from your goals. Scrolls on iPhone SE.
-- [ ] Plan review → "Sign your pact" (hold the fingerprint 1.5 s) → couple score.
-- [ ] Couple score: busts, Level 1 · Spark, 5 stats. "See your score in 90 days" counts up for 1.5 s with haptic
-      ticks to the real 90-day projection (Forge, level 5), the button turns into Continue. Reduce Motion: jumps.
+- [ ] Plan review → "Sign your pact" (hold the fingerprint 1.5 s) → your card: the signature writes on, the seal
+      stamps, then a coral "SIGNED" stamp slams on (three haptics) → couple score.
+- [ ] Couple score: busts, Level 1 · Spark, and "Your couple map": the hexagon (Body, Mind, Rest, Fuel, Connection,
+      Discipline) draws in from the centre. Your shape is caramel; your partner's is sage if they answered on your
+      phone ("Yes, we're together"), otherwise a dashed sage outline and "Waiting for {partner}'s answers". Tap the
+      chart: whole numbers appear; tap again: they go. "See your score in 90 days" grows the shapes and counts the
+      level up for 1.5 s with haptic ticks (Forge, level 5); the button turns into Continue. Reduce Motion: jumps.
 - [ ] Your next 90 days: today's date highlighted + the next 6; edit a habit (pencil or tap the row), delete one
       (blocked below 4 habits or 2 photo habits, with the reason), "+ Add a habit" (up to 6). FAQ rows expand.
 - [ ] Notifications: three toggles on; Continue shows the iOS prompt (not if all are off). No second ask after the invite.
@@ -34,6 +41,9 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
 - [ ] Profile: Partner checked in / Daily reminder / Weekly recap switches match what you chose.
 
 ## 2. Today on daily habits
+- [ ] Top of Today: the compact espresso card (both busts, names, "Pact #…", "Daily pact", rank, "🔥 n-day streak"
+      and this week's S–S row: caramel = both of you finished, today outlined). Tap it: the full card in a sheet
+      (rank, streak, "Pact signed {date}", the grid), with "Share our card".
 - [ ] Hero label "Daily habits", centre "TODAY 0 / N" (both your habits), the ring fills as either of you checks in.
 - [ ] Streak pill: the flame flickers (leans and stretches); grey and still at 0.
 - [ ] Rank card (Spark, Level 1, XP, gold bar that grows after a check-in).
@@ -54,8 +64,22 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
 - [ ] Debug → Jump to the last day → advance: confetti, the badge reveal, "We finished {challenge}", +XP,
       "Pick our next challenge" / "Back to our daily habits". Progress shows it under "Challenges finished".
 
-## 4. Ranks and badges
-- [ ] Earning enough XP (several complete days or a finished challenge) shows "You're {Rank} now" once.
+## 4. Ranks, badges and milestones
+- [ ] Earning enough XP (several complete days or a finished challenge) shows "You're {Rank} now" once, with
+      "Share our card" (opens the share preview) and "Keep going".
+- [ ] Debug menu → Milestones → "Simulate day 30": confetti, "Day 30" stamps on with a haptic, "30 days in a row,
+      together", "See our card" / "Not now". See our card → "Share the moment": Story 9:16 / Square 1:1 switch, the
+      preview (wordmark, "Day 30", "{A} & {B} · of our pact", your Pact Card with its grid, the couple map on the
+      story, "Pact: Couples Habits · on the App Store" at the bottom). "Include a proof photo" (only shown once a
+      proof photo is on this phone) is off by default and adds a tilted polaroid. Share opens the share sheet with the
+      image and "Day 30 of our pact 🤝". Save to Photos asks for photo access only now, then shows "Saved to Photos ✓".
+- [ ] Debug menu → "Simulate rank-up": "You're {next rank} now" → Share our card → the rank card.
+- [ ] Real streaks: at 7, 30, 50 and 90 days in a row the celebration shows once on each phone (never again on that
+      phone, also after a relaunch). A finished challenge's screen has "Share our card" with the challenge's card.
+- [ ] Progress → "Your couple map": Now / Day 1 switch (the shapes draw in again), tap for numbers, "Updated daily".
+      Before your partner has habits: their dashed outline and "Waiting for {partner}'s answers".
+- [ ] Progress → "Milestones": "Your first one is a 7-day streak…" at first; later a row of tiles (streak days,
+      ranks, finished challenges). Tap one: the share preview without the celebration.
 - [ ] Badges: Challenger, All-rounder, The 75, Habit machine (100 days) alongside the others.
 
 ## 5. Proof, Progress, Profile

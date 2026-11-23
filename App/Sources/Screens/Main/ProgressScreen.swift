@@ -53,6 +53,8 @@ struct ProgressScreen: View {
                 gridCard.zIndex(1)
                 photoStrip
                 statsRow
+                CoupleMapCard()
+                MilestonesCard()
                 BadgesCard()
                 BucketListCard()
                 if model.activeChallenge != nil, let bet = round?.betText, !bet.isEmpty {
