@@ -228,6 +228,8 @@ final class AppModel {
     var presentedDay75: RoundState?
     /// The couple just reached a new rank.
     var presentedRankUp: Rank?
+    /// The inviter's "{B} signed your pact" moment, once, when the partner joins.
+    var presentedPartnerJoined = false
     /// Shared XP and rank, recomputed with the state.
     private(set) var xp = CoupleXP(total: 0, today: 0, rank: Ranks.all[0], next: Ranks.all[1])
 
@@ -521,7 +523,19 @@ final class AppModel {
 
     private func evaluatePresentations() {
         guard route == .main else { return }
-        guard presentedSave == nil, presentedRoundEnd == nil, presentedDay75 == nil else { return }
+        guard presentedSave == nil, presentedRoundEnd == nil, presentedDay75 == nil, !presentedPartnerJoined else { return }
+        // The partner just joined (within the last 3 days, so it never pops up long after): the card moment.
+        if isOwner, let b = memberB, let joined = b.joinedAt, let c = facts.couple {
+            let key = "partner-joined-\(c.id)"
+            if !SeenEvents.contains(key) {
+                SeenEvents.insert([key])
+                if now().timeIntervalSince(joined) < 3 * 86_400 {
+                    presentedPartnerJoined = true
+                    Haptics.success()
+                    return
+                }
+            }
+        }
         if let round = state.lastFinishedRound {
             let endID = "roundend-\(round.number)"
             let d75ID = "day75-\(round.number)"
@@ -543,6 +557,10 @@ final class AppModel {
             presentedSave = latest
             Haptics.warning()
         }
+    }
+
+    func dismissPartnerJoined() {
+        presentedPartnerJoined = false
     }
 
     func dismissDay75() {

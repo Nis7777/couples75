@@ -53,7 +53,7 @@ struct JoinFlow: View {
         case .imIn:
             ImInView(next: { go(.notifications) })
         case .notifications:
-            NotificationPrimingView(next: { model.finishOnboarding() })
+            JoinNotificationStep(next: { model.finishOnboarding() })
         }
     }
 

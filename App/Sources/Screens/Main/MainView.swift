@@ -55,6 +55,9 @@ struct MainView: View {
         .fullScreenCover(item: $model.presentedRankUp) { rank in
             RankUpView(rank: rank)
         }
+        .fullScreenCover(isPresented: $model.presentedPartnerJoined) {
+            PartnerJoinedView()
+        }
         .fullScreenCover(isPresented: .constant(mustRenew && model.presentedDay75 == nil)) {
             PaywallView(variant: .renew, onClose: nil) { Task { await model.refresh() } }
         }

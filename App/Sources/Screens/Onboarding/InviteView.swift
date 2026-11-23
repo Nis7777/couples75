@@ -6,25 +6,69 @@ struct InviteView: View {
     @Environment(AppModel.self) private var model
     var next: () -> Void
 
+    /// They said "Yes, we're together": the partner is right here, so the code comes first, big.
+    private var partnerHere: Bool { model.draft.partnerWithYou == true }
+
     var body: some View {
         OnboardingPage(step: nil, back: nil) {
-            VStack(spacing: 16) {
-                TitleText("Send \(model.nameB) their invite", size: 30)
-                    .padding(.top, 22)
-                // A and the partner (dashed outline until built), starting right under the title.
-                CoupleScene(left: model.sceneA, right: model.sceneBBuilt, crop: 0.6, overlap: 0.0,
-                            alignment: .top, fillHeight: true)
-                    .padding(.horizontal, -8)
-                    .frame(maxHeight: .infinity)
-                Text("Free for \(model.nameB): your subscription covers you both.")
-                    .font(.app(15, .medium))
-                    .foregroundStyle(Color.textSecondary)
-                    .multilineTextAlignment(.center)
+            if partnerHere {
+                VStack(spacing: 14) {
+                    TitleText("Get \(model.nameB) on their phone", size: 30)
+                        .padding(.top, 22)
+                    VStack(alignment: .leading, spacing: 12) {
+                        stepRow(1, "Download \(Brand.appName) from the App Store")
+                        stepRow(2, "Tap \u{201C}My partner invited me\u{201D}")
+                        stepRow(3, "Type this code")
+                    }
+                    .padding(18)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .card(radius: 20, shadow: false)
+                    InviteCodeCard()
+                    Text("\(model.nameB)'s avatar and habits are already set up from your phone. Free for \(model.nameB): your subscription covers you both.")
+                        .font(.app(14, .medium))
+                        .foregroundStyle(Color.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
+                }
+            } else {
+                VStack(spacing: 16) {
+                    TitleText("Send \(model.nameB) their invite", size: 30)
+                        .padding(.top, 22)
+                    // A and the partner (dashed outline until built), starting right under the title.
+                    CoupleScene(left: model.sceneA, right: model.sceneBBuilt, crop: 0.6, overlap: 0.0,
+                                alignment: .top, fillHeight: true)
+                        .padding(.horizontal, -8)
+                        .frame(maxHeight: .infinity)
+                    Text("Free for \(model.nameB): your subscription covers you both.")
+                        .font(.app(15, .medium))
+                        .foregroundStyle(Color.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
             }
         } actions: {
-            InviteShareButton(title: "Send invite")
-            InviteCodeLine()
-            TextLinkButton("Done for now") { next() }
+            if partnerHere {
+                PrimaryButton("Continue") { next() }
+                InviteShareButton(title: "Send the invite instead", secondary: true)
+            } else {
+                InviteShareButton(title: "Send invite")
+                InviteCodeLine()
+                TextLinkButton("Done for now") { next() }
+            }
+        }
+    }
+
+    private func stepRow(_ n: Int, _ text: String) -> some View {
+        HStack(spacing: 12) {
+            Text("\(n)")
+                .font(.app(15, .bold))
+                .foregroundStyle(.white)
+                .frame(width: 28, height: 28)
+                .background(Circle().fill(Color.coral))
+            Text(text)
+                .font(.app(16, .semibold))
+                .foregroundStyle(Color.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

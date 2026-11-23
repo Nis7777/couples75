@@ -6,19 +6,48 @@ struct NotificationSetupView: View {
     @Environment(AppModel.self) private var model
     var next: () -> Void
     var back: () -> Void
+
+    var body: some View {
+        NotificationChoices(partnerName: model.draft.partnerName,
+                            wakeTime: Binding(get: { model.draft.wakeTime }, set: { model.draft.wakeTime = $0 }),
+                            step: model.draft.stepNumber, back: back, next: next)
+    }
+}
+
+/// The partner joining: the same three switches. Their reminder time is their wake-up time.
+struct JoinNotificationStep: View {
+    @Environment(AppModel.self) private var model
+    var next: () -> Void
+
+    var body: some View {
+        NotificationChoices(partnerName: model.nameA,
+                            wakeTime: Binding(get: { model.me?.wakeTime ?? model.joinDraft?.wakeTime ?? "07:30" },
+                                              set: { t in Task { await model.setWakeTime(t) } }),
+                            step: nil, back: nil, next: next)
+    }
+}
+
+/// "Know when your partner checks in": the three switches and Continue (asks iOS only if one is on).
+struct NotificationChoices: View {
+    @Environment(AppModel.self) private var model
+    var partnerName: String
+    @Binding var wakeTime: String
+    var step: Int?
+    var back: (() -> Void)?
+    var next: () -> Void
     @State private var partner = Prefs.partnerCheckInNotifsOn
     @State private var daily = Prefs.dailyReminderOn
     @State private var recap = Prefs.weeklyRecapOn
     @State private var working = false
 
     var body: some View {
-        OnboardingPage(step: model.draft.stepNumber, back: back) {
+        OnboardingPage(step: step, back: back) {
             VStack(spacing: 14) {
                 IconBadge(systemName: "bell.badge.fill", color: .coral, size: 110)
                     .padding(.top, 18)
                 TitleText("Know when your partner checks in", size: 30)
                 VStack(spacing: 10) {
-                    toggle("Partner checked in", "When \(model.draft.partnerName) finishes a habit",
+                    toggle("Partner checked in", "When \(partnerName.isEmpty ? "your partner" : partnerName) finishes a habit",
                            icon: "person.2.fill", isOn: $partner)
                     VStack(spacing: 0) {
                         toggle("Daily reminder", "Your habits for the day", icon: "sun.max.fill", isOn: $daily,
@@ -30,8 +59,8 @@ struct NotificationSetupView: View {
                                     .foregroundStyle(Color.textSecondary)
                                 Spacer()
                                 DatePicker("Daily reminder time",
-                                           selection: Binding(get: { ClockTime.date(from: model.draft.wakeTime) },
-                                                              set: { model.draft.wakeTime = ClockTime.string(from: $0) }),
+                                           selection: Binding(get: { ClockTime.date(from: wakeTime) },
+                                                              set: { wakeTime = ClockTime.string(from: $0) }),
                                            displayedComponents: .hourAndMinute)
                                     .labelsHidden()
                                     .tint(.coral)
@@ -56,6 +85,8 @@ struct NotificationSetupView: View {
                     Prefs.weeklyRecapOn = recap
                     if partner || daily || recap {
                         _ = await NotificationManager.shared.requestPermission()
+                        // Schedules right away when there's already a couple (the partner joining).
+                        await NotificationManager.shared.reschedule(model: model)
                     }
                     working = false
                     next()

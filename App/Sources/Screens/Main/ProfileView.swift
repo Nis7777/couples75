@@ -16,6 +16,7 @@ struct ProfileView: View {
     @State private var healthOn = Prefs.healthProofOn
     @State private var liveOn = Prefs.liveActivityOn
     @State private var eveningOn = Prefs.eveningWarningOn
+    @State private var showCard = false
     @State private var partnerNotifsOn = Prefs.partnerCheckInNotifsOn
     @State private var dailyOn = Prefs.dailyReminderOn
     @State private var recapOn = Prefs.weeklyRecapOn
@@ -62,6 +63,7 @@ struct ProfileView: View {
                     .padding(.bottom, 6)
 
                 section {
+                    Button { showCard = true } label: { row("Our \(Brand.appName) card", chevron: true) }
                     row("Rank", value: "\(model.xp.rank.title) · \(model.xp.total) XP")
                     row("Now", value: model.activeChallenge.map { "\($0.title) · Day \(model.myToday?.dayNumber ?? 0) of \($0.days)" }
                         ?? model.upcomingChallenge.map { "\($0.title) · starts tomorrow" } ?? "Daily habits · no stakes")
@@ -196,6 +198,11 @@ struct ProfileView: View {
         .sheet(isPresented: $showWake) { WakeReminderSheet().presentationDetents([.medium]) }
         .sheet(isPresented: $showLeave) { LeaveCoupleSheet() }
         .sheet(isPresented: $showRules) { OurRulesSheet() }
+        .sheet(isPresented: $showCard) {
+            PactCardSheet()
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
         .sheet(isPresented: $showDebug) { DebugMenuView() }
         .confirmationDialog("Delete my data?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete my data", role: .destructive) { Task { await model.deleteMyData() } }

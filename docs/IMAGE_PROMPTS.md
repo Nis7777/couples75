@@ -135,3 +135,13 @@ Wide 3:2 PNGs, transparent background. Used on Proof, Progress ("No challenges f
 | `empty_proof` | "Style block, wide 3:2. Two instant photos pinned side by side on a string, both blank, a small heart clip between them." |
 | `empty_challenges` | "Style block, wide 3:2. A winding path up a small hill to a gold flag, two pairs of footprints on it." |
 | `empty_badges` | "Style block, wide 3:2. An open gift box with three blank badges floating out of it." |
+
+## 9. The Pact Card (2 images)
+
+The couple's card (sign your pact, partner joined, Profile → Our Pact card). Both are optional: the app draws a
+fallback until they're in `App/Art.xcassets`.
+
+| Asset name | Prompt |
+|---|---|
+| `pact_seal` | "Style block. A round wax-seal emblem in warm gold #E8A54B with a slightly uneven embossed rim, and two small coral #C9452A flames in the middle leaning into each other to form a heart. Seen straight on, a soft highlight top left. No text, no letters." |
+| `card_texture` | "A seamless, very subtle pattern of thin white line art on a pure black background, 1600 × 1130 px, landscape: small flames, tiny hearts and short sparkle lines, evenly scattered, lots of empty space, all lines the same thin weight. Flat, no shading, no text. (The black disappears in the app; only the white lines show, faintly.)" |
