@@ -41,10 +41,14 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Pact never reads your photo library. It only adds the timelapse and milestone cards you choose to save.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Pact saves your progress timelapse and the milestone cards you choose to save to your photo library, only when you ask it to.</string>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Pact reads your steps, exercise minutes, water and mindful minutes to check off matching rules for you. Nothing is written to Health.</string>
+	<string>Pact reads your steps, exercise minutes, water and mindful minutes to check off matching habits for you. Nothing is written to Health.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Pact only reads from Apple Health to check off matching habits for you. It never writes or changes any of your Health data.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
