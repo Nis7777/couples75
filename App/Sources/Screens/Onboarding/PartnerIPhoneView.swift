@@ -10,7 +10,7 @@ struct PartnerIPhoneView: View {
         OnboardingPage(step: model.draft.stepNumber, back: back) {
             VStack(spacing: 14) {
                 CoupleBusts(left: model.draftScene,
-                            right: nil)
+                            right: model.sceneBBuilt)
                     .frame(height: 140)
                     .padding(.top, 18)
                 TitleText("Is \(model.draft.partnerName) on iPhone?", size: 30)

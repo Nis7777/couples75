@@ -11,7 +11,7 @@ struct LongDistanceView: View {
         OnboardingPage(step: model.draft.stepNumber, back: back) {
             VStack(spacing: 18) {
                 CoupleBusts(left: model.draftScene,
-                            right: nil)
+                            right: model.sceneBBuilt)
                     .frame(height: 140)
                     .padding(.top, 18)
                 TitleText("Long distance?", size: 30)

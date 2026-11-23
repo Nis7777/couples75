@@ -12,7 +12,7 @@ struct MirrorView: View {
                 ZStack(alignment: .bottom) {
                     PeachPanelFill()
                     CoupleScene(left: model.draftScene,
-                                right: nil,
+                                right: model.sceneBBuilt,
                                 leftPose: .stand, rightPose: .crossed, crop: 0.64, overlap: 0.02)
                         .padding(.top, 28)
                         .padding(.horizontal, 12)

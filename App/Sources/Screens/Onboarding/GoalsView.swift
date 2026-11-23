@@ -11,6 +11,8 @@ struct GoalsView: View {
 
     var body: some View {
         OnboardingPage(step: model.draft.stepNumber, back: back) {
+            // Three groups don't fit on one screen: this page scrolls on its own (like the plan review).
+            ScrollView(showsIndicators: false) {
             VStack(spacing: 8) {
                 TitleText("What do you want to level up together?", size: 30)
                     .padding(.top, 26)
@@ -18,6 +20,7 @@ struct GoalsView: View {
                     .font(.app(17))
                     .foregroundStyle(Color.textSecondary)
                     .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.bottom, 10)
                 ForEach(Area.allCases) { area in
                     HStack(spacing: 8) {
@@ -30,7 +33,8 @@ struct GoalsView: View {
                         ForEach(Goal.allCases.filter { $0.area == area }) { g in goalChip(g) }
                     }
                 }
-                Spacer(minLength: 0)
+            }
+            .padding(.bottom, 16)
             }
         } actions: {
             PrimaryButton("Continue", isEnabled: model.draft.goals.count >= 2) { next() }

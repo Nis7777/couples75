@@ -17,7 +17,7 @@ struct BuildingPlanView: View {
                         .frame(height: 22)
                         .padding(.horizontal, 24)
                     CoupleScene(left: model.draftScene,
-                                right: nil,
+                                right: model.sceneBBuilt,
                                 leftPose: .stretch, rightPose: .stretch, crop: 1, overlap: 0.08)
                         .padding(.bottom, 8)
                 }
