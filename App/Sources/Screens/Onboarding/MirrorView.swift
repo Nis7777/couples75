@@ -26,7 +26,7 @@ struct MirrorView: View {
                 .padding(.horizontal, -Metrics.side)
                 .padding(.top, 18)
                 VStack(spacing: 10) {
-                    Text(MirrorCopy.goalsLine(d.goals))
+                    Text(MirrorCopy.goalsLine(d.goals, partner: d.partnerName))
                         .font(.app(23, .bold))
                         .foregroundStyle(Color.textPrimary)
                     if let line = MirrorCopy.togetherLine(d.together) {

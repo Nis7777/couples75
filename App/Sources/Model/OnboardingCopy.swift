@@ -6,15 +6,17 @@ import Foundation
 // MARK: - Mirror (echoes their answers)
 
 enum MirrorCopy {
-    /// "You two want to work on Gym and Phone time."
-    static func goalsLine(_ goals: [Goal]) -> String {
+    /// "You picked Gym and Phone time for you and Sara." Only the person onboarding answered, so it never
+    /// claims the partner chose them.
+    static func goalsLine(_ goals: [Goal], partner: String) -> String {
         let names = goals.map(\.title)
+        let us = partner.isEmpty ? "the two of you" : "you and \(partner)"
         switch names.count {
-        case 0: return "You two want to level up together."
-        case 1: return "You two want to work on \(names[0])."
-        case 2: return "You two want to work on \(names[0]) and \(names[1])."
-        case 3: return "You two want to work on \(names[0]), \(names[1]) and \(names[2])."
-        default: return "You two want to work on \(names[0]), \(names[1]) and \(names.count - 2) more."
+        case 0: return "You're about to level up, \(us)."
+        case 1: return "You picked \(names[0]) for \(us)."
+        case 2: return "You picked \(names[0]) and \(names[1]) for \(us)."
+        case 3: return "You picked \(names[0]), \(names[1]) and \(names[2]) for \(us)."
+        default: return "You picked \(names[0]), \(names[1]) and \(names.count - 2) more for \(us)."
         }
     }
 

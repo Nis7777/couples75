@@ -14,7 +14,7 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
 - [ ] "How big should your habits be?": Gentle / Steady (Most popular) / Hard mode.
 - [ ] "Anything personal?": type "Learn to speak chinese", tap Add → pill "Learn Chinese".
 - [ ] Plan review: "{A} & {B}'s daily habits", the "No stakes on habits" card, button "Looks good" → paywall.
-- [ ] Mirror: "You two want to work on {goals}", the line for how long you've been together, the reframe card,
+- [ ] Mirror: "You picked {goals} for you and {partner}", the line for how long you've been together, the reframe card,
       three tiny wins from your goals. Scrolls on iPhone SE.
 - [ ] Plan review → "Sign your pact" (hold the fingerprint 1.5 s) → couple score.
 - [ ] Couple score: busts, Level 1 · Spark, 5 stats. "See your score in 90 days" counts up for 1.5 s with haptic

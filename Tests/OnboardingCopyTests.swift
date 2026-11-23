@@ -5,7 +5,8 @@ import XCTest
 final class OnboardingCopyTests: XCTestCase {
 
     func testMirrorEchoesGoalsAndPicksThreeWins() {
-        XCTAssertEqual(MirrorCopy.goalsLine([.fitness, .phoneTime]), "You two want to work on Gym and Phone time.")
+        XCTAssertEqual(MirrorCopy.goalsLine([.fitness, .phoneTime], partner: "Sara"),
+                       "You picked Gym and Phone time for you and Sara.")
         XCTAssertEqual(MirrorCopy.tinyWins([.phoneTime]).first, "Phones out of the bedroom tonight")
         XCTAssertEqual(MirrorCopy.tinyWins([.phoneTime]).count, 3)
         XCTAssertEqual(MirrorCopy.tinyWins(Goal.allCases).count, 3)
