@@ -153,9 +153,20 @@ final class RelayStore: Store {
             guard env.writer != me, let id = env.id, state.photosInCloud[id] != nil else { return }
             stripPhoto(id)
         case .left:
-            guard var m = state.facts.member(env.writer), m.leftAt == nil else { return }
-            m.leftAt = env.at ?? Date()
-            state.facts.apply(.member(m))
+            if var m = state.facts.member(env.writer) {
+                guard m.leftAt == nil else { return }
+                m.leftAt = env.at ?? Date()
+                state.facts.apply(.member(m))
+            } else if env.writer != me {
+                // Their records are gone (they left before this phone synced them, e.g. after a reinstall):
+                // a placeholder, so the app shows that the partner left instead of a half-empty couple.
+                let myRole = state.facts.member(me)?.role ?? (state.isOwner ? .a : .b)
+                state.facts.apply(.member(MemberFact(
+                    id: env.writer, role: myRole == .a ? .b : .a, name: "Your partner", characterID: "w1",
+                    timeZone: TimeZone.current.identifier, wakeTime: "07:30", fitnessLevel: .somewhatActive,
+                    joinedAt: env.at, subscribedUntil: nil, subscriptionProduct: nil, subscriptionPeriods: [],
+                    leftAt: env.at ?? Date())))
+            }
         case .gone:
             guard let type = env.type, let id = env.id else { return }
             RelayCodec.remove(type: type, id: id, from: &state.facts)

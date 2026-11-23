@@ -14,7 +14,9 @@ struct PartnerLeftView: View {
             VStack(spacing: 16) {
                 Spacer(minLength: 0)
                 TitleText("\(leaverName) left the couple")
-                BodyText("The run has ended and the shared photos are gone. If you pay for the subscription, it stays active until you cancel it.")
+                BodyText(model.iAmPayer
+                         ? "Your run has ended. Your subscription stays active until you cancel it (Settings → your name → Subscriptions), so you can start over with someone new without paying again."
+                         : "Your run has ended. \(leaverName) was the one paying, so to start over with someone new you'll need your own subscription.")
                 if let me = model.me {
                     CharacterView(avatar: me.avatar, pose: .stand)
                         .frame(maxHeight: 280)

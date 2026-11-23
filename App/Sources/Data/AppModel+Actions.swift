@@ -589,7 +589,18 @@ extension AppModel {
                 withAnimation(.easeInOut(duration: 0.45)) { self.curtain = false }
             }
         }
-        if me != nil { _ = await leaveCouple() }
+        if let m = me {
+            // Delete what I wrote from iCloud first. Offline, stop: wiping only the phone would leave it there.
+            await store.deleteProgressShares(ids: facts.progressShares.filter { $0.memberID == m.id }.map(\.id))
+            do {
+                try await store.leaveCouple(me: m)
+            } catch StoreError.network {
+                errorMessage = "Connect to the internet to delete your data, so it's removed from iCloud too."
+                return
+            } catch {
+                // Anything else (e.g. it's already gone): carry on and clear this phone.
+            }
+        }
         await progress.deleteAll()
         RuleReminders.wipe()
         store.wipeLocalData()

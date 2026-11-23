@@ -142,3 +142,8 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
 - [ ] iPhone almost full (under 200 MB free): Today shows "Your iPhone is almost full · photos may not save".
       Completely full: a photo check-in shows "Couldn't check in · Your iPhone is full…" on the camera.
 - [ ] Each of you uses your own Apple ID (two phones on the same Apple ID would look like the same person).
+- [ ] B leaves (Profile → Leave): A sees "{B} left the couple" and, as the payer, "Start over with a new partner"
+      goes through onboarding without paying again. The leave sheet tells the payer leaving doesn't cancel.
+- [ ] A (payer) leaves: B sees "{A} left"; starting over asks B for their own subscription.
+- [ ] Delete my data in airplane mode: it says to connect first and deletes nothing; online it deletes and the
+      partner sees that you left.
