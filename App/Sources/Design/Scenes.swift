@@ -77,7 +77,7 @@ struct CoupleBusts: View {
                     // Same canvas and silhouette as an avatar bust, so it sits exactly where the partner will.
                     Image("partner_outline_bust")
                         .resizable().scaledToFit()
-                        .frame(height: h)
+                        .frame(height: h * 0.9)
                 }
             }
             .frame(width: geo.size.width, height: h, alignment: .bottom)
