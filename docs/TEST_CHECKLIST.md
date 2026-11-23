@@ -54,6 +54,12 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
       status line is (highest first: pause request to answer, change to review, subscription ended, not sent, a
       love note, "n habits left" after 21:00, your pause request waiting). Tap it: pause / change open their answer
       sheets; the rest open a detail sheet (a note: "Send one back" / "Clear note"). Debug → Simulate pause request.
+- [ ] iCloud full: Debug → "Simulate iCloud full". The header pill says "{A}'s iCloud is full · check-ins can't be
+      sent" ("Your iCloud is full…" on {A}'s phone) and wins over every banner except pause / change answers. Tap it:
+      the explanation (check-ins are kept and send by themselves; they count if sent within 6 hours); on {A}'s phone
+      "Open Settings" / "Not now", on {B}'s "OK". A check-in made now shows the toast "Saved on your phone…".
+      Real device: with a full iCloud, a check-in shows "Not sent yet" instead of disappearing, and goes through by
+      itself within a couple of minutes of freeing space (pull to refresh to speed it up).
 - [ ] Week strip: completed days are caramel with a tick, today is ringed and labelled "Today", future days empty.
       No "0-day streak" line.
 - [ ] "Today": two cards side by side, the same height and both full contrast (the partner's is not greyed out).

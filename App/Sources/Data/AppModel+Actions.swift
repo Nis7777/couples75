@@ -379,7 +379,10 @@ extension AppModel {
                             uploadedAt: isMock ? now : nil, honourFallback: honourFallback,
                             healthProof: healthProof)
         let ok = await save([.checkIn(c, photo: photo)])
-        if ok { Haptics.success() }
+        if ok {
+            Haptics.success()
+            if iCloudFull { toast = "Saved on your phone. It sends by itself once there's space in iCloud." }
+        }
         return ok
     }
 

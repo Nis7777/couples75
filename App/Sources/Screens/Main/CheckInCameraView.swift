@@ -13,8 +13,6 @@ struct CheckInCameraView: View {
     @State private var camera = CameraController()
     @State private var captured: UIImage?
     @State private var sending = false
-    @State private var showQuotaAlert = false
-    @State private var showHonourFallback = false
     @State private var showNoPhoto = false
 
     /// No usable camera (Simulator, or access denied).
@@ -81,15 +79,6 @@ struct CheckInCameraView: View {
             await camera.start()
         }
         .onDisappear { camera.stop() }
-        .alert("iCloud is full", isPresented: $showQuotaAlert) {
-            Button("Check in with an honour tap") { showHonourFallback = true }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text(model.lastSaveError?.errorDescription ?? "")
-        }
-        .sheet(isPresented: $showHonourFallback, onDismiss: { dismiss() }) {
-            HonourSheet(rule: rule, fallback: true).presentationDetents([.height(430)])
-        }
         .sheet(isPresented: $showNoPhoto, onDismiss: {
             if model.myToday?.items.first(where: { $0.rule.id == rule.id })?.isChecked == true { dismiss() }
         }) {
@@ -210,11 +199,8 @@ struct CheckInCameraView: View {
         sending = true
         let ok = await model.checkIn(rule: rule, photo: data)
         sending = false
-        if ok {
-            dismiss()
-        } else if case .quotaExceeded = model.lastSaveError {
-            showQuotaAlert = true
-        }
+        // iCloud full: the check-in is kept on the phone and retried, so `ok` is true and Today explains it.
+        if ok { dismiss() }
     }
 }
 

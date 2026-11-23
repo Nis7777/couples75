@@ -29,7 +29,7 @@ enum StoreError: LocalizedError, Equatable {
         case .coupleFull: return "This couple is already full."
         case .notAuthenticated: return "You're signed out of iCloud. Turn on iCloud in Settings to keep syncing."
         case .quotaExceeded(let owner):
-            return "\(owner)'s iCloud is full, so photos can't be saved. Free up space or check in with an honour tap today."
+            return "\(owner)'s iCloud is full, so check-ins can't be sent yet. They're saved on this phone and send by themselves once there's space."
         case .participantNeedsVerification:
             return "iCloud needs to verify your account before you can join. Open the link in Messages or Mail and try again."
         case .network: return "You're offline. We'll send it as soon as you're connected."
@@ -46,6 +46,9 @@ protocol Store: AnyObject {
     var isMock: Bool { get }
     /// Writes made on this phone that haven't reached iCloud yet.
     var pendingUploads: Int { get }
+    /// Since when iCloud has refused our writes because the couple owner's storage is full (nil = not full).
+    /// The writes stay queued and are retried; they send by themselves once there's space.
+    var iCloudFullSince: Date? { get }
 
     /// The last known facts (local cache), available instantly and offline.
     func cachedFacts() -> Facts

@@ -16,7 +16,13 @@ final class CloudKitStore: Store {
         /// Facts written locally that haven't reached iCloud yet: "RecordType|id".
         var pending: [String] = []
         var subscribedZone: String?
+        /// iCloud refused writes because the owner's storage is full: since when, and our last try.
+        var quotaFullSince: Date?
+        var lastQuotaAttempt: Date?
     }
+
+    /// While iCloud is full, retry the queue at most this often (any sync or save tries again after it).
+    private static let quotaRetryInterval: TimeInterval = 120
 
     private static let fileName = "cloudkit_state.json"
     private let container = CKContainer(identifier: Brand.cloudKitContainer)
@@ -39,6 +45,7 @@ final class CloudKitStore: Store {
 
     var isMock: Bool { false }
     var pendingUploads: Int { state.pending.count }
+    var iCloudFullSince: Date? { state.quotaFullSince }
     var currentInvite: InviteInfo? { state.invite }
 
     private func persist() { LocalCache.write(state, to: Self.fileName) }
@@ -193,15 +200,35 @@ final class CloudKitStore: Store {
         do {
             try await flush()
         } catch let e as StoreError {
-            if case .network = e { return state.facts }   // queued; retried on the next sync
-            throw e
+            switch e {
+            case .network: return state.facts         // queued; retried on the next sync
+            case .quotaExceeded: return state.facts   // queued; retried until there's space (Today shows why)
+            default: throw e
+            }
         }
         return state.facts
     }
 
+    /// iCloud said the owner's storage is full: keep everything queued and remember it for the banner.
+    private func noteQuotaFull() {
+        if state.quotaFullSince == nil { state.quotaFullSince = Date() }
+        state.lastQuotaAttempt = Date()
+    }
+
     /// Uploads queued facts. Network errors keep them queued.
     private func flush(retrying: Bool = true) async throws {
+        if state.pending.isEmpty, state.quotaFullSince != nil {
+            // Nothing waiting any more: no reason to keep saying iCloud is full.
+            state.quotaFullSince = nil
+            state.lastQuotaAttempt = nil
+            persist()
+        }
         guard !isFlushing, !state.pending.isEmpty, let zoneID, let rootName = state.facts.couple?.id else { return }
+        // iCloud is full: don't hammer it. Try again every couple of minutes (on any sync or save).
+        if state.quotaFullSince != nil, let last = state.lastQuotaAttempt,
+           Date().timeIntervalSince(last) < Self.quotaRetryInterval {
+            throw StoreError.quotaExceeded(ownerName: state.facts.memberA?.name ?? "The couple owner")
+        }
         isFlushing = true
         defer { isFlushing = false }
         let rootID = CKRecord.ID(recordName: rootName, zoneID: zoneID)
@@ -214,6 +241,7 @@ final class CloudKitStore: Store {
             let result = try await zoneDB.modifyRecords(saving: records, deleting: [], savePolicy: .allKeys,
                                                         atomically: false)
             var firstError: Error?
+            var quotaFull = false
             for (id, r) in result.saveResults {
                 switch r {
                 case .success(let saved):
@@ -224,16 +252,27 @@ final class CloudKitStore: Store {
                         state.facts.apply(.checkIn(c, photo: nil))
                     }
                 case .failure(let e):
-                    if firstError == nil { firstError = e }
                     if let ck = e as? CKError, ck.code == .quotaExceeded {
-                        // The photo can't be stored: drop it so the user can use an honour tap instead.
-                        state.pending.removeAll { $0.hasSuffix("|\(id.recordName)") }
-                        state.facts.checkIns.removeAll { $0.id == id.recordName }
+                        // The owner's iCloud is full: keep it queued (photo included) and retry later.
+                        quotaFull = true
+                    } else if firstError == nil {
+                        firstError = e
                     }
                 }
             }
+            if quotaFull {
+                noteQuotaFull()
+            } else {
+                state.quotaFullSince = nil
+                state.lastQuotaAttempt = nil
+            }
             persist()
             if let firstError { throw firstError }
+            if quotaFull { throw StoreError.quotaExceeded(ownerName: state.facts.memberA?.name ?? "The couple owner") }
+        } catch let ck as CKError where ck.code == .quotaExceeded {
+            noteQuotaFull()
+            persist()
+            throw map(ck)
         } catch let ck as CKError where ck.code == .zoneBusy || ck.code == .serviceUnavailable
                     || ck.code == .requestRateLimited || ck.retryAfterSeconds != nil {
             guard retrying else { throw StoreError.network }

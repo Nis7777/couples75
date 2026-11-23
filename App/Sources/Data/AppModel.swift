@@ -220,6 +220,9 @@ final class AppModel {
     var curtain = false
     /// The error from the last failed save (e.g. iCloud full).
     var lastSaveError: StoreError?
+    /// Since when the couple owner's iCloud has been full (writes are queued and retried). Drives Today's banner.
+    private(set) var iCloudFullSince: Date?
+    var iCloudFull: Bool { iCloudFullSince != nil }
 
     // Shown once (section 6.1).
     var presentedSave: SaveEvent?
@@ -464,6 +467,7 @@ final class AppModel {
     /// Replace facts and recompute.
     func apply(_ newFacts: Facts) {
         facts = newFacts
+        if iCloudFullSince != store.iCloudFullSince { iCloudFullSince = store.iCloudFullSince }
         recompute()
     }
 
@@ -498,7 +502,7 @@ final class AppModel {
         } catch let e as StoreError {
             apply(store.cachedFacts())
             lastSaveError = e
-            // iCloud full is handled by the camera (honour-tap fallback), not by a generic alert.
+            // iCloud full: the store keeps writes queued and Today's banner explains it, so no alert.
             if case .quotaExceeded = e { return false }
             errorMessage = e.errorDescription
             return false
