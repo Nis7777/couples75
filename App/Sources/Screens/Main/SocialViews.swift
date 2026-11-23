@@ -26,7 +26,10 @@ struct SyncStatusLine: View {
     }
 
     private func text(now: Date) -> String {
-        if model.isMock { return "Mock mode · saved on this phone" }
+        // App Store screenshots from the Simulator: launch with -screenshots to hide the test-mode line.
+        if model.isMock {
+            return ProcessInfo.processInfo.arguments.contains("-screenshots") ? "Synced just now" : "Mock mode · saved on this phone"
+        }
         if model.isSyncing { return "Syncing…" }
         let waiting = model.pendingUploads
         switch model.syncProblem {
