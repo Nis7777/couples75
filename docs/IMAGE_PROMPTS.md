@@ -16,10 +16,13 @@ size); the app icon and the splash logo are in `Shared/Assets.xcassets`. To repl
 ## Style block (paste at the start of every prompt)
 
 > Flat, friendly vector illustration for a premium iOS app called Pact, for couples leveling up together.
-> Soft rounded shapes, thick smooth outlines in deep brown #2A1814 at 6% of the width, no gradients except a soft
-> highlight. Palette: coral #C9452A, warm gold #E8A54B, sage green #3F8F6B, peach #FDE4D8, ivory #FFF6F0. Centered,
-> fills about 80% of the square, generous padding, transparent background, no text, no letters, no shadow on the
-> background. Consistent with a set: same line weight, same corner roundness, same lighting from the top left.
+> Soft rounded shapes, thick smooth outlines in espresso #382A22, flat colours with at most one soft highlight.
+> Palette: caramel #B58A63 (main), sage #A9B39A (secondary), sand #D8C49E (details), warm cream #F7F1E8 (light
+> fills), and muted coral #E98268 only as a small accent on achievements. Centered, fills about 80% of the square,
+> generous padding, transparent background, no text, no letters, no shadow on the background. Consistent with a
+> set: same line weight, same corner roundness, same lighting from the top left.
+
+(The art already in the app was made in the older coral palette and recoloured with `scripts/recolor_art.py`.)
 
 Keep the same chat for a whole set (all 7 ranks in one chat, all tab icons in one chat), so the style stays consistent.
 If a result drifts, say: "Same style as the previous image, only change the subject."

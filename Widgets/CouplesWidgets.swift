@@ -161,7 +161,7 @@ struct MediumWidgetView: View {
                         .foregroundStyle(Color.textPrimary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
-                    Image(systemName: "flame.fill").foregroundStyle(Color(hex: 0x9E5A36))
+                    Image(systemName: "flame.fill").foregroundStyle(Color(hex: 0xE98268))
                     Text("\(s.streak)")
                         .font(.app(15, .bold))
                         .foregroundStyle(Color.textPrimary)

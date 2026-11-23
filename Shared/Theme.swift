@@ -12,35 +12,42 @@ extension Color {
                   opacity: opacity)
     }
 
-    // The neutral palette (bone, sand, espresso, khaki, olive). The token names are the original ones, so every
-    // screen picks the new colours up without changes: "coral" is now espresso, "gold" khaki, "sage" olive,
-    // "peach" sand and "ivory" bone.
+    // The hybrid palette: warm cream, espresso, caramel, sage, sand, and muted coral for achievements only.
+    // The token names are the original ones, so every screen picks the colours up without changes:
+    // "ivory" is cream, "peach" a light sand tint, "coral" espresso, "gold" caramel, "sage" a readable sage.
 
-    /// Every screen background: bone.
-    static let ivory = Color(hex: 0xF3EFE8)
-    /// Selected cards, banners, soft fills, illustration panels: sand.
-    static let peach = Color(hex: 0xEAE3D8)
-    /// A deeper sand for the edge of glows and blobs.
-    static let peachDeep = Color(hex: 0xE0D6C7)
+    /// Every screen background: warm cream.
+    static let ivory = Color(hex: 0xF7F1E8)
+    /// Selected cards, banners, soft fills, illustration panels: a light tint of sand.
+    static let peach = Color(hex: 0xF0E6D6)
+    /// A deeper sand tint for the edge of glows and blobs.
+    static let peachDeep = Color(hex: 0xE7D9C3)
     /// Track behind progress bars and rings.
-    static let track = Color(hex: 0xE6DFD4)
+    static let track = Color(hex: 0xECE2D3)
     /// Cards.
     static let card = Color.white
-    static let cardBorder = Color(hex: 0xE2DACD)
-    static let buttonBorder = Color(hex: 0xD9CFC0)
-    static let textPrimary = Color(hex: 0x2B2420)
-    static let textSecondary = Color(hex: 0x5C534B)
+    static let cardBorder = Color(hex: 0xE8DDCC)
+    static let buttonBorder = Color(hex: 0xDFD2BE)
+    /// Text and outlines: espresso.
+    static let textPrimary = Color(hex: 0x382A22)
+    static let textSecondary = Color(hex: 0x6B5A4E)
     /// Primary buttons, selected radios and checks, accents, partner A: espresso.
-    static let coral = Color(hex: 0x33271F)
-    /// Progress, ring, streak, "Best value": khaki.
-    static let gold = Color(hex: 0xA08A68)
-    /// "Done", "Partner linked", partner B: olive.
-    static let sage = Color(hex: 0x6E7759)
+    static let coral = Color(hex: 0x382A22)
+    /// Progress, ring, streak, "Best value": caramel.
+    static let gold = Color(hex: 0xB58A63)
+    /// "Done", "Partner linked", partner B: sage, deepened so it reads as text and behind white text.
+    static let sage = Color(hex: 0x7D8A6A)
     /// "Pending" / "x left" chips.
-    static let brownChip = Color(hex: 0x8A7A66)
-    static let faint = Color(hex: 0xE8E2D9)
+    static let brownChip = Color(hex: 0x8A7362)
+    static let faint = Color(hex: 0xEDE5D9)
     /// Unselected radio rings.
-    static let radio = Color(hex: 0xD3C9BA)
+    static let radio = Color(hex: 0xD9CCB8)
+    /// Achievements and small highlights only (earned badges, the streak flame, celebrations): muted coral.
+    static let highlight = Color(hex: 0xE98268)
+    /// Badges and neutral details: sand.
+    static let sand = Color(hex: 0xD8C49E)
+    /// Sage as drawn in the illustrations (too light for text).
+    static let sageLight = Color(hex: 0xA9B39A)
 }
 
 // MARK: - Typography: Outfit (bundled, OFL), falling back to SF Pro Rounded.

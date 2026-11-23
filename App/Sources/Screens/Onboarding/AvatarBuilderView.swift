@@ -195,10 +195,10 @@ struct Pedestal: View {
     var body: some View {
         ZStack {
             Ellipse()
-                .fill(Color(hex: 0x8A7558))
+                .fill(Color(hex: 0x9C7656))
                 .offset(y: 6)
             Ellipse()
-                .fill(LinearGradient(colors: [Color(hex: 0xC9B896), Color.gold], startPoint: .top, endPoint: .bottom))
+                .fill(LinearGradient(colors: [Color(hex: 0xE2CFA9), Color.gold], startPoint: .top, endPoint: .bottom))
         }
         .accessibilityHidden(true)
     }

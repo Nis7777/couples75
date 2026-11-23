@@ -105,7 +105,7 @@ struct PactCard: View {
     @ViewBuilder
     private var background: some View {
         ZStack {
-            LinearGradient(colors: [Color(hex: 0x4A3A2E), Color(hex: 0x33271F), Color(hex: 0x221A14)],
+            LinearGradient(colors: [Color(hex: 0x4A382D), Color(hex: 0x382A22), Color(hex: 0x271C16)],
                            startPoint: .topLeading, endPoint: .bottomTrailing)
             if UIImage(named: "card_texture") != nil {
                 // White line art on black: `.screen` drops the black, so only the fine lines lighten the card.
@@ -124,9 +124,9 @@ struct PactCard: View {
             Image("pact_seal").resizable().scaledToFit()
         } else {
             ZStack {
-                Circle().fill(LinearGradient(colors: [Color(hex: 0xC9B896), Color.gold], startPoint: .top, endPoint: .bottom))
+                Circle().fill(LinearGradient(colors: [Color(hex: 0xE6D7B8), Color.gold], startPoint: .top, endPoint: .bottom))
                 Circle().stroke(Color.white.opacity(0.8), style: StrokeStyle(lineWidth: 1.5, dash: [3, 3])).padding(5)
-                Image(systemName: "flame.fill").font(.system(size: 22, weight: .bold)).foregroundStyle(Color.coral)
+                Image(systemName: "flame.fill").font(.system(size: 22, weight: .bold)).foregroundStyle(Color.highlight)
             }
         }
     }

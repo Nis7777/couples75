@@ -34,7 +34,7 @@ struct BadgesCard: View {
                             .font(.system(size: 22, weight: .semibold))
                             .foregroundStyle(b.earned ? Color.white : Color.textSecondary.opacity(0.45))
                             .frame(width: 52, height: 52)
-                            .background(Circle().fill(b.earned ? Color.coral : Color.faint))
+                            .background(Circle().fill(b.earned ? Color.highlight : Color.faint))
                         Text(b.title)
                             .font(.app(12, .semibold))
                             .foregroundStyle(b.earned ? Color.textPrimary : Color.textSecondary)

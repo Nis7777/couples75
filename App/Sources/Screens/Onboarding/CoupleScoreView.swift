@@ -98,7 +98,7 @@ struct CoupleScoreView: View {
                 ZStack(alignment: .leading) {
                     Capsule().fill(Color.track)
                     Capsule()
-                        .fill(LinearGradient(colors: [Color(hex: 0xC9B896), Color.gold], startPoint: .leading,
+                        .fill(LinearGradient(colors: [Color(hex: 0xE6D7B8), Color.gold], startPoint: .leading,
                                              endPoint: .trailing))
                         .frame(width: geo.size.width * value / 100)
                 }
