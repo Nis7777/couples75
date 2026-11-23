@@ -40,6 +40,7 @@ struct CouplesWidgets: WidgetBundle {
     var body: some Widget {
         CoupleSmallWidget()
         CoupleMediumWidget()
+        PactCardWidget()
         MyRulesWidget()
         LockScreenWidget()
         TodayLiveActivity()
@@ -383,5 +384,124 @@ struct LiveActivityView: View {
             }
             ProgressView(value: Double(total - left), total: Double(max(total, 1))).tint(color)
         }
+    }
+}
+
+// MARK: - Pact Card widget
+
+/// The couple's Pact Card on the Home Screen: logo, rank and streak, both busts and both signatures.
+/// Medium is the card itself; small is the logo, the two of you and the streak.
+struct PactCardWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "PactCard", provider: SnapshotProvider()) { entry in
+            PactCardWidgetView(entry: entry)
+                .containerBackground(for: .widget) {
+                    LinearGradient(colors: [Color(hex: 0x4A382D), Color(hex: 0x382A22), Color(hex: 0x271C16)],
+                                   startPoint: .topLeading, endPoint: .bottomTrailing)
+                }
+                .widgetURL(URL(string: "\(Brand.urlScheme)://today"))
+        }
+        .configurationDisplayName("\(Brand.appName) Card")
+        .description("Your couple card: signed by both of you, with your rank and streak.")
+        .supportedFamilies([.systemSmall, .systemMedium])
+    }
+}
+
+struct PactCardWidgetView: View {
+    let entry: SnapshotEntry
+    @Environment(\.widgetFamily) private var family
+    private let ink = Color(hex: 0xF7F1E8)
+
+    var body: some View {
+        let s = entry.snapshot
+        if family == .systemSmall { small(s) } else { medium(s) }
+    }
+
+    private func header(_ s: WidgetSnapshot, compact: Bool) -> some View {
+        HStack(spacing: 6) {
+            Image("LaunchLogo").resizable().scaledToFit().frame(width: compact ? 26 : 30, height: compact ? 26 : 30)
+            if !compact {
+                Text(Brand.appName.uppercased())
+                    .font(.app(14, .heavy))
+                    .tracking(3)
+                    .foregroundStyle(ink)
+            }
+            Spacer(minLength: 0)
+            if let rank = s.rankTitle {
+                HStack(spacing: 4) {
+                    Image(systemName: s.rankSymbol ?? "sparkle")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(Color(hex: 0xE6C28E))
+                    Text(rank).font(.app(12, .bold)).foregroundStyle(ink)
+                }
+            }
+        }
+    }
+
+    private func streak(_ s: WidgetSnapshot) -> some View {
+        HStack(spacing: 3) {
+            Image(systemName: "flame.fill").font(.system(size: 11, weight: .bold)).foregroundStyle(Color(hex: 0xE2704C))
+            Text("\(s.streak)").font(.app(12, .bold)).foregroundStyle(ink)
+        }
+    }
+
+    private func medium(_ s: WidgetSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                header(s, compact: false)
+                streak(s).padding(.leading, 8)
+            }
+            Spacer(minLength: 4)
+            HStack(alignment: .bottom, spacing: 14) {
+                person(name: s.nameA, avatar: s.avatarA ?? Avatar(characterID: s.characterA), signed: s.signedA)
+                person(name: s.nameB, avatar: s.characterB.isEmpty ? nil : (s.avatarB ?? Avatar(characterID: s.characterB)),
+                       signed: s.signedB)
+            }
+        }
+    }
+
+    private func small(_ s: WidgetSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            header(s, compact: true)
+            Spacer(minLength: 0)
+            HStack(spacing: -10) {
+                BustCircle(avatar: s.avatarA ?? Avatar(characterID: s.characterA), size: 44, ring: ink, ringWidth: 2,
+                           fill: ink.opacity(0.92))
+                BustCircle(avatar: s.characterB.isEmpty ? nil : (s.avatarB ?? Avatar(characterID: s.characterB)), size: 44,
+                           ring: ink, ringWidth: 2, fill: ink.opacity(0.92))
+            }
+            Text("\(s.nameA) & \(s.nameB)")
+                .font(.custom("SnellRoundhand-Bold", size: 18))
+                .foregroundStyle(ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            streak(s)
+        }
+    }
+
+    private func person(name: String, avatar: Avatar?, signed: Date?) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            BustCircle(avatar: avatar, size: 40, ring: ink, ringWidth: 1.5, fill: ink.opacity(0.92))
+            Group {
+                if signed != nil {
+                    Text(name)
+                        .font(.custom("SnellRoundhand-Bold", size: 20))
+                        .foregroundStyle(ink)
+                } else {
+                    Text("Waiting for \(name)")
+                        .font(.app(11, .medium))
+                        .foregroundStyle(ink.opacity(0.7))
+                }
+            }
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+            .frame(height: 24, alignment: .bottomLeading)
+            Rectangle().fill(ink.opacity(signed == nil ? 0.4 : 0.7)).frame(height: 1)
+            Text(signed.map { "Signed \($0.formatted(date: .abbreviated, time: .omitted))" } ?? "Not signed yet")
+                .font(.app(10, .medium))
+                .foregroundStyle(ink.opacity(0.8))
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

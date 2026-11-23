@@ -612,6 +612,10 @@ final class AppModel {
             SnapshotRule(id: $0.rule.id, title: $0.rule.title, isHonour: $0.rule.type == .honour, done: $0.isChecked)
         }
         full.partnerLeft = partnerToday?.remaining ?? 0
+        full.rankTitle = xp.rank.title
+        full.rankSymbol = xp.rank.icon
+        full.signedA = facts.couple?.createdAt
+        full.signedB = memberB?.joinedAt
         full.partnerTotal = partnerToday?.items.count ?? 0
         full.save()
         WatchSync.shared.push(WatchPayload(

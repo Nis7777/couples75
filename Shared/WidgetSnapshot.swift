@@ -30,6 +30,11 @@ struct WidgetSnapshot: Codable, Equatable {
     var partnerLeft: Int = 0
     var partnerTotal: Int = 0
     var partnerName: String = ""
+    /// The Pact Card widget: rank, when each of you signed (nil: not yet).
+    var rankTitle: String? = nil
+    var rankSymbol: String? = nil
+    var signedA: Date? = nil
+    var signedB: Date? = nil
 
     var myLeft: Int { myRules.filter { !$0.done }.count }
 
@@ -43,9 +48,14 @@ struct WidgetSnapshot: Codable, Equatable {
     static let fileName = "widget_snapshot.json"
 
     static var placeholder: WidgetSnapshot {
-        WidgetSnapshot(nameA: "Maya", nameB: "Joao", characterA: "w1", characterB: "m1",
-                       dayNumber: 14, roundLength: 75, doneA: true, doneB: false, streak: 13,
-                       statusLine: nil, updatedAt: Date())
+        var p = WidgetSnapshot(nameA: "Maya", nameB: "Joao", characterA: "w1", characterB: "m1",
+                               dayNumber: 14, roundLength: 75, doneA: true, doneB: false, streak: 13,
+                               statusLine: nil, updatedAt: Date())
+        p.rankTitle = "Flame"
+        p.rankSymbol = "flame.fill"
+        p.signedA = Date().addingTimeInterval(-14 * 86_400)
+        p.signedB = Date().addingTimeInterval(-13 * 86_400)
+        return p
     }
 
     static var fileURL: URL? {
