@@ -118,7 +118,7 @@ struct CheckInCameraView: View {
                 .padding(.leading, 16)
                 .padding(.trailing, 44)
                 .frame(height: 32)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.coral))
+                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.gold))
                 .accessibilityLabel("Live camera")
         }
         .padding(.horizontal, 22)
@@ -141,6 +141,7 @@ struct CheckInCameraView: View {
                             .overlay(Capsule().stroke(.white.opacity(0.6), lineWidth: 1))
                     }
                     PrimaryButton("Send", isLoading: sending) { Task { await send() } }
+                        .environment(\.primaryOnDark, true)
                 }
                 .padding(.top, 18)
             } else {

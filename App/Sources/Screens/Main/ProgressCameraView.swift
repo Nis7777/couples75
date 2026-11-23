@@ -93,7 +93,7 @@ struct ProgressCameraView: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 14)
                         .frame(height: 32)
-                        .background(Capsule().fill(showGhost ? Color.coral : Color.white.opacity(0.2)))
+                        .background(Capsule().fill(showGhost ? Color.gold : Color.white.opacity(0.2)))
                 }
                 .accessibilityLabel(showGhost ? "Hide Day 1 overlay" : "Show Day 1 overlay")
             }
@@ -118,6 +118,7 @@ struct ProgressCameraView: View {
                             .background(Capsule().stroke(Color.white.opacity(0.5), lineWidth: 1.5))
                     }
                     PrimaryButton("Save", isLoading: saving) { Task { await save() } }
+                        .environment(\.primaryOnDark, true)
                 }
                 .padding(.top, 18)
             } else {

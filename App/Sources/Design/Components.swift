@@ -38,7 +38,7 @@ struct AppBackground: View {
 
 // MARK: - Buttons
 
-/// Full width, 58pt coral capsule, white 18pt semibold label ending in " ›".
+/// Full width, 58pt espresso capsule ("coral" token), white 18pt semibold label ending in " ›".
 struct PrimaryButton: View {
     var title: String
     var isEnabled: Bool = true
@@ -65,16 +65,27 @@ struct PrimaryButton: View {
     }
 }
 
+/// On dark screens (the cameras) the primary button is light: bone with espresso text.
+private struct PrimaryOnDarkKey: EnvironmentKey { static let defaultValue = false }
+
+extension EnvironmentValues {
+    var primaryOnDark: Bool {
+        get { self[PrimaryOnDarkKey.self] }
+        set { self[PrimaryOnDarkKey.self] = newValue }
+    }
+}
+
 /// The look of the primary button (also used inside ShareLink labels).
 struct PrimaryButtonLabel: View {
     var title: String
     var isEnabled = true
     var isLoading = false
+    @Environment(\.primaryOnDark) private var onDark
 
     var body: some View {
         ZStack {
             if isLoading {
-                ProgressView().tint(.white)
+                ProgressView().tint(onDark ? Color.coral : .white)
             } else {
                 Text(title.hasSuffix("›") ? title : "\(title) ›")
                     .font(.app(18, .semibold))
@@ -82,10 +93,10 @@ struct PrimaryButtonLabel: View {
                     .minimumScaleFactor(0.7)
             }
         }
-        .foregroundStyle(.white)
+        .foregroundStyle(onDark ? Color.coral : .white)
         .frame(maxWidth: .infinity)
         .frame(height: Metrics.buttonHeight)
-        .background(Capsule().fill(Color.coral.opacity(isEnabled ? 1 : 0.45)))
+        .background(Capsule().fill((onDark ? Color.ivory : Color.coral).opacity(isEnabled ? 1 : 0.45)))
         .contentShape(Capsule())
     }
 }

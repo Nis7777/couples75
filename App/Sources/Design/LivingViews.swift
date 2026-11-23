@@ -116,13 +116,13 @@ struct LivingFlame: View {
                 } else {
                     Image(systemName: "flame.fill")
                         .resizable().scaledToFit()
-                        .foregroundStyle(lit ? LinearGradient(colors: [Color(hex: 0xF2A03D), Color.coral],
+                        .foregroundStyle(lit ? LinearGradient(colors: [Color(hex: 0xC9925B), Color(hex: 0x9E5A36)],
                                                               startPoint: .top, endPoint: .bottom)
                                              : LinearGradient(colors: [Color.gray.opacity(0.5)], startPoint: .top, endPoint: .bottom))
                     if lit {
                         Image(systemName: "flame.fill")
                             .resizable().scaledToFit()
-                            .foregroundStyle(Color(hex: 0xFFE08A))
+                            .foregroundStyle(Color(hex: 0xF0DDB8))
                             .frame(width: size * 0.45, height: size * 0.5)
                             .scaleEffect(x: 1, y: inner, anchor: .bottom)
                             .padding(.bottom, size * 0.04)
@@ -151,11 +151,11 @@ struct RankBadge: View {
                 .accessibilityLabel("Rank \(rank.title)")
         } else {
             ZStack {
-                Circle().fill(LinearGradient(colors: [Color(hex: 0xF6D58E), Color.gold], startPoint: .top, endPoint: .bottom))
+                Circle().fill(LinearGradient(colors: [Color(hex: 0xC9B896), Color.gold], startPoint: .top, endPoint: .bottom))
                 Circle().stroke(Color.white.opacity(0.8), lineWidth: max(1.5, size * 0.05)).padding(size * 0.08)
                 Image(systemName: rank.icon)
                     .font(.system(size: size * 0.42, weight: .bold))
-                    .foregroundStyle(Color(hex: 0x7A4A12))
+                    .foregroundStyle(Color(hex: 0x3F3226))
             }
             .frame(width: size, height: size)
             .accessibilityLabel("Rank \(rank.title)")
@@ -191,7 +191,7 @@ struct XPCard: View {
                     ZStack(alignment: .leading) {
                         Capsule().fill(Color.track)
                         Capsule()
-                            .fill(LinearGradient(colors: [Color(hex: 0xF6D58E), Color.gold], startPoint: .leading,
+                            .fill(LinearGradient(colors: [Color(hex: 0xC9B896), Color.gold], startPoint: .leading,
                                                  endPoint: .trailing))
                             .frame(width: max(shown > 0 ? 8 : 0, geo.size.width * shown))
                     }
