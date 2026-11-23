@@ -459,3 +459,21 @@ enum BetOption: String, Codable, CaseIterable, Identifiable {
         return (.custom, text)
     }
 }
+
+/// Short habit labels for tight spaces (Today's cards): "Skincare: AM + PM" → "Skincare AM+PM",
+/// "Workout: 45 min" → "Workout 45m", "Social media: max 30 min" → "Socials ≤30m". Display only: the stored
+/// title never changes, and the full one shows on tap and to VoiceOver.
+enum RuleTitle {
+    static func short(_ title: String) -> String {
+        var s = title
+        let words: [(String, String)] = [("Social media", "Socials"), ("No takeaway spending", "No takeaway"),
+                                         ("max ", "≤"), (" + ", "+"), (": ", " "), ("≤ ", "≤")]
+        for (a, b) in words { s = s.replacingOccurrences(of: a, with: b) }
+        let patterns: [(String, String)] = [(#"(\d+) ?min\b"#, "$1m"), (#"(\d+) × "#, "$1×"),
+                                            (#"(\d+) g\b"#, "$1g"), (#"(\d+) (hours|hour|hrs|hr)\b"#, "$1h")]
+        for (p, r) in patterns {
+            s = s.replacingOccurrences(of: p, with: r, options: .regularExpression)
+        }
+        return s.trimmingCharacters(in: .whitespaces)
+    }
+}

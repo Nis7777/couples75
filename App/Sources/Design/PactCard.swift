@@ -373,73 +373,98 @@ struct PactCardReveal: View {
     }
 }
 
-/// Today: the compact card at the top (names, card number, rank, streak and this week's row). Tap → the full card.
-struct PactCardMini: View {
+/// Today's header: the compact Pact Card. Names with the card number and mode; rank and streak; both busts either
+/// side of today's ring ("2/8": habits both of you have done today, out of all of them); one status line
+/// ("Warm-up · Day 1 starts tomorrow", "Day 12", "Day 12 of 21 · 1 save left"). `trailing` sits at the end of the
+/// top row (Today's "…" menu). Tapping the card is handled by the caller (it opens the full card).
+struct PactCardCompact<Trailing: View>: View {
     var data: PactCardData
-    private var letters: [String] { ["S", "M", "T", "W", "T", "F", "S"] }
+    var done: Int
+    var total: Int
+    var status: String
+    var shields: Int = 0
+    @ViewBuilder var trailing: Trailing
+
+    private var progress: Double { total == 0 ? 0 : Double(done) / Double(total) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                HStack(spacing: -12) {
-                    BustCircle(avatar: data.avatarA, size: 40, ring: .white, ringWidth: 1.5, fill: Color.white.opacity(0.92))
-                    BustCircle(avatar: data.avatarB, size: 40, ring: .white, ringWidth: 1.5, fill: Color.white.opacity(0.92))
-                }
+        VStack(spacing: 10) {
+            HStack(alignment: .center, spacing: 8) {
                 VStack(alignment: .leading, spacing: 1) {
                     Text("\(data.nameA) & \(data.nameB)")
-                        .font(.app(16, .bold))
+                        .font(.app(20, .bold))
                         .lineLimit(1)
-                        .minimumScaleFactor(0.7)
+                        .minimumScaleFactor(0.6)
+                        .accessibilityAddTraits(.isHeader)
                     Text("\(Brand.appName) #\(data.cardNumber) · \(data.mode)")
                         .font(.app(11, .semibold))
                         .opacity(0.7)
                         .lineLimit(1)
                 }
-                .foregroundStyle(Color.white)
                 Spacer(minLength: 4)
-                VStack(alignment: .trailing, spacing: 2) {
-                    HStack(spacing: 5) {
-                        RankBadge(rank: data.rank, size: 22)
-                        Text(data.rank.title).font(.app(13, .bold))
+                HStack(spacing: 6) {
+                    RankBadge(rank: data.rank, size: 26)
+                    LivingFlame(size: 16, lit: data.streak > 0)
+                    Text("\(data.streak)")
+                        .font(.app(17, .bold))
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                    if shields > 0 {
+                        Image(systemName: "shield.fill")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(Color.sageLight)
                     }
-                    Text("🔥 \(data.streak)-day streak")
-                        .font(.app(11, .semibold))
-                        .opacity(0.8)
                 }
-                .foregroundStyle(Color.white)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("\(data.rank.title), \(data.streak)-day streak\(shields > 0 ? ", \(shields) streak shield\(shields == 1 ? "" : "s")" : "")")
+                trailing
             }
-            HStack(spacing: 6) {
-                ForEach(Array(data.week.enumerated()), id: \.offset) { i, d in
-                    VStack(spacing: 4) {
-                        weekCell(d)
-                        Text(letters[i % 7])
-                            .font(.app(10, .semibold))
-                            .foregroundStyle(Color.white.opacity(d == .today || d == .todayDone ? 1 : 0.55))
-                    }
-                    .frame(maxWidth: .infinity)
-                }
+            .foregroundStyle(Color.white)
+            HStack(spacing: 0) {
+                BustCircle(avatar: data.avatarA, size: 72, ring: .white, ringWidth: 2, fill: Color.white.opacity(0.92))
+                    .accessibilityHidden(true)
+                Spacer(minLength: 8)
+                ring
+                Spacer(minLength: 8)
+                BustCircle(avatar: data.avatarB, size: 72, ring: .white, ringWidth: 2, fill: Color.white.opacity(0.92))
+                    .accessibilityHidden(true)
             }
+            .padding(.horizontal, 6)
+            Text(status)
+                .font(.app(13, .semibold))
+                .foregroundStyle(Color.white.opacity(0.8))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
-        .padding(14)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
         .background(PactCardBackground())
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(Color.white.opacity(0.3), lineWidth: 1))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Your \(Brand.appName) card: \(data.nameA) and \(data.nameB), \(data.rank.title), \(data.streak)-day streak. \(data.week.filter { $0 == .done || $0 == .todayDone }.count) of 7 days done this week.")
-        .accessibilityHint("Opens your card")
-        .accessibilityAddTraits(.isButton)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(Color.white.opacity(0.3), lineWidth: 1))
     }
 
-    @ViewBuilder
-    private func weekCell(_ d: PactDay) -> some View {
-        let shape = RoundedRectangle(cornerRadius: 3, style: .continuous)
-        switch d {
-        case .done: shape.fill(Color.gold).frame(height: 8)
-        case .todayDone: shape.fill(Color.gold).frame(height: 8).overlay(shape.stroke(Color.white, lineWidth: 1.2))
-        case .today: shape.fill(Color.white.opacity(0.08)).frame(height: 8).overlay(shape.stroke(Color.white, lineWidth: 1.2))
-        case .open: shape.fill(Color.white.opacity(0.16)).frame(height: 8)
-        case .future: shape.fill(Color.white.opacity(0.08)).frame(height: 8)
+    private var ring: some View {
+        ZStack {
+            Circle().stroke(Color.white.opacity(0.14), lineWidth: 7)
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(Color.gold, style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            VStack(spacing: 0) {
+                Text("\(done)/\(total)")
+                    .font(.app(24, .heavy))
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                    .foregroundStyle(Color.white)
+                Text("today")
+                    .font(.app(10, .semibold))
+                    .foregroundStyle(Color.white.opacity(0.7))
+            }
         }
+        .frame(width: 88, height: 88)
+        .animation(.open(0.6), value: progress)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Today: \(done) of \(total) habits done between you")
     }
 }
 

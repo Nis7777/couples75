@@ -1,7 +1,7 @@
 # Pact: feature test checklist
 
-Run in the Simulator (Mock mode, no iCloud needed). The **Debug menu** is a triple-tap on the "{A} & {B}"
-header on Today (or Profile → Debug menu): use it to act as the partner, simulate check-ins, advance days,
+Run in the Simulator (Mock mode, no iCloud needed). The **Debug menu** is in Today's "…" menu on the header card
+(or Profile → Debug menu): use it to act as the partner, simulate check-ins, advance days,
 jump to the last day, simulate a lapse, and reset.
 
 Start with Product → Clean Build Folder (⇧⌘K), then Run on an iPhone 16/17 Pro and an iPhone SE.
@@ -40,14 +40,29 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
 - [ ] After paying and the invite, Today shows exactly the habits from "Your next 90 days" (including edits).
 - [ ] Profile: Partner checked in / Daily reminder / Weekly recap switches match what you chose.
 
-## 2. Today on daily habits
-- [ ] Top of Today: the compact espresso card (both busts, names, "Pact #…", "Daily pact", rank, "🔥 n-day streak"
-      and this week's S–S row: caramel = both of you finished, today outlined). Tap it: the full card in a sheet
-      (rank, streak, "Pact signed {date}", the grid), with "Share our card".
-- [ ] Hero label "Daily habits", centre "TODAY 0 / N" (both your habits), the ring fills as either of you checks in.
-- [ ] Streak pill: the flame flickers (leans and stretches); grey and still at 0.
-- [ ] Rank card (Spark, Level 1, XP, gold bar that grows after a check-in).
-- [ ] "Daily habits · no stakes"; "Want a push? Start a challenge together" opens the Challenges tab.
+## 2. Today
+- [ ] iPhone 16 Pro, no scrolling needed for: the header card, the week strip, both habit cards and the main button.
+      iPhone SE: those are reachable with a short scroll; only "More today" is far below.
+- [ ] Header card (espresso, about a quarter of the screen): "{A} & {B}" and "Pact #… · Daily pact" on the left;
+      rank badge, flame and streak number on the right, then "…" (Life happens, Debug). Both busts either side of a
+      small ring reading "0/8 today" that fills as either of you checks in (1/8, 2/8 …). One line under it:
+      warm-up "Warm-up · Day 1 starts tomorrow" (or "…the day after {B} joins"), then "Day 12", and in a challenge
+      "Day 3 of 21 · 1 save left". No "PACT" label, no orange blob, no "4 left" pills, no warm-up banner.
+      Tap the card (not the "…"): the full Pact Card in a sheet.
+- [ ] Week strip: completed days are caramel with a tick, today is ringed and labelled "Today", future days empty.
+      No "0-day streak" line.
+- [ ] "Today": two cards side by side, the same height and both full contrast (the partner's is not greyed out).
+      Labels stay on one line ("Skincare AM+PM", "Workout 45m", "Socials ≤30m"), long ones end in "…".
+      Your card: tap a habit to check in. Partner's card: ○ pending (tap shows the full name), ✓ done, a coral dot
+      and "Tap to approve" when they checked in and you haven't reacted (tap opens it in Proof). A heart next to the
+      partner's name opens "A note for {B}"; a nudge icon appears next to it when they're behind.
+- [ ] Button: "Practise check-in ›" on the warm-up day, "Check in ›" after; when your habits are all done it turns
+      into "Done for today ✓" (secondary) with "Waiting on {B}" under it until they're done too. Both done: no line.
+- [ ] "More today": compact rows "Progress pic · optional, only you see it ›" (opens the camera) and "Want a push?
+      Start a challenge ›" (Challenges tab); "New from {B} · … React" when there's something to react to; during a
+      challenge "Stakes: …". The last row clears the tab bar; nothing peeks out under the bar.
+- [ ] No "Daily habits · no stakes / Score" pill. During a challenge, Progress shows "Misses so far: {A} n · {B} n".
+- [ ] Release build (Archive / TestFlight): no "Mock mode" text anywhere.
 - [ ] A photo habit → camera → "No photo? Check it off" → sheet → "Yes, I did" checks it off and closes the camera.
 - [ ] "Which rule?" shows "Photo (recommended)".
 

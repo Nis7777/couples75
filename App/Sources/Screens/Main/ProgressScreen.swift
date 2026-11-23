@@ -72,6 +72,24 @@ struct ProgressScreen: View {
                     .card(radius: 16)
                     .accessibilityElement(children: .combine)
                 }
+                if let r = round, model.activeChallenge != nil {
+                    // The challenge score (misses so far), moved here from Today.
+                    HStack(spacing: 12) {
+                        Image(systemName: "flag.checkered")
+                            .font(.system(size: 18))
+                            .foregroundStyle(Color.gold)
+                        Text("Misses so far: \(model.nameA) \(model.memberA.map { r.misses($0.id) } ?? 0) · \(model.nameB) \(model.memberB.map { r.misses($0.id) } ?? 0)")
+                            .font(.app(16, .semibold))
+                            .foregroundStyle(Color.textPrimary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 15)
+                    .card(radius: 16)
+                    .accessibilityElement(children: .combine)
+                }
                 FinishedChallengesCard()
             }
             .padding(.horizontal, Metrics.side)

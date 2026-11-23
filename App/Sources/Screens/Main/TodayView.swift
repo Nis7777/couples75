@@ -1,8 +1,10 @@
 import SwiftUI
 
-/// 15: Today. Name + gold streak pill; peach hero with the gold ring, both characters, the speech bubble and
-/// the Done / x left chips; week dots; saves row; two rule cards side by side; Check in; stakes row.
-/// The warm-up (28) uses the same layout with the warm-up banner, a "Warm-up" pill and "Practise check-in ›".
+/// 15: Today does one job: where the two of you stand today, and checking in. Top to bottom: the compact Pact Card
+/// (names, rank, streak, both busts around today's ring, one status line; tap = the full card), the week strip,
+/// "Today" with both habit cards side by side (equal height; yours is tappable, your partner's shows done / pending
+/// / waiting for your approval), the one primary button, then "More today" (progress pic, challenges).
+/// The warm-up (28) is the same screen: the status line says it, and the button is "Practise check-in ›".
 struct TodayView: View {
     @Environment(AppModel.self) private var model
     var warmup = false
@@ -18,6 +20,7 @@ struct TodayView: View {
     @State private var showWhichRule = false
     @State private var showProgressCamera = false
     @State private var showPactCard = false
+    @State private var showNote = false
 
     private var round: RoundState? { model.currentRound }
     private var hour: Int {
@@ -29,31 +32,30 @@ struct TodayView: View {
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 14) {
+            VStack(spacing: 16) {
+                if let onBack {
+                    Button(action: onBack) {
+                        Label("Back", systemImage: "chevron.left")
+                            .font(.app(16, .semibold))
+                            .foregroundStyle(Color.textPrimary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
                 header
                 SyncStatusLine()
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, -8)
-                Button { showPactCard = true } label: { PactCardMini(data: model.pactCard) }
-                    .buttonStyle(PressableStyle())
+                    .padding(.top, -10)
                 if let note = model.unreadNote { NoteBanner(note: note) }
                 banners
-                hero
-                WeekDotsView(days: weekDays, streak: model.state.streak)
-                if !warmup, let r = round, !r.mode.isMaintenance, !r.isOver {
-                    DayProgressBar(day: model.myToday?.dayNumber ?? 0, total: r.length)
-                }
-                if !warmup { XPCard(xp: model.xp, compact: true) }
-                savesRow
-                newFromPartnerRow
+                WeekDotsView(days: weekDays)
                 rulesSection
-                checkInButton
-                PartnerActionsRow()
-                ProgressPhotoCard { showProgressCamera = true }
-                if model.activeChallenge == nil { HabitsRow() } else if !(round?.betText ?? "").isEmpty { stakesRow }
+                checkInSection
+                moreToday
             }
-            .padding(.horizontal, Metrics.side)
-            .padding(.bottom, 24)
+            .padding(.horizontal, 16)
+            .padding(.top, 6)
+            // Clears the floating tab bar (on top of the bar's own inset from MainView).
+            .padding(.bottom, 32)
         }
         .refreshable { await model.refresh() }
         .fullScreenCover(item: $cameraRule) { r in CheckInCameraView(rule: r) }
@@ -82,46 +84,48 @@ struct TodayView: View {
         }
         .sheet(isPresented: $showDebug) { DebugMenuView() }
         .sheet(isPresented: $showPactCard) { PactCardSheet().presentationDragIndicator(.visible) }
+        .sheet(isPresented: $showNote) {
+            LoveNoteSheet()
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
     }
 
     // MARK: Header
 
+    /// The compact Pact Card. Tap anywhere but the "…" menu to open the full card.
     private var header: some View {
-        HStack(spacing: 10) {
-            if let onBack {
-                Button(action: onBack) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(Color.textPrimary)
-                        .frame(width: 28, height: 38)
-                }
-                .accessibilityLabel("Back")
-            }
-            Text("\(model.nameA) & \(model.nameB)")
-                .font(.app(30, .bold))
-                .foregroundStyle(Color.textPrimary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-                .accessibilityAddTraits(.isHeader)
-                .onTapGesture(count: 3) {
-                    #if DEBUG
-                    showDebug = true
-                    #endif
-                }
-            Spacer()
-            if warmup {
-                Text("Warm-up")
-                    .font(.app(14, .semibold))
-                    .foregroundStyle(Color.coral)
-                    .padding(.horizontal, 18)
-                    .frame(height: 34)
-                    .background(Capsule().fill(Color.peach))
-            } else {
-                StreakPill(streak: model.state.streak, shields: model.state.streakShields)
-            }
+        let ring = checkedToday
+        return PactCardCompact(data: model.pactCard, done: ring.done, total: ring.total, status: statusLine,
+                               shields: model.state.streakShields) {
             if !warmup { menu }
         }
-        .padding(.top, 10)
+        .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .onTapGesture {
+            Haptics.tap()
+            showPactCard = true
+        }
+        .accessibilityAction(named: "Open our card") { showPactCard = true }
+    }
+
+    /// The one line under the ring.
+    private var statusLine: String {
+        let t = model.myToday
+        if warmup {
+            return model.memberB?.joinedAt != nil
+                ? "Warm-up · Day 1 starts tomorrow"
+                : "Warm-up · Day 1 starts the day after \(model.partnerName) joins"
+        }
+        if t?.isPaused == true || model.state.isFrozen { return "Paused today · nothing counts" }
+        if let c = model.upcomingChallenge { return "\(c.title) starts tomorrow" }
+        if t?.beforeStart == true || model.state.phase == .betweenRounds { return "Day 1 starts tomorrow" }
+        guard let r = round else { return "Day 1 starts tomorrow" }
+        if t?.finishedRound == true { return "Done · \(r.length) of \(r.length)" }
+        let day = t?.dayNumber ?? 0
+        if r.mode.isMaintenance { return "Day \(day)" }
+        var line = "Day \(day) of \(r.length)"
+        if r.savesAllowed > 0 { line += " · \(r.savesLeft) \(r.savesLeft == 1 ? "save" : "saves") left" }
+        return line
     }
 
     private var menu: some View {
@@ -140,11 +144,11 @@ struct TodayView: View {
                 #endif
             } label: {
                 Image(systemName: "ellipsis")
-                    .font(.system(size: 17, weight: .bold))
-                    .foregroundStyle(Color.textPrimary)
-                    .frame(width: 38, height: 38)
-                    .background(Circle().fill(Color.white))
-                    .overlay(Circle().stroke(Color.cardBorder, lineWidth: 1))
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(Color.white)
+                    .frame(width: 32, height: 32)
+                    .background(Circle().fill(Color.white.opacity(0.14)))
+                    .contentShape(Circle())
             }
             .accessibilityLabel("More")
     }
@@ -153,22 +157,6 @@ struct TodayView: View {
 
     @ViewBuilder
     private var banners: some View {
-        if warmup {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Warm-up day: this doesn't count")
-                    .font(.app(18, .bold))
-                    .foregroundStyle(Color.textPrimary)
-                Text(model.memberB?.joinedAt != nil
-                     ? "Practise a check-in today. Day 1 starts tomorrow morning."
-                     : "Practise a check-in while you wait for \(model.partnerName). Day 1 starts the morning after \(model.partnerName) joins.")
-                    .font(.app(15))
-                    .foregroundStyle(Color.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .peachBox(radius: 18)
-        }
         if model.subscriptionLapsed {
             Banner(text: model.iAmPayer
                    ? "Your subscription ended. Your run is paused until it's renewed."
@@ -230,57 +218,13 @@ struct TodayView: View {
         .card(radius: 16)
     }
 
-    // MARK: Hero
+    // MARK: Ring
 
-    private var hero: some View {
-        let ta = model.todayA, tb = model.todayB
-        let day = model.myToday?.dayNumber
-        let title: String
-        let subtitle: String?
-        if warmup {
-            title = "Day 1"; subtitle = model.memberB?.joinedAt != nil ? "tomorrow" : "soon"
-        } else if model.myToday?.isPaused == true || model.state.isFrozen {
-            title = "Paused"; subtitle = nil
-        } else if model.myToday?.beforeStart == true {
-            title = "Day 1"; subtitle = "tomorrow"
-        } else if model.myToday?.finishedRound == true {
-            title = "Done"; subtitle = "\(round?.length ?? 0) / \(round?.length ?? 0)"
-        } else if round?.mode.isMaintenance == true {
-            title = "TODAY"; subtitle = "\(checkedToday.done) / \(checkedToday.total)"
-        } else {
-            title = "DAY \(day ?? 0)"; subtitle = "/ \(round?.length ?? Brand.roundLengthDays)"
-        }
-        let bubble = speechBubble(ta: ta, tb: tb)
-        // Habits: the ring fills with today's check-ins (both of you). A challenge: with its days.
-        let progress = round?.mode.isMaintenance == true
-            ? Double(checkedToday.done) / Double(max(1, checkedToday.total))
-            : Double(day ?? 0) / Double(max(1, round?.length ?? Brand.roundLengthDays))
-        return RingHero(left: model.sceneA, right: model.sceneBJoined ?? (warmup ? nil : model.sceneB),
-                        progress: progress,
-                        centerTitle: title, centerSubtitle: subtitle,
-                        topLabel: warmup ? Brand.appName : (model.activeChallenge?.title ?? "Daily habits"),
-                        leftChip: chip(ta), rightChip: chip(tb),
-                        bubble: bubble?.text, bubbleFromLeft: bubble?.fromA ?? true, panelRadius: 22, alive: true)
-            .animation(.open(0.6), value: progress)
-            .frame(height: 340)
-    }
-
-    /// Today's check-ins for both of us (the habits ring).
+    /// Today's check-ins for both of us (the header ring): every habit either of you has checked today, out of all
+    /// of both your habits today. Straight from the engine's `MemberToday` items; before the partner joins, just yours.
     private var checkedToday: (done: Int, total: Int) {
         let items = [model.todayA, model.todayB].compactMap { $0 }.flatMap(\.items)
         return (items.filter(\.isChecked).count, items.count)
-    }
-
-    private func speechBubble(ta: MemberToday?, tb: MemberToday?) -> (text: String, fromA: Bool)? {
-        guard let ta, let tb, warmup || (ta.dayNumber != nil && tb.dayNumber != nil) else { return nil }
-        if ta.isComplete && !tb.isComplete { return ("\(model.nameA)'s done. Your turn.", true) }
-        if tb.isComplete && !ta.isComplete { return ("\(model.nameB)'s done. Your turn.", false) }
-        return nil
-    }
-
-    private func chip(_ t: MemberToday?) -> StatusChip? {
-        guard let t, warmup || t.dayNumber != nil else { return nil }
-        return t.isComplete ? StatusChip(text: "Done", color: .sage) : StatusChip(text: "\(t.remaining) left", color: .brownChip)
     }
 
     // MARK: Week dots
@@ -311,110 +255,53 @@ struct TodayView: View {
         }
     }
 
-    // MARK: Saves
-
-    private var savesRow: some View {
-        HStack(spacing: 10) {
-            if (round?.mode ?? model.currentMode) == .maintenance {
-                Text("Daily habits · no stakes")
-                    .font(.app(15, .semibold))
-                    .foregroundStyle(Color.textPrimary)
-            } else if (round?.savesAllowed ?? 0) == 0 {
-                Text("No saves")
-                    .font(.app(15, .semibold))
-                    .foregroundStyle(Color.textPrimary)
-            } else {
-                Text("Saves")
-                    .font(.app(15, .semibold))
-                    .foregroundStyle(Color.textPrimary)
-                SaveSquares(left: round?.savesLeft ?? 0, total: round?.savesAllowed ?? 0, size: 16)
-            }
-            Spacer()
-            Text(scoreText)
-                .font(.app(14, .medium))
-                .foregroundStyle(Color.textSecondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 13)
-        .card(radius: 16)
-        .accessibilityElement(children: .combine)
-    }
-
-    private var scoreText: String {
-        let a = model.memberA.map { round?.misses($0.id) ?? 0 } ?? 0
-        let b = model.memberB.map { round?.misses($0.id) ?? 0 } ?? 0
-        return "Score: \(model.nameA) \(a) · \(model.nameB) \(b)"
-    }
-
-    // MARK: New from partner
-
-    @ViewBuilder
-    private var newFromPartnerRow: some View {
-        if let latest = model.unreactedPartnerCheckIns.first {
-            Button {
-                Haptics.tap()
-                model.openInProof(latest.id)
-            } label: {
-                HStack(spacing: 12) {
-                    if latest.hasPhoto {
-                        CheckInThumb(checkIn: latest, size: 46, radius: 12)
-                    } else {
-                        IconBadge(systemName: "hand.raised.fill", color: .sage, size: 46)
-                    }
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("New from \(model.partnerName)")
-                            .font(.app(16, .bold))
-                            .foregroundStyle(Color.textPrimary)
-                        Text(model.ruleTitle(for: latest))
-                            .font(.app(14))
-                            .foregroundStyle(Color.textSecondary)
-                    }
-                    Spacer(minLength: 6)
-                    Text("Tap to react ›")
-                        .font(.app(15, .semibold))
-                        .foregroundStyle(Color.coral)
-                }
-                .padding(12)
-                .peachBox(radius: 18)
-            }
-            .buttonStyle(PressableStyle())
-            .accessibilityLabel("New from \(model.partnerName): \(model.ruleTitle(for: latest)). Tap to react")
-        }
-    }
-
-    // MARK: Rules
+    // MARK: Today's habits
 
     private var rulesSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(warmup ? "Today's practice" : (model.activeChallenge == nil ? "Today's habits" : "Today's rules"))
+            Text("Today")
                 .font(.app(21, .bold))
                 .foregroundStyle(Color.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+            // Equal height: both cards stretch to the taller one.
             HStack(alignment: .top, spacing: 12) {
-                rulesCard(member: model.memberA, today: model.todayA, color: .coral)
-                rulesCard(member: model.memberB, today: model.todayB, color: .sage,
-                          name: model.nameB, fallback: model.memberB == nil ? model.draftRulesForB : [])
+                rulesCard(member: model.memberA, today: model.todayA, name: model.nameA, color: .coral)
+                rulesCard(member: model.memberB, today: model.todayB, name: model.nameB, color: .sage,
+                          fallback: model.memberB == nil ? model.draftRulesForB : [])
             }
+            .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(.top, 4)
     }
 
-    private func rulesCard(member: MemberFact?, today: MemberToday?, color: Color,
-                           name: String? = nil, fallback: [RuleFact] = []) -> some View {
+    /// One person's habits. Mine: tap to check in. My partner's: full contrast but read-only, each habit done ✓,
+    /// pending ○, or done and waiting for my approval (coral dot; tap opens it in Proof to approve).
+    private func rulesCard(member: MemberFact?, today: MemberToday?, name: String, color: Color,
+                           fallback: [RuleFact] = []) -> some View {
         let isMe = member?.id == model.meID
-        let toReact = isMe ? 0 : (today?.items ?? []).filter { $0.checkIn.map { !model.hasReacted(to: $0) } ?? false }.count
-        return VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(member?.name ?? name ?? "")
-                    .font(.app(18, .bold))
+        let items = today?.items ?? fallback.map { ChecklistItem(rule: $0, checkIn: nil, state: .open) }
+        let done = items.filter(\.isChecked).count
+        let partnerJoined = !isMe && member?.joinedAt != nil
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Text(name)
+                    .font(.app(17, .bold))
                     .foregroundStyle(color)
-                Spacer(minLength: 4)
-                if toReact > 0 {
-                    Text("\(toReact) to react")
-                        .font(.app(12, .semibold))
-                        .foregroundStyle(Color.coral)
-                        .lineLimit(1)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                if !items.isEmpty {
+                    Text("\(done)/\(items.count)")
+                        .font(.app(13, .semibold))
+                        .foregroundStyle(Color.textSecondary)
+                        .monospacedDigit()
+                }
+                Spacer(minLength: 2)
+                if partnerJoined {
+                    if model.canNudgePartner {
+                        iconButton("hand.point.right.fill", label: "Nudge \(name)") {
+                            Task { await model.sendNudge() }
+                        }
+                    }
+                    iconButton("heart.fill", label: "Send \(name) a note") { showNote = true }
                 }
             }
             if member == nil && fallback.isEmpty {
@@ -423,67 +310,103 @@ struct TodayView: View {
                     .foregroundStyle(Color.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            ForEach(today?.items ?? fallback.map { ChecklistItem(rule: $0, checkIn: nil, state: .open) }) { item in
+            ForEach(items) { item in
                 Button {
                     tap(item, isMe: isMe, today: today)
                 } label: {
-                    HStack(alignment: .center, spacing: 8) {
-                        if !isMe, let c = item.checkIn, c.hasPhoto {
-                            CheckInThumb(checkIn: c, size: 26, radius: 7)
-                                .overlay(alignment: .topTrailing) {
-                                    if !model.hasReacted(to: c) {
-                                        Circle().fill(Color.coral).frame(width: 9, height: 9)
-                                            .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
-                                            .offset(x: 3, y: -3)
-                                    }
-                                }
-                        } else {
-                            CheckCircle(isOn: item.isChecked, color: .coral, size: 22)
-                        }
-                        VStack(alignment: .leading, spacing: 1) {
-                            // Wraps to 2 lines instead of cutting off ("Instrument: 30 min").
-                            Text(item.rule.title)
-                                .font(.app(15, .medium))
-                                .foregroundStyle(Color.textPrimary)
-                                .lineLimit(2)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .multilineTextAlignment(.leading)
-                            if isMe, !item.isChecked, let health = model.healthProgressText(for: item.rule) {
-                                Text(health)
-                                    .font(.app(12, .medium))
-                                    .foregroundStyle(Color.textSecondary.opacity(0.85))
-                            } else if let proof = item.checkIn?.healthProof, item.isChecked {
-                                Text(proof.replacingOccurrences(of: "Apple Health · ", with: " "))
-                                    .font(.app(12, .semibold))
-                                    .foregroundStyle(Color.sage)
-                            } else if isMe, !warmup, !item.isChecked, item.rule.type == .honour, hour < 18 {
-                                Text("Tap tonight")
-                                    .font(.app(12, .medium))
-                                    .foregroundStyle(Color.textSecondary.opacity(0.85))
-                            } else if item.state == .notSent {
-                                Text("Not sent yet")
-                                    .font(.app(12, .semibold))
-                                    .foregroundStyle(Color.coral)
-                            } else if let c = item.checkIn, let status = model.partnerStatus(of: c), isMe {
-                                Text(status)
-                                    .font(.app(12, .semibold))
-                                    .foregroundStyle(Color.sage)
-                            }
-                        }
-                        Spacer(minLength: 0)
-                    }
-                    .contentShape(Rectangle())
+                    ruleRow(item, isMe: isMe)
                 }
                 .buttonStyle(.plain)
-                .disabled(!isMe && item.checkIn == nil)
-                .accessibilityLabel("\(item.rule.title), \(item.isChecked ? "done" : "not done")")
+                .accessibilityLabel(a11yText(item, isMe: isMe, name: name))
                 .accessibilityHint(isMe && !item.isChecked ? "Check in" : (item.checkIn != nil ? "Open check-in" : ""))
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 14)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .card(radius: 18)
+    }
+
+    private func iconButton(_ symbol: String, label: String, action: @escaping () -> Void) -> some View {
+        Button {
+            Haptics.tap()
+            action()
+        } label: {
+            Image(systemName: symbol)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Color.coral)
+                .frame(width: 30, height: 30)
+                .background(Circle().fill(Color.peach))
+                .contentShape(Circle())
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityLabel(label)
+    }
+
+    /// Waiting for MY approval: my partner checked it in and I haven't reacted yet.
+    private func awaitsMyApproval(_ item: ChecklistItem, isMe: Bool) -> Bool {
+        guard !isMe, let c = item.checkIn else { return false }
+        return !model.hasReacted(to: c)
+    }
+
+    private func ruleRow(_ item: ChecklistItem, isMe: Bool) -> some View {
+        let waiting = awaitsMyApproval(item, isMe: isMe)
+        return HStack(alignment: .center, spacing: 8) {
+            Group {
+                if !isMe, let c = item.checkIn, c.hasPhoto {
+                    CheckInThumb(checkIn: c, size: 24, radius: 7)
+                } else {
+                    CheckCircle(isOn: item.isChecked, color: isMe ? .coral : .sage, size: 22)
+                }
+            }
+            .overlay(alignment: .topTrailing) {
+                if waiting {
+                    Circle().fill(Color.highlight).frame(width: 9, height: 9)
+                        .overlay(Circle().stroke(Color.white, lineWidth: 1.5))
+                        .offset(x: 3, y: -3)
+                }
+            }
+            VStack(alignment: .leading, spacing: 0) {
+                // One line; the full name shows on tap and to VoiceOver.
+                Text(RuleTitle.short(item.rule.title))
+                    .font(.app(15, .medium))
+                    .foregroundStyle(Color.textPrimary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                if let sub = subline(item, isMe: isMe, waiting: waiting) {
+                    Text(sub.text)
+                        .font(.app(11, .semibold))
+                        .foregroundStyle(sub.color)
+                        .lineLimit(1)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(minHeight: 28)
+        .contentShape(Rectangle())
+    }
+
+    private func subline(_ item: ChecklistItem, isMe: Bool, waiting: Bool) -> (text: String, color: Color)? {
+        if waiting { return ("Tap to approve", .highlight) }
+        guard isMe else { return nil }
+        if !item.isChecked, let health = model.healthProgressText(for: item.rule) {
+            return (health, Color.textSecondary)
+        }
+        if let proof = item.checkIn?.healthProof, item.isChecked {
+            return (proof.replacingOccurrences(of: "Apple Health · ", with: ""), .sage)
+        }
+        if !warmup, !item.isChecked, item.rule.type == .honour, hour < 18 { return ("Tap tonight", Color.textSecondary) }
+        if item.state == .notSent { return ("Not sent yet", .coral) }
+        if let c = item.checkIn, let status = model.partnerStatus(of: c) { return (status, .sage) }
+        if item.isChecked, !warmup, model.partner?.joinedAt != nil { return ("Waiting for \(model.partnerName)", Color.textSecondary) }
+        return nil
+    }
+
+    private func a11yText(_ item: ChecklistItem, isMe: Bool, name: String) -> String {
+        let state: String
+        if awaitsMyApproval(item, isMe: isMe) { state = "done, waiting for your approval" }
+        else { state = item.isChecked ? "done" : "not done yet" }
+        return isMe ? "\(item.rule.title), \(state)" : "\(name): \(item.rule.title), \(state)"
     }
 
     private func tap(_ item: ChecklistItem, isMe: Bool, today: MemberToday?) {
@@ -495,7 +418,11 @@ struct TodayView: View {
             openedCheckIn = c
             return
         }
-        guard isMe, canCheckIn(today) else { return }
+        guard isMe, canCheckIn(today) else {
+            // Nothing to do here (a pending habit of my partner's, or a paused day): show the full name.
+            model.toast = item.rule.title
+            return
+        }
         open(item.rule)
     }
 
@@ -532,45 +459,109 @@ struct TodayView: View {
         return open.filter { $0.type == .photo } + open.filter { $0.type == .honour }
     }
 
+    /// The only full-width primary button. Done: "Done for today ✓" (secondary), and who we're waiting on.
     @ViewBuilder
-    private var checkInButton: some View {
+    private var checkInSection: some View {
         if model.myToday?.isComplete == true {
-            HStack(spacing: 8) {
-                Image(systemName: "checkmark.seal.fill")
-                Text(warmup ? "Practice done" : "All done today").font(.app(18, .semibold))
+            VStack(spacing: 8) {
+                SecondaryButtonLabel(title: warmup ? "Practice done ✓" : "Done for today ✓")
+                    .accessibilityElement(children: .combine)
+                if let p = model.partnerToday, warmup || p.dayNumber != nil, !p.isComplete, model.partner?.joinedAt != nil {
+                    Text("Waiting on \(model.partnerName)")
+                        .font(.app(14, .medium))
+                        .foregroundStyle(Color.textSecondary)
+                }
             }
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: Metrics.buttonHeight)
-            .background(Capsule().fill(Color.sage))
-            .accessibilityElement(children: .combine)
         } else {
             // Never opens the camera directly: "Which rule?" first.
-            PrimaryButton(warmup ? "Practise check-in" : "Check in", isEnabled: !uncheckedRules.isEmpty) {
+            PrimaryButton(warmup ? "Practise check-in ›" : "Check in ›", isEnabled: !uncheckedRules.isEmpty) {
                 showWhichRule = true
             }
         }
     }
 
-    private var stakesRow: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "trophy.fill")
-                .font(.system(size: 20))
-                .foregroundStyle(Color.gold)
-            Text("Stakes: \(round?.betText ?? model.currentBet)")
-                .font(.app(16, .semibold))
-                .foregroundStyle(Color.textPrimary)
-            Spacer()
+    // MARK: More today
+
+    /// Quiet compact rows below the fold.
+    private var moreToday: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("More today")
+                .font(.app(15, .semibold))
+                .foregroundStyle(Color.textSecondary)
+            VStack(spacing: 0) {
+                if let latest = model.unreactedPartnerCheckIns.first {
+                    moreRow(icon: "hand.thumbsup.fill",
+                            title: "New from \(model.partnerName) · \(RuleTitle.short(model.ruleTitle(for: latest)))",
+                            detail: "React") {
+                        model.openInProof(latest.id)
+                    }
+                    Divider().padding(.leading, 46)
+                }
+                moreRow(icon: model.myProgressToday == nil ? "camera.fill" : "checkmark.circle.fill",
+                        title: model.myProgressToday == nil
+                            ? (model.shareProgressPhotos ? "Progress pic · optional" : "Progress pic · optional, only you see it")
+                            : "Progress pic done",
+                        detail: model.myProgressToday == nil ? nil : "Retake") {
+                    showProgressCamera = true
+                }
+                Divider().padding(.leading, 46)
+                if let c = model.activeChallenge {
+                    let bet = round?.betText ?? ""
+                    moreRow(icon: "trophy.fill", title: bet.isEmpty ? "\(c.title) · no bet" : "Stakes: \(bet)",
+                            detail: nil, chevron: false, action: nil)
+                } else {
+                    moreRow(icon: "trophy.fill",
+                            title: model.upcomingChallenge.map { "\($0.title) starts tomorrow" } ?? "Want a push? Start a challenge",
+                            detail: nil) {
+                        model.tab = .challenges
+                    }
+                }
+            }
+            .card(radius: 16, shadow: false)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 15)
-        .card(radius: 16)
-        .accessibilityElement(children: .combine)
+    }
+
+    private func moreRow(icon: String, title: String, detail: String?, chevron: Bool = true,
+                         action: (() -> Void)?) -> some View {
+        let row = HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.gold)
+                .frame(width: 22)
+            Text(title)
+                .font(.app(15, .medium))
+                .foregroundStyle(Color.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+            Spacer(minLength: 6)
+            if let detail {
+                Text(detail).font(.app(14, .semibold)).foregroundStyle(Color.coral)
+            }
+            if chevron {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.textSecondary)
+            }
+        }
+        .padding(.horizontal, 12)
+        .frame(height: 48)
+        .contentShape(Rectangle())
+        return Group {
+            if let action {
+                Button {
+                    Haptics.tap()
+                    action()
+                } label: { row }
+                .buttonStyle(PressableStyle())
+            } else {
+                row.accessibilityElement(children: .combine)
+            }
+        }
     }
 }
 
-/// Today, under the streak row: "Day X of 75", a coral bar and the percentage. The bar animates from the
-/// last day this phone showed when the day goes up.
+/// Challenges tab: "Day X of 75", a coral bar and the percentage. The bar animates from the last day this phone
+/// showed when the day goes up.
 struct DayProgressBar: View {
     var day: Int
     var total = Brand.roundLengthDays
@@ -613,50 +604,6 @@ struct DayProgressBar: View {
         guard new != shown else { return }
         withAnimation(.spring(response: 0.9, dampingFraction: 0.85).delay(0.25)) { shown = new }
         UserDefaults.standard.set(new, forKey: "progressBarDay")
-    }
-}
-
-/// The optional daily progress photo (separate from rule proof): "Take today's progress pic".
-struct ProgressPhotoCard: View {
-    @Environment(AppModel.self) private var model
-    var open: () -> Void
-
-    var body: some View {
-        let today = model.myProgressToday
-        Button(action: open) {
-            HStack(spacing: 14) {
-                Group {
-                    if let today, let img = model.progress.image(for: today) {
-                        Image(uiImage: img).resizable().scaledToFill()
-                    } else {
-                        Image(systemName: "camera.fill")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundStyle(Color.coral)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(Color.peach)
-                    }
-                }
-                .frame(width: 52, height: 52)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(today == nil ? "Take today's progress pic" : "Progress pic done")
-                        .font(.app(16, .semibold))
-                        .foregroundStyle(Color.textPrimary)
-                    Text(model.shareProgressPhotos ? "Shared with \(model.partnerName)" : "Optional · private, only you see it")
-                        .font(.app(13))
-                        .foregroundStyle(Color.textSecondary)
-                }
-                Spacer(minLength: 4)
-                Text(today == nil ? "Open ›" : "Retake")
-                    .font(.app(14, .semibold))
-                    .foregroundStyle(Color.coral)
-            }
-            .padding(12)
-            .card(radius: 18, shadow: false)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(PressableStyle())
-        .accessibilityLabel(today == nil ? "Take today's progress pic" : "Progress pic done. Retake")
     }
 }
 
@@ -711,33 +658,6 @@ struct WhichRuleSheet: View {
     }
 }
 
-/// Gold "🔥 14" pill.
-struct StreakPill: View {
-    var streak: Int
-    /// Banked streak shields: each covers one missed day without breaking the streak.
-    var shields: Int = 0
-
-    var body: some View {
-        HStack(spacing: 5) {
-            LivingFlame(size: 18, lit: streak > 0)
-            Text("\(streak)").font(.app(18, .semibold))
-                .contentTransition(.numericText())
-            if shields > 0 {
-                Image(systemName: "shield.fill")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Color.sage)
-                if shields > 1 { Text("\(shields)").font(.app(14, .semibold)) }
-            }
-        }
-        .foregroundStyle(Color.textPrimary)
-        .padding(.horizontal, 14)
-        .frame(height: 38)
-        .background(Capsule().fill(Color.gold.opacity(0.55)))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(shields > 0 ? "Streak \(streak) days, \(shields) streak shield\(shields == 1 ? "" : "s")" : "Streak \(streak) days")
-    }
-}
-
 struct WeekDot: Identifiable {
     enum Kind { case complete, save, miss, paused, today, future, empty }
     var date: LocalDate
@@ -746,41 +666,39 @@ struct WeekDot: Identifiable {
     var id: Int { date.ordinal }
 }
 
-/// S M T W T F S for the current week: big dots, letters below, "{n}-day streak" under the row.
+/// S M T W T F S for the current week: ticked caramel circles for completed days, today ringed and labelled,
+/// future days empty. (The streak lives in the header card.)
 struct WeekDotsView: View {
     var days: [WeekDot]
-    var streak: Int
-    private let letters = ["S", "M", "T", "W", "T", "F", "S"]
+    private var letters: [String] { ["S", "M", "T", "W", "T", "F", "S"] }
 
     var body: some View {
-        VStack(spacing: 8) {
-            HStack {
-                ForEach(Array(days.enumerated()), id: \.element.id) { i, d in
-                    VStack(spacing: 6) {
-                        dot(d)
-                        Text(letters[i % 7])
-                            .font(.app(14, .medium))
-                            .foregroundStyle(d.isToday ? Color.coral : Color.textSecondary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel("\(letters[i % 7]): \(label(d))")
+        HStack {
+            ForEach(Array(days.enumerated()), id: \.element.id) { i, d in
+                VStack(spacing: 5) {
+                    dot(d)
+                    Text(d.isToday ? "Today" : letters[i % 7])
+                        .font(.app(d.isToday ? 12 : 13, d.isToday ? .bold : .medium))
+                        .foregroundStyle(d.isToday ? Color.coral : Color.textSecondary)
+                        .lineLimit(1)
+                        .fixedSize()
                 }
+                .frame(maxWidth: .infinity)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("\(d.isToday ? "Today" : letters[i % 7]): \(label(d))")
             }
-            Text("\(streak)-day streak")
-                .font(.app(16, .semibold))
-                .foregroundStyle(Color.textPrimary)
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 4)
+        .padding(.horizontal, 4)
     }
 
     @ViewBuilder
     private func dot(_ d: WeekDot) -> some View {
-        let size: CGFloat = 32
+        let size: CGFloat = 30
         switch d.kind {
         case .complete:
             Circle().fill(Color.gold).frame(width: size, height: size)
+                .overlay(Image(systemName: "checkmark").font(.system(size: 12, weight: .heavy)).foregroundStyle(.white))
+                .overlay(Circle().stroke(Color.coral, lineWidth: d.isToday ? 2.5 : 0).padding(-3))
         case .save:
             Circle().fill(Color.gold.opacity(0.35)).frame(width: size, height: size)
                 .overlay(Circle().fill(Color.coral).frame(width: 16, height: 16)
@@ -808,36 +726,5 @@ struct WeekDotsView: View {
         case .today: return "today"
         case .future, .empty: return "upcoming"
         }
-    }
-}
-
-/// On daily habits: no stakes, and a way into a challenge.
-struct HabitsRow: View {
-    @Environment(AppModel.self) private var model
-
-    var body: some View {
-        Button {
-            Haptics.tap()
-            model.tab = .challenges
-        } label: {
-            HStack(spacing: 12) {
-                CustomIcon(asset: "icon_challenge", symbol: "trophy.fill", size: 34, color: .gold)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(model.upcomingChallenge.map { "\($0.title) starts tomorrow" } ?? "Want a push?")
-                        .font(.app(16, .semibold)).foregroundStyle(Color.textPrimary)
-                    Text(model.upcomingChallenge == nil ? "Start a challenge together. Bets optional."
-                                                        : "Your habits still count today.")
-                        .font(.app(13)).foregroundStyle(Color.textSecondary)
-                }
-                Spacer()
-                Text("Challenges ›")
-                    .font(.app(15, .bold))
-                    .foregroundStyle(Color.coral)
-            }
-            .padding(16)
-            .card(radius: 16)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(PressableStyle())
     }
 }

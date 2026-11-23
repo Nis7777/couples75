@@ -27,9 +27,11 @@ struct SyncStatusLine: View {
 
     private func text(now: Date) -> String {
         // App Store screenshots from the Simulator: launch with -screenshots to hide the test-mode line.
+        #if DEBUG
         if model.isMock {
             return ProcessInfo.processInfo.arguments.contains("-screenshots") ? "Synced just now" : "Mock mode · saved on this phone"
         }
+        #endif
         if model.isSyncing { return "Syncing…" }
         let waiting = model.pendingUploads
         switch model.syncProblem {
@@ -81,45 +83,6 @@ struct NoteBanner: View {
         .padding(14)
         .peachBox(radius: 18)
         .transition(.move(edge: .top).combined(with: .opacity))
-    }
-}
-
-/// "Nudge {partner}" and "Send a note" under the rule cards.
-struct PartnerActionsRow: View {
-    @Environment(AppModel.self) private var model
-    @State private var showNote = false
-
-    var body: some View {
-        if model.partner?.joinedAt != nil {
-            HStack(spacing: 10) {
-                if model.canNudgePartner {
-                    button("Nudge \(model.partnerName)", icon: "hand.point.right.fill") {
-                        Task { await model.sendNudge() }
-                    }
-                }
-                button("Send a note", icon: "heart") { showNote = true }
-            }
-            .sheet(isPresented: $showNote) {
-                LoveNoteSheet()
-                    .presentationDetents([.medium, .large])
-                    .presentationDragIndicator(.visible)
-            }
-        }
-    }
-
-    private func button(_ title: String, icon: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Label(title, systemImage: icon)
-                .font(.app(15, .semibold))
-                .foregroundStyle(Color.textPrimary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-                .frame(maxWidth: .infinity)
-                .frame(height: 46)
-                .background(Capsule().fill(Color.white))
-                .overlay(Capsule().stroke(Color.buttonBorder, lineWidth: 1))
-        }
-        .buttonStyle(PressableStyle())
     }
 }
 
