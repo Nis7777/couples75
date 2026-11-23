@@ -15,7 +15,8 @@ struct CoupleScoreView: View {
 
     private var score: CoupleScore {
         let d = model.draft
-        return CoupleScore.make(goals: d.goals, quitFrequency: d.quitFrequency, names: d.myName + d.partnerName,
+        return CoupleScore.make(goals: d.goals + (d.partnerGoals ?? []).filter { !d.goals.contains($0) },
+                                quitFrequency: d.quitFrequency, names: d.myName + d.partnerName,
                                 rulesPerPerson: max(d.planRules.count, Brand.minRules))
     }
 

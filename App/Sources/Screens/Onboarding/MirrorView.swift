@@ -54,7 +54,7 @@ struct MirrorView: View {
                     .peachBox(radius: 18)
                     .padding(.top, 18)
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Tiny first wins for tomorrow")
+                    Text("Tiny first wins to start with")
                         .font(.app(17, .bold))
                         .foregroundStyle(Color.textPrimary)
                     ForEach(Array(MirrorCopy.tinyWins(d.goals, longDistance: d.longDistance == true).enumerated()), id: \.offset) { _, win in

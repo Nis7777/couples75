@@ -135,6 +135,11 @@ enum Characters {
         standOnly.contains(id) && pose != .bust ? .stand : pose
     }
 
+    /// The x1–x4 busts are cropped tighter (face ≈ 48% of the height vs ≈ 35% for the rest), so at the same
+    /// frame size they'd look about a third bigger. Measured from the art: face width ÷ bust height.
+    static let bustScales: [String: CGFloat] = ["x1": 0.73, "x2": 0.74, "x3": 0.81, "x4": 0.74]
+    static func bustScale(_ id: String) -> CGFloat { bustScales[id] ?? 1 }
+
     static func assetName(_ id: String, _ pose: CharacterPose) -> String {
         "char_\(id)_\(drawnPose(id, pose).rawValue)"
     }
@@ -227,6 +232,8 @@ struct CharacterView: View {
             if let hairColor { layer("hair", hairColor) }
             if let jacketColor { layer("jacket", jacketColor) }
         }
+        // Some busts are cropped tighter than others: scale them so every face is the same size.
+        .scaleEffect(pose == .bust ? Characters.bustScale(characterID) : 1, anchor: .bottom)
     }
 
     private func layer(_ part: String, _ color: Color) -> some View {

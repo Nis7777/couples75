@@ -26,7 +26,8 @@ struct PlanRevealView: View {
                         .padding(.top, 10)
                         .padding(.bottom, 4)
                     RingHero(left: SceneCharacter(avatar: d.avatar, name: d.myName), right: model.sceneBBuilt,
-                             progress: 0.62, centerTitle: "Day 1", centerSubtitle: "tomorrow", panelRadius: 0, inset: 20,
+                             progress: 0.62, centerTitle: "Day 1",
+                             centerSubtitle: d.partnerName.isEmpty ? "after you both join" : "after \(d.partnerName) joins", panelRadius: 0, inset: 20,
                              alive: true)
                         .frame(height: 310)
                         .padding(.horizontal, -Metrics.side)

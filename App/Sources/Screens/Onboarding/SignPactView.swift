@@ -21,7 +21,8 @@ struct SignPactView: View {
                     .frame(height: 130)
                     .padding(.top, 14)
                 TitleText("Sign your pact", size: 30)
-                Text("\(d.myName) & \(d.partnerName), starting tomorrow:")
+                Text("\(d.myName) & \(d.partnerName), from the day after \(d.partnerName) joins:")
+                    .multilineTextAlignment(.center)
                     .font(.app(16, .medium))
                     .foregroundStyle(Color.textSecondary)
                 VStack(alignment: .leading, spacing: 12) {

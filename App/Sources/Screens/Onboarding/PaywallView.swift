@@ -131,6 +131,8 @@ struct PaywallView: View {
                 valueRow("checklist", "Daily habits for body, looks, mind and money")
                 valueRow("flame.fill", "Challenges with real stakes, like The 75")
                 valueRow("crown.fill", "One streak, one rank, both of you")
+                valueRow("person.2.fill", partnerName.isEmpty ? "One subscription covers you both"
+                                                                : "One subscription covers you both: \(partnerName) joins free")
             }
             .padding(.horizontal, 32)
             .padding(.top, 4)
@@ -145,7 +147,8 @@ struct PaywallView: View {
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 28)
-            TrophyScene(left: model.sceneA, right: model.sceneBBuilt)
+            // No "Day 75" badge: it covered the partner, and The 75 is one challenge, not the app.
+            TrophyScene(left: model.sceneA, right: model.sceneBBuilt, badge: false)
                 .frame(maxHeight: .infinity)
             BottomActions {
                 PrimaryButton("Continue") { page = hasTrial ? .trial : .plans }
@@ -220,6 +223,7 @@ struct PaywallView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 14) {
                     plansHeader
+                    if case .onboarding = variant { coversBoth }
                     if purchases.yearly == nil && purchases.monthly == nil {
                         loadingState
                     } else {
@@ -231,7 +235,7 @@ struct PaywallView: View {
                                     .font(.app(16, .semibold))
                                     .foregroundStyle(Color.textPrimary)
                             }
-                            Text("One subscription covers you both.")
+                            Text("No second payment for \(partnerName.isEmpty ? "your partner" : partnerName).")
                                 .font(.app(15))
                                 .foregroundStyle(Color.textSecondary)
                         }
@@ -246,6 +250,15 @@ struct PaywallView: View {
                 PrimaryButton(primaryTitle, isEnabled: selectedProduct != nil,
                               isLoading: working || purchases.isPurchasing) {
                     Task { await buy(selectedProduct) }
+                }
+                if case .onboarding = variant {
+                    // An invited partner who started here by mistake: join free with the code instead of paying.
+                    Button("Already invited? Join with your partner's code") {
+                        model.seenCodeEntry = false
+                        model.draft = OnboardingDraft()
+                    }
+                    .font(.app(13, .semibold))
+                    .foregroundStyle(Color.coral)
                 }
                 HStack(spacing: 6) {
                     Button("View all plans") { showAllPlans = true }
@@ -271,6 +284,33 @@ struct PaywallView: View {
             header(title: "Keep your run going: take over the subscription",
                    subtitle: "\(payer)'s subscription ended, so your run is paused. Subscribe and it continues for you both.")
         }
+    }
+
+    private var partnerName: String {
+        if case .onboarding(let p) = variant { return p }
+        return model.partnerName
+    }
+
+    /// Plans page: both of you, one price. Hard to miss.
+    private var coversBoth: some View {
+        HStack(spacing: 12) {
+            CoupleBusts(left: model.sceneA, right: model.sceneBBuilt)
+                .frame(width: 96, height: 58)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("One subscription, both of you")
+                    .font(.app(17, .bold))
+                    .foregroundStyle(Color.textPrimary)
+                Text(partnerName.isEmpty ? "Your partner joins free with your invite."
+                                         : "\(partnerName) joins free with your invite.")
+                    .font(.app(14))
+                    .foregroundStyle(Color.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .peachBox(radius: 18)
+        .accessibilityElement(children: .combine)
     }
 
     private func header(title: String, subtitle: String) -> some View {
@@ -307,8 +347,8 @@ struct PaywallView: View {
         // "€3.33/mo" big, then "billed €39.99 yearly" (after the free days, when there's a trial).
         let yearlyLine: String = {
             let price = purchases.yearlyPrice ?? "…"
-            if let trial { return "billed \(price) yearly after \(trial) free days" }
-            return "billed \(price) yearly"
+            if let trial { return "billed \(price) yearly after \(trial) free days · for both of you" }
+            return "billed \(price) yearly · for both of you"
         }()
         return Button {
             Haptics.tap()
@@ -331,9 +371,14 @@ struct PaywallView: View {
                         .foregroundStyle(Color.textSecondary)
                         .frame(maxWidth: .infinity)
                 } else {
-                    Text("\(purchases.monthlyPrice ?? "…")/mo")
-                        .font(.app(20, .bold))
-                        .foregroundStyle(Color.textPrimary)
+                    HStack(alignment: .firstTextBaseline) {
+                        Text("\(purchases.monthlyPrice ?? "…")/mo")
+                            .font(.app(20, .bold))
+                            .foregroundStyle(Color.textPrimary)
+                        Text("for both of you")
+                            .font(.app(14, .medium))
+                            .foregroundStyle(Color.textSecondary)
+                    }
                 }
             }
             .padding(.horizontal, 22)

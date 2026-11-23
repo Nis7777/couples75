@@ -34,7 +34,8 @@ struct HookView: View {
             }
         } actions: {
             PrimaryButton("Let's start") { next() }
-            TextLinkButton("Did your partner invite you?") {
+            // An invited partner joins free with the code: they must never start (and pay for) a second couple.
+            SecondaryButton("My partner invited me") {
                 model.seenCodeEntry = false
                 model.draft = OnboardingDraft()
             }
