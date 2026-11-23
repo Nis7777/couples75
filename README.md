@@ -109,7 +109,7 @@ One subscription covers both partners: only the person who starts (A) pays; the 
      introductory offer **free trial, 3 days**. Preselected on the paywall.
    - `com.tomasbeja.pact.yearly7`: 1 year, $39.99, introductory offer **free trial, 1 week**. Only offered on
      the paywall's exit sheet ("Get a 7-day free trial instead").
-   - `com.tomasbeja.pact.monthly`: 1 month, $7.99, no introductory offer.
+   - `com.tomasbeja.pact.monthly`: 1 month, $12.99, no introductory offer.
 3. Add a display name and description to each, a review screenshot of the paywall, and submit them with the
    first app version.
 4. The app sends `appAccountToken` = the member's UUID and writes `subscribedUntil` / `subscriptionProduct` to the

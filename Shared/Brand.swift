@@ -22,7 +22,7 @@ enum Brand {
     /// One subscription covers both partners. Prices always come from StoreKit.
     static let iapYearly = "com.tomasbeja.pact.yearly"      // $39.99 a year (US base price), 3-day free trial
     static let iapYearly7 = "com.tomasbeja.pact.yearly7"    // same price, 7-day free trial (exit sheet only)
-    static let iapMonthly = "com.tomasbeja.pact.monthly"    // $7.99 a month (US base price), no trial
+    static let iapMonthly = "com.tomasbeja.pact.monthly"    // $12.99 a month (US base price), no trial
     static let allProducts = [iapYearly, iapYearly7, iapMonthly]
     static let savesPerRound = 3
     /// 4 to 6 rules per person, at least 2 of them photo rules.

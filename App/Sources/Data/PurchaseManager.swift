@@ -42,6 +42,20 @@ final class PurchaseManager {
         return (y.price / 12).formatted(y.priceFormatStyle)
     }
 
+    /// Price per person per month ("$6.50" for $12.99 a month, "$1.67" for $39.99 a year): one subscription covers 2.
+    func perPersonPerMonth(_ product: Product?) -> String? {
+        guard let p = product, let unit = p.subscription?.subscriptionPeriod.unit else { return nil }
+        let value = p.subscription?.subscriptionPeriod.value ?? 1
+        let months: Decimal
+        switch unit {
+        case .year: months = Decimal(12 * value)
+        case .month: months = Decimal(value)
+        case .week: months = Decimal(value) / 4
+        default: months = Decimal(value) / 30
+        }
+        return (p.price / months / 2).formatted(p.priceFormatStyle)
+    }
+
     /// How much cheaper yearly is than 12 months of monthly, in whole percent (58 for 39.99 vs 7.99).
     var yearlySavingsPercent: Int? {
         guard let y = yearly, let m = monthly, m.price > 0 else { return nil }

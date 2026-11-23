@@ -27,8 +27,9 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
 - [ ] Your next 90 days: today's date highlighted + the next 6; edit a habit (pencil or tap the row), delete one
       (blocked below 4 habits or 2 photo habits, with the reason), "+ Add a habit" (up to 6). FAQ rows expand.
 - [ ] Notifications: three toggles on; Continue shows the iOS prompt (not if all are off). No second ask after the invite.
-- [ ] Paywall: yearly preselected as "$3.33/mo, billed $39.99 yearly after 3 free days" with "SAVE 58%",
-      monthly "€7.99/mo". × goes back to "Your next 90 days".
+- [ ] Paywall: Monthly first ("$12.99 / month for 2 people", "$6.50 / person / month"), then Yearly preselected
+      with a check ("$39.99 / year for 2 people", "$1.67 / person / month", "3-day free trial first", "SAVE 74%").
+      × goes back to "Your next 90 days".
 - [ ] After paying and the invite, Today shows exactly the habits from "Your next 90 days" (including edits).
 - [ ] Profile: Partner checked in / Daily reminder / Weekly recap switches match what you chose.
 

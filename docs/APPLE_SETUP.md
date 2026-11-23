@@ -92,7 +92,7 @@ Your app → Monetization → **Subscriptions** → create the group **Pact**, t
 |---|---|---|---|---|
 | Pact Yearly | `com.tomasbeja.pact.yearly` | 1 year | $39.99 (United States base) | Free trial, 3 days |
 | Pact Yearly 7-day trial | `com.tomasbeja.pact.yearly7` | 1 year | $39.99 | Free trial, 1 week |
-| Pact Monthly | `com.tomasbeja.pact.monthly` | 1 month | $7.99 | none |
+| Pact Monthly | `com.tomasbeja.pact.monthly` | 1 month | $12.99 | none |
 
 For each: a display name and description (e.g. "Pact for both of you, billed yearly"), and a review screenshot of
 the paywall. Put the yearly plans above the monthly in the group's ranking. They're submitted with the first

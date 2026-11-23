@@ -77,14 +77,14 @@ Create three auto-renewable subscriptions in that group:
 |---|---|---|---|---|---|
 | Pact Yearly | `com.tomasbeja.pact.yearly` | 1 Year | $39.99 | `Pact Yearly` | `Pact for both of you, billed yearly` |
 | Pact Yearly 7-day trial | `com.tomasbeja.pact.yearly7` | 1 Year | $39.99 | `Pact Yearly` | `Pact for both of you, 7-day free trial` |
-| Pact Monthly | `com.tomasbeja.pact.monthly` | 1 Month | $7.99 | `Pact Monthly` | `Pact for both of you, billed monthly` |
+| Pact Monthly | `com.tomasbeja.pact.monthly` | 1 Month | $12.99 | `Pact Monthly` | `Pact for both of you, billed monthly` |
 
-- For prices: set **United States** as the base country, pick the $39.99 / $7.99 price points, and let Apple
+- For prices: set **United States** as the base country, pick the $39.99 / $12.99 price points, and let Apple
   calculate all other countries automatically.
   Then open the full price list for each subscription and check the **euro countries** (Portugal, Spain, France,
   Germany, Italy, Netherlands, Ireland and the rest of the eurozone) and the **United Kingdom**. If Apple's automatic
-  price isn't round, set it manually for those countries to **39,99 €** (yearly) and **7,99 €** (monthly) for the
-  eurozone, and **£39.99** and **£7.99** for the UK. Leave every other country on Apple's automatic price. Tell me
+  price isn't round, set it manually for those countries to **39,99 €** (yearly) and **12,99 €** (monthly) for the
+  eurozone, and **£39.99** and **£12.99** for the UK. Leave every other country on Apple's automatic price. Tell me
   which countries you changed.
 - Introductory offers: **Pact Yearly** → Free Trial, **3 days**, all countries, starting now, no end date.
   **Pact Yearly 7-day trial** → Free Trial, **1 week**, same settings. **Pact Monthly** → none.

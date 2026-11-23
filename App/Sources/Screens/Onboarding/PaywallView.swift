@@ -230,14 +230,11 @@ struct PaywallView: View {
                     if purchases.yearly == nil && purchases.monthly == nil {
                         loadingState
                     } else {
-                        planCard(yearly: true)
+                        // Monthly first, then Yearly (preselected): the yearly saving reads against the monthly price.
                         planCard(yearly: false)
+                        planCard(yearly: true)
+                            .padding(.bottom, 10)
                         VStack(spacing: 4) {
-                            if let weekly = purchases.weeklyPrice {
-                                Text("\(weekly)/week, less than one date night.")
-                                    .font(.app(16, .semibold))
-                                    .foregroundStyle(Color.textPrimary)
-                            }
                             Text("No second payment for \(partnerName.isEmpty ? "your partner" : partnerName).")
                                 .font(.app(15))
                                 .foregroundStyle(Color.textSecondary)
@@ -343,55 +340,65 @@ struct PaywallView: View {
         .frame(maxWidth: .infinity, minHeight: 160)
     }
 
-    /// 13c plan card. Yearly: peach with a gold "BEST VALUE · x/week" pill. Monthly: white.
+    /// Plan card: name (caramel), "$12.99 / month for 2 people", "$6.50 / person / month"; the selected one has an
+    /// espresso border and a check; Yearly carries the "SAVE x%" pill on its bottom edge.
     private func planCard(yearly: Bool) -> some View {
         let selected = yearlySelected == yearly
-        let trial = purchases.trialDays(purchases.yearly)
-        // "$3.33/mo" big, then "billed $39.99 yearly" (after the free days, when there's a trial).
-        let yearlyLine: String = {
-            let price = purchases.yearlyPrice ?? "…"
-            if let trial { return "billed \(price) yearly after \(trial) free days · for both of you" }
-            return "billed \(price) yearly · for both of you"
-        }()
+        let product = yearly ? purchases.yearly : purchases.monthly
+        let price = (yearly ? purchases.yearlyPrice : purchases.monthlyPrice) ?? "…"
+        let trial = yearly ? purchases.trialDays(purchases.yearly) : nil
         return Button {
             Haptics.tap()
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) { yearlySelected = yearly }
+            withAnimation(.open(0.25)) { yearlySelected = yearly }
         } label: {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(yearly ? "Yearly" : "Monthly")
-                    .font(.app(26, .bold))
-                    .foregroundStyle(Color.textPrimary)
-                if yearly {
-                    Pill(text: purchases.yearlySavingsPercent.map { "BEST VALUE · SAVE \($0)%" } ?? "BEST VALUE",
-                         fill: .gold, size: 15)
-                        .frame(maxWidth: .infinity)
-                    Text("\(purchases.yearlyPerMonth ?? "…")/mo")
-                        .font(.app(26, .bold))
+            HStack(alignment: .center, spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(yearly ? "Yearly" : "Monthly")
+                        .font(.app(19, .semibold))
+                        .foregroundStyle(Color.gold)
+                    (Text("\(price) / \(yearly ? "year" : "month")").font(.app(18, .bold))
+                        + Text(" for 2 people").font(.app(17)))
                         .foregroundStyle(Color.textPrimary)
-                        .frame(maxWidth: .infinity)
-                    Text(yearlyLine)
-                        .font(.app(15, .medium))
-                        .foregroundStyle(Color.textSecondary)
-                        .frame(maxWidth: .infinity)
-                } else {
-                    HStack(alignment: .firstTextBaseline) {
-                        Text("\(purchases.monthlyPrice ?? "…")/mo")
-                            .font(.app(20, .bold))
-                            .foregroundStyle(Color.textPrimary)
-                        Text("for both of you")
-                            .font(.app(14, .medium))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                    if let per = purchases.perPersonPerMonth(product) {
+                        Text("\(per) / person / month")
+                            .font(.app(14))
                             .foregroundStyle(Color.textSecondary)
                     }
+                    if let trial {
+                        Text("\(trial)-day free trial first")
+                            .font(.app(13, .semibold))
+                            .foregroundStyle(Color.sage)
+                    }
                 }
+                Spacer(minLength: 0)
+                ZStack {
+                    Circle()
+                        .fill(selected ? Color.coral : Color.clear)
+                        .overlay(Circle().stroke(selected ? Color.coral : Color.radio, lineWidth: 1.5))
+                    if selected {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                }
+                .frame(width: 30, height: 30)
             }
             .padding(.horizontal, 22)
-            .padding(.vertical, 20)
+            .padding(.vertical, 18)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous)
-                .fill(selected ? Color.peach.opacity(0.75) : Color.white)
-                .shadow(color: .black.opacity(0.05), radius: 12, y: 4))
+                .fill(selected ? Color.peach.opacity(0.75) : Color.white))
             .overlay(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous)
-                .stroke(selected ? Color.coral.opacity(0.8) : Color.cardBorder, lineWidth: selected ? 1.5 : 1))
+                .stroke(selected ? Color.coral.opacity(0.85) : Color.cardBorder, lineWidth: selected ? 1.5 : 1))
+            .overlay(alignment: .bottomTrailing) {
+                if yearly, let save = purchases.yearlySavingsPercent {
+                    // Coral = something special (docs/BRAND.md).
+                    Pill(text: "SAVE \(save)%", fill: .highlight, size: 14)
+                        .offset(x: -18, y: 14)
+                }
+            }
             .contentShape(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous))
         }
         .buttonStyle(PressableStyle())
