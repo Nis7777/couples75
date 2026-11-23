@@ -99,11 +99,14 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     /// CloudKit silent push: fetch changes and post local notifications.
     /// CloudKit silent push. The completion-handler form is called on the main actor, so the (non-Sendable)
     /// payload never crosses actors. The payload itself isn't needed: the app fetches the changes.
-    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any],
-                     fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+    /// A silent CloudKit push: just fetch. `nonisolated` so the (non-Sendable) payload never crosses to the main
+    /// actor; only the completion handler does, boxed.
+    nonisolated func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+                                 fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        let done = FetchCompletion(completionHandler)
         Task { @MainActor in
-            await model.refresh()
-            completionHandler(.newData)
+            await AppDelegate.current?.model.refresh()
+            done.call(.newData)
         }
     }
 
@@ -128,4 +131,11 @@ final class SceneDelegate: NSObject, UIWindowSceneDelegate {
             await model.acceptShare(metadata)
         }
     }
+}
+
+/// Carries the push completion handler to the main actor. UIKit allows calling it from any thread.
+private final class FetchCompletion: @unchecked Sendable {
+    private let handler: (UIBackgroundFetchResult) -> Void
+    init(_ handler: @escaping (UIBackgroundFetchResult) -> Void) { self.handler = handler }
+    func call(_ result: UIBackgroundFetchResult) { handler(result) }
 }

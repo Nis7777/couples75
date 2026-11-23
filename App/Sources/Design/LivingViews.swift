@@ -217,6 +217,13 @@ struct XPCard: View {
 
 // MARK: - Celebration (rank up, challenge complete)
 
+/// Beats of the badge reveal (ms). Outside `BadgeReveal`: generic types can't hold static stored properties.
+private enum BadgeRevealBeat {
+    static let rise: (Double, Double) = (0, 650)
+    static let burst: (Double, Double) = (250, 1500)
+    static let total: Double = 1600
+}
+
 /// One-shot: the badge rises in from 0.9 with ease-out, a ring of seeded sparkles opens around it and fades,
 /// then the badge rests with a slow glow. Final frame: the badge, still. Reduce Motion: the final frame.
 struct BadgeReveal<Art: View>: View {
@@ -225,17 +232,11 @@ struct BadgeReveal<Art: View>: View {
     @State private var play = false
     @State private var visible = false
 
-    private enum Beat {
-        static let rise: (Double, Double) = (0, 650)
-        static let burst: (Double, Double) = (250, 1500)
-        static let total: Double = 1600
-    }
-
     var body: some View {
         ZStack {
-            OneShotClock(duration: Beat.total, play: play) { t in
-                let rise = seg(t, Beat.rise.0, Beat.rise.1)
-                let burst = seg(t, Beat.burst.0, Beat.burst.1, easeOut: true)
+            OneShotClock(duration: BadgeRevealBeat.total, play: play) { t in
+                let rise = seg(t, BadgeRevealBeat.rise.0, BadgeRevealBeat.rise.1)
+                let burst = seg(t, BadgeRevealBeat.burst.0, BadgeRevealBeat.burst.1, easeOut: true)
                 ZStack {
                     Canvas { ctx, sz in
                         let c = CGPoint(x: sz.width / 2, y: sz.height / 2)
