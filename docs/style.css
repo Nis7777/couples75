@@ -1,0 +1,34 @@
+:root {
+  --ivory: #FFF6F0; --peach: #FDE4D8; --coral: #C9452A; --gold: #E8A54B;
+  --text: #2A1814; --text2: #4A322B; --border: #F1DDD2; --card: #FFFFFF;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --ivory: #1C1412; --peach: #3A2620; --text: #F7EDE8; --text2: #D9C4BA; --border: #4A3530; --card: #261B18; --coral: #F07A5E; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ivory); color: var(--text);
+  font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+main { max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; }
+.brand { margin: 0 0 8px; font-weight: 800; font-size: 20px; }
+.brand a { color: var(--coral); text-decoration: none; }
+h1 { font-size: 34px; line-height: 1.2; margin: 8px 0 4px; }
+h2 { font-size: 22px; margin: 36px 0 8px; }
+h3 { font-size: 18px; margin: 22px 0 4px; }
+.updated { color: var(--text2); margin-top: 0; }
+a { color: var(--coral); }
+ul { padding-left: 22px; }
+li { margin: 6px 0; }
+.summary { background: var(--peach); border: 1px solid var(--border); border-radius: 16px; padding: 4px 20px; margin: 20px 0; }
+table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 15px; }
+th, td { text-align: left; vertical-align: top; padding: 10px 8px; border-bottom: 1px solid var(--border); }
+th { color: var(--text2); font-weight: 600; }
+.footer { margin-top: 48px; color: var(--text2); font-size: 15px; }
+.hero { text-align: center; padding: 40px 0 8px; }
+.hero img { width: 120px; height: 120px; border-radius: 28px; }
+.tagline { font-size: 22px; color: var(--text2); margin: 4px 0 24px; }
+.links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.links a { background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 10px 18px;
+  text-decoration: none; font-weight: 600; }
+@media (max-width: 520px) { table, thead, tbody, tr, th, td { display: block; } thead { display: none; }
+  td { border: none; padding: 2px 0; } tr { border-bottom: 1px solid var(--border); padding: 10px 0; }
+  td:first-child { font-weight: 600; } }

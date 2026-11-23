@@ -26,8 +26,20 @@ Do the steps in order. Values to copy are in `code`.
    then open `Pact.xcodeproj` and pick the **Pact** scheme.
 2. Delete the old "Couples 75" app from the Simulator and your iPhone (it had another bundle ID, so it would stay
    installed next to Pact).
-3. Optional: rename the GitHub repo to `pact` (GitHub → the repo → Settings → General → Repository name). GitHub
-   redirects the old URL. On your Mac: `git remote set-url origin https://github.com/Nis7777/pact.git`.
+3. Rename the GitHub repo to `pact` (GitHub → the repo → Settings → General → Repository name). **Required**: the
+   app's Terms, Privacy and Support links point to `https://nis7777.github.io/pact/…`. GitHub redirects the old repo
+   URL for git. On your Mac: `git remote set-url origin https://github.com/Nis7777/pact.git`.
+4. Publish the website (Privacy Policy, Terms of Use, Support): first merge this branch into `main`, then GitHub →
+   the repo → Settings → **Pages** → Source **Deploy from a branch** → Branch **main**, folder **/docs** → Save.
+   After a minute these work (check each one in a browser):
+   - https://nis7777.github.io/pact/ (home)
+   - https://nis7777.github.io/pact/privacy.html
+   - https://nis7777.github.io/pact/terms.html
+   - https://nis7777.github.io/pact/support.html
+
+   The repo must stay **public** for free GitHub Pages. If you ever make it private, move the four pages
+   (`docs/index.html`, `privacy.html`, `terms.html`, `support.html`, `style.css`, `icon.png`) to a separate public
+   repo and update the four URLs in `Shared/Brand.swift`.
 
 ## 1. Apple Developer Program
 
@@ -66,9 +78,11 @@ Apps → **+** → New App:
   The name under the icon stays "Pact"), Primary language **English (U.S.)**, Bundle ID `com.dinismagina.pact`,
   SKU `pact-ios`, User access Full.
 
-App Information: category **Health & Fitness** (secondary **Lifestyle**), and a **Privacy Policy URL** (needed for
-TestFlight external testers and for review; the app's own Terms/Privacy links are still `example.com` placeholders
-in `Shared/Brand.swift` and must be real pages before review).
+App Information: category **Health & Fitness** (secondary **Lifestyle**), **Privacy Policy URL**
+`https://nis7777.github.io/pact/privacy.html`. On the version page: **Support URL**
+`https://nis7777.github.io/pact/support.html`, **Marketing URL** `https://nis7777.github.io/pact/`, and in the
+description's last line: `Terms of Use: https://nis7777.github.io/pact/terms.html` (Apple requires a link to the
+terms for subscription apps; alternatively paste the same URL in App Information → License Agreement).
 
 ## 4. App Store Connect: the subscriptions
 
@@ -94,7 +108,11 @@ first, then copy its layout to Production:
    Apple ID joins with the code, a photo check-in, an honour tap, a reaction, a note and a nudge, a pause request
    and its answer, a habit change and its answer, a bucket list item, start a challenge and give it up, a progress
    pic with sharing on.
-3. icloud.developer.apple.com → CloudKit Console → `iCloud.com.dinismagina.pact` → **Deploy Schema Changes…** →
+3. **Protect the waitlist emails.** CloudKit Console → Schema → **Security Roles** (Development): open the
+   `Waitlist` record type and **untick Read for `_world` and `_icloud`** (keep Create for `_icloud`). Otherwise any
+   iCloud user's app could read the emails people typed. Leave `InviteCode` as it is (it must be readable so the
+   partner can look up the code).
+4. icloud.developer.apple.com → CloudKit Console → `iCloud.com.dinismagina.pact` → **Deploy Schema Changes…** →
    Production. Do this again whenever a new kind of data or field is added.
 
 ## 6. TestFlight

@@ -39,3 +39,21 @@ couples,habits,glow up,self improvement,challenge,partner,accountability,streak,
 ## App Privacy labels
 Data linked to the user, not used for tracking: name, character, time zone, check-in photos, check-ins,
 progress photos (stored in the user's own iCloud; shared with the partner only if they turn it on).
+
+## URLs
+- Privacy Policy: https://nis7777.github.io/pact/privacy.html
+- Terms of Use (EULA): https://nis7777.github.io/pact/terms.html
+- Support: https://nis7777.github.io/pact/support.html
+- Marketing: https://nis7777.github.io/pact/
+
+## App Privacy questionnaire (App Store Connect → App Privacy)
+Pact's data stays in the user's iCloud and never reaches the developer, except the optional Android waitlist email.
+Apple counts data as "collected" only when the developer (or a third party) can access it, so answer:
+- **Contact Info → Email Address**: collected (Android waitlist only); purpose App Functionality (to tell them
+  about Android); not used for tracking.
+- **Contact Info → Name**: collected (the inviter's first name sits in the public invite-code record while an invite
+  is open); purpose App Functionality; not used for tracking.
+- For both, answer "linked to the user" **Yes** (the safe answer).
+- Everything else (name, photos, health, fitness, user content, identifiers, purchases): not collected by the
+  developer, because it is stored in the user's own iCloud with Apple and shared only with their partner.
+- Tracking: **No**.

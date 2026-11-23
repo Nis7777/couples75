@@ -167,6 +167,7 @@ struct ProfileView: View {
                 section {
                     Button { openURL(Brand.termsURL) } label: { row("Terms", chevron: true) }
                     Button { openURL(Brand.privacyURL) } label: { row("Privacy", chevron: true) }
+                    Button { openURL(Brand.supportURL) } label: { row("Help & support", chevron: true) }
                     Button { contactSupport() } label: { row("Contact support", chevron: true) }
                     VStack(alignment: .leading, spacing: 4) {
                         Text("About").font(.app(17, .medium)).foregroundStyle(Color.textPrimary)

@@ -11,8 +11,11 @@ enum Brand {
     static let appGroup = "group.com.dinismagina.pact"
     static let urlScheme = "pactapp"
     static let supportEmail = "nismagina@gmail.com"
-    static let termsURL = URL(string: "https://example.com/terms")!
-    static let privacyURL = URL(string: "https://example.com/privacy")!
+    /// Hosted with GitHub Pages from `docs/` (repo Nis7777/pact). See docs/APPLE_SETUP.md, step 0.
+    static let websiteURL = URL(string: "https://nis7777.github.io/pact/")!
+    static let termsURL = URL(string: "https://nis7777.github.io/pact/terms.html")!
+    static let privacyURL = URL(string: "https://nis7777.github.io/pact/privacy.html")!
+    static let supportURL = URL(string: "https://nis7777.github.io/pact/support.html")!
     static let cloudKitContainer = "iCloud.com.dinismagina.pact"
     /// A check-in must reach iCloud within this many hours of being taken.
     static let checkInUploadWindowHours: Double = 6
