@@ -1,3 +1,46 @@
+# PIVOT (read first): couple maxing
+
+**This section supersedes everything below that conflicts with it.** The rest of the spec still describes the
+architecture, design system, CloudKit, StoreKit, proof, reactions, pauses, widgets and so on, which all still apply.
+Where it says "the 75-day round", read "a challenge"; where it says "round 1", read "daily habits".
+
+**What the app is.** Not a habit tracker and not a single 75-day challenge: a couple **levels up together**
+("couple maxing"). Areas: **Body** (gym, diet, sleep), **Looks** (skin, glow-up, posture) and **Mind & money**
+(focus, skills, saving). Not the relationship itself. Working name **Pact**, tagline "Level up as a couple."
+(`Brand.appName`; renaming is one line plus the plist display names).
+
+**Daily habits (the base).** After onboarding the couple is on daily habits: a `maintenance`-mode round with no end,
+no saves, no bet; misses never end anything. Each partner has 4–6 habits from their goals (the plan generator and
+the double-approval rule changes are unchanged). Photo proof is **optional but recommended**: photo habits can be
+checked off without a photo ("No photo? Check it off" in the camera).
+
+**Challenges (on top).** A catalogue in `Model/Challenges.swift`: the signature **The 75** (75 days, workout 2×45,
+water 4 L, read 10 pages, no alcohol, no junk, progress pic; replaces the habits for its length; **photo proof and
+a bet are required**, no saves) plus short ones per area (21-Day Shred, 10k Steps, Dry 30, Sleep Reset, Protein
+Month, 30-Day Glow-Up, Clear Skin, Stand Tall, No-Spend Week, Savings Sprint, Read 30, Phone Detox, Skill Sprint),
+which add their rules on top of the habits. Bets are optional for those (they can be left out). Starting one writes
+two `RoundConfig` facts: the challenge round (with `length`, `saves`, `challengeID`, `proofRequired`) and the habits
+round after it, so the couple always goes back to habits. It starts the next morning; today's habits still count.
+Giving up writes a habits config with `quitBy`: the challenge ends then, lost by that member (they owe the bet if
+there is one); before Day 1 it's a cancel (nothing lost). Only one challenge at a time, only once the partner has
+joined.
+
+**Pure team.** One couple streak across habits and challenges (with the shields), one shared **XP** total and one
+**rank** (Spark, Kindle, Flame, Blaze, Forge, Summit, Legend), plus badges. XP: 2 per check-in, 10 per complete day
+each, 10 more when you both complete a day, and a bonus for every finished challenge (20 × its days, +500 for The
+75). XP and ranks are computed from the facts, never stored. A new rank shows a celebration once.
+
+**Navigation.** Five tabs: Today, Challenges, Proof, Progress, Profile. Onboarding has no stakes step (the plan
+review says "No stakes on habits"); the level picker sizes the habits (Gentle / Steady / Hard mode).
+
+**Motion.** Follow `.claude/skills/rossark-motion-skill` (engine in `Design/Motion.swift`, pieces in
+`Design/LivingViews.swift`): calm, no teleporting, small amplitudes, frozen with Reduce Motion, paused off screen.
+
+**Custom art.** `docs/IMAGE_PROMPTS.md` lists every custom image slot (tab icons, area icons, challenge icons, rank
+badges, the flame, goal chips, the app icon) with its asset name; each falls back to an SF Symbol until added.
+
+---
+
 You are building a native iOS app, ready for the App Store, in **Swift + SwiftUI**. It is **Couples 75**: a couple does a 75-day challenge together. Each partner has 4 to 6 daily rules, proves them to the other with live photos or an evening honour tap, and the couple shares 3 "saves" that cover missed days. Whoever misses more owes a real-life bet (for example "Loser plans the date"). **One subscription covers both partners** (39,99 € / $39.99 a year with a 3-day free trial, or 7,99 € / $7.99 a month): the person who starts pays, then invites their partner, who joins free. iPhone only. Work autonomously. Make reasonable decisions without asking me, and stop only if something needs my Apple Developer account. **There is no backend server**: the two phones share data through Apple's **CloudKit** (iCloud), and every game result is computed on the phone from shared facts (section 6).
 
 **Visual reference:** the folder `reference/` holds 32 mockups (`01_hook.jpg` … `30_partner_iphone.jpg`, plus `overview.jpg`). Use them for **colours, layout, illustration style, spacing and mood**. They are AI-generated at 720×1280 (9:16), so some look squashed or cropped. Build every screen properly for real iPhone sizes (iPhone SE up to Pro Max) and never copy their proportions pixel for pixel. **The mockups contain outdated copy and rules. This prompt is the source of truth. Wherever a mockup and this prompt disagree, this prompt wins.** Ignore `reference/README.txt` where it conflicts with this prompt. Section 4 lists every screen with the exact corrections.
@@ -5,8 +48,8 @@ You are building a native iOS app, ready for the App Store, in **Swift + SwiftUI
 ## CONFIG (keep these in one `Brand.swift` file and use them everywhere)
 
 ```
-APP_NAME             = "Couples 75"            // never "Couple's 75" and never "75 Hard"
-TAGLINE              = "75 days. Same rules. One bet."
+APP_NAME             = "Pact"                  // working name (was "Couples 75"); never "75 Hard"
+TAGLINE              = "Level up as a couple."
 BUNDLE_ID            = "com.dinismagina.couples75"
 APP_GROUP            = "group.com.dinismagina.couples75"
 URL_SCHEME           = "couples75"

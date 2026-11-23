@@ -1,47 +1,65 @@
-# Couples 75: feature test checklist
+# Pact: feature test checklist
 
 Run in the Simulator (Mock mode, no iCloud needed). The **Debug menu** is a triple-tap on the "{A} & {B}"
 header on Today (or Profile → Debug menu): use it to act as the partner, simulate check-ins, advance days,
-jump to Day 74, simulate a lapse, and reset.
+jump to the last day, simulate a lapse, and reset.
 
 Start with Product → Clean Build Folder (⇧⌘K), then Run on an iPhone 16/17 Pro and an iPhone SE.
+Old onboarding progress from the 75-only version is discarded (start from the hook).
 
 ## 1. Launch and onboarding
-- [ ] Launch: peach screen with the app icon, then the logo springs up, both avatars slide in and meet (light haptic), fade into the app. No white/blank flash.
-- [ ] Step counter reads "of 17" on every counted step and never jumps.
-- [ ] Single-answer steps advance only after a tap; dragging across an option doesn't select it; swiping right from the left edge goes back.
-- [ ] "How hard should it be?": Continue is visible at the bottom on iPhone SE.
+- [ ] Hook: "Level up as a couple." with the one-line pitch; the couple breathes gently (try Reduce Motion: still).
+- [ ] Step counter reads "of 16" on every counted step and never jumps (the stakes step is gone).
+- [ ] Goals: three groups (Body, Looks, Mind & money) with icons; Continue needs 2 picks.
+- [ ] "How big should your habits be?": Gentle / Steady (Most popular) / Hard mode.
 - [ ] "Anything personal?": type "Learn to speak chinese", tap Add → pill "Learn Chinese".
-- [ ] Plan review shows "Learn Chinese: 15 min" (10 on Gentle, 30 on Hard). With 7+ rules: "Swap / Remove" until 6, "Set the stakes" disabled until then.
-- [ ] Paywall: × opens the exit sheet; closing goes back to the plan, never into the app.
+- [ ] Plan review: "{A} & {B}'s daily habits", the "No stakes on habits" card, button "Looks good" → paywall.
+- [ ] Paywall: "Become the best version of you. Together." with three value rows. × closes back to the plan.
 
-## 2. Today
-- [ ] Sync line under the header ("Mock mode · saved on this phone" in the Simulator).
-- [ ] "Day X of 75" bar with percentage under the week dots.
-- [ ] Rule titles wrap to 2 lines, never cut off.
-- [ ] "Check in ›" opens "Which rule?" (medium/large sheet with grabber), never the camera directly.
-- [ ] Checking off a rule: checkmark pops, "x left" counts down, success haptic.
-- [ ] "Nudge {partner}" (only while they have rules left) and "Send a note". As the partner (Debug), the note shows as a banner.
-- [ ] "Take today's progress pic": camera with the Day 1 photo as a ghost (from the 2nd photo on); one per day, retake replaces.
+## 2. Today on daily habits
+- [ ] Hero label "Daily habits", centre "TODAY 0 / N" (both your habits), the ring fills as either of you checks in.
+- [ ] Streak pill: the flame flickers (leans and stretches); grey and still at 0.
+- [ ] Rank card (Spark, Level 1, XP, gold bar that grows after a check-in).
+- [ ] "Daily habits · no stakes"; "Want a push? Start a challenge together" opens the Challenges tab.
+- [ ] A photo habit → camera → "No photo? Check it off" → sheet → "Yes, I did" checks it off and closes the camera.
+- [ ] "Which rule?" shows "Photo (recommended)".
 
-## 3. Proof, Progress, Profile
+## 3. Challenges tab
+- [ ] Rank card, "On daily habits", The 75 signature card (living flame), then Body / Looks / Mind & money rows.
+- [ ] Before the partner joins: a challenge's "Start tomorrow" is disabled with the reason.
+- [ ] Debug → simulate partner joining → advance a day. Open "No-Spend Week": rules "on top of your habits",
+      bet toggle off by default. Start → toast, Today banner "No-Spend Week starts tomorrow. Today's habits still count."
+- [ ] Today's habits can still be checked in that day. Cancel from the Challenges tab → "Challenge cancelled.", no bet.
+- [ ] Start again, advance a day: Today shows "DAY 1 / 7", the challenge title on the hero, "Day 1 of 7" bar,
+      "Today's rules" (habits plus the challenge rule), and the streak carries on.
+- [ ] The 75: bet section required ("Part of The 75"), rules replace the habits, no "No photo?" link in the camera.
+- [ ] Give up mid-challenge with a bet → round-end screen "You gave up on Day N", you owe the bet; back to habits.
+- [ ] Debug → Jump to the last day → advance: confetti, the badge reveal, "We finished {challenge}", +XP,
+      "Pick our next challenge" / "Back to our daily habits". Progress shows it under "Challenges finished".
+
+## 4. Ranks and badges
+- [ ] Earning enough XP (several complete days or a finished challenge) shows "You're {Rank} now" once.
+- [ ] Badges: Challenger, All-rounder, The 75, Habit machine (100 days) alongside the others.
+
+## 5. Proof, Progress, Profile
 - [ ] Proof: the coral pill slides between "From {partner}" and "Mine"; empty states show both avatars.
-- [ ] Progress: Our week button, Transformation (before/after slider, timeline, Play, Save / Share video), 75-day grid with legend, Badges, Bucket list.
-- [ ] Profile: Use Apple Health as proof, Evening progress on Lock Screen, Share progress pics with partner (off by default), Our rules → Reminders and Request a change.
+- [ ] Progress: grid titled "Daily habits" (latest 48 days) or the challenge name (its length);
+      stats Best streak / Challenges / Couple XP; stakes card only during a challenge with a bet.
+- [ ] Profile: Rank row, "Now" row (habits, the challenge and its day, or "starts tomorrow"), "Our habits".
 - [ ] Delete my data fades to onboarding (no hard cut).
 
-## 4. Rounds and stakes (Debug: Jump to Day 74, Advance to next day)
-- [ ] Day 25 / 50 / 75 milestone screen (needs at least one progress pic).
-- [ ] Day 75 screen: "Start round 2" and "Keep it up with maintenance mode"; nobody owes → pick a bucket list reward.
-- [ ] Maintenance: Today shows "Keep it up", "Maintenance · no stakes", "New 75 ›"; misses never end it.
-- [ ] Streak shield: after 7 complete days a shield shows in the streak pill; a missed day keeps the streak.
-- [ ] Monday: the weekly recap shows once; "Share our week" works.
-
-## 5. Outside the app
-- [ ] Widgets: "My rules today" (honour rules tappable after 18:00, photo rules open the camera), Lock Screen widgets.
+## 6. Outside the app
+- [ ] Widgets: on habits the ring shows today's done state for you two and the text "🔥 {streak} · habits";
+      during a challenge "Day X/N". Honour rules tappable after 18:00.
 - [ ] Live Activity after 17:00 with rules left (real device or Simulator with Live Activities on).
 - [ ] Apple Watch (paired Watch simulator): day, rules, partner; honour rule tap after 18:00.
 - [ ] Apple Health (real device): steps/water/exercise/mindful progress under the rule; auto check-off when met.
+- [ ] Notifications: finishing a challenge, a challenge ending early, saves used.
 
-## 6. Unit tests
-- [ ] Product → Test (⌘U): RulesEngine, plan consistency, Health parsing, maintenance, shields, recap.
+## 7. Custom art
+- [ ] Drop any PNG from `docs/IMAGE_PROMPTS.md` into `Shared/Assets.xcassets` with its exact name (e.g. `rank_spark`,
+      `tab_challenges`, `challenge_the75`); it replaces the SF Symbol with no code change.
+
+## 8. Unit tests
+- [ ] Product → Test (⌘U): RulesEngine, ChallengeTests (habits, start tomorrow, finish, give up, cancel, no bet,
+      streak carry-over, ranks), plan consistency, Health parsing, maintenance, shields, recap.

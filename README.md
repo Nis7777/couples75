@@ -1,10 +1,15 @@
-# Couples 75
+# Pact (working name)
 
-iPhone app: a couple does a 75-day challenge together with a bet. Swift + SwiftUI, iOS 17+, Apple frameworks only
+iPhone app for **couple maxing**: a couple levels up together. Both partners keep daily habits (Body, Looks,
+Mind & money) with no stakes, share one streak, one XP total and one rank, and start challenges on top when they
+want a push: short ones like the 21-Day Shred, the 30-Day Glow-Up or a No-Spend Week, or the signature **The 75**
+(75 days, photo proof and a bet required). Swift + SwiftUI, iOS 17+, Apple frameworks only
 (SwiftUI, CloudKit, StoreKit 2, AVFoundation, WidgetKit, UserNotifications, BackgroundTasks). No backend server:
 the two phones share facts through CloudKit and each computes everything with the same `RulesEngine`.
 
-- `CLAUDE_CODE_PROMPT.md`: the spec (source of truth)
+- `CLAUDE_CODE_PROMPT.md`: the spec (source of truth; its first section describes the couple-maxing pivot)
+- `docs/IMAGE_PROMPTS.md`: prompts for the custom icons, rank badges and app icon, and where each PNG goes
+- `docs/TEST_CHECKLIST.md`: what to tap through in the Simulator
 - `reference/`: design mockups (visual direction only)
 - `ArtSource/`: the original character art (already imported into `Shared/Assets.xcassets`)
 
@@ -46,12 +51,14 @@ DEBUG builds (all of it is inside `#if DEBUG`) and is on when:
 - the DEBUG launch argument `-mock` is enabled (Scheme → Run → Arguments; it's there, unticked), or
 - a DEBUG build has no iCloud account.
 
-Release builds on a device without iCloud show "Turn on iCloud to use Couples 75" instead.
+Release builds on a device without iCloud show "Turn on iCloud to use Pact" instead.
 
 **Debug menu** (DEBUG builds): triple-tap the "{A} & {B}" header on Today, or use the "…" menu on Today, or
 Profile → Debug menu. It can act as A or B, simulate the partner joining, checking in, reacting, Sus, a pause
-request or a tweak proposal, advance to the next day (settles today), jump to Day 74, simulate a miss, lapse or
-renew the partner's subscription, and reset everything.
+request or a tweak proposal, advance to the next day (settles today), jump to the last day of the running
+challenge (on habits: 29 days ahead), simulate a miss, lapse or renew the partner's subscription, and reset
+everything. To try a challenge: simulate the partner joining, open the Challenges tab, start one, then
+"Advance to next day".
 
 Click-through as A: onboarding → paywall (StoreKit test purchase) → invite → Waiting → "Mock: simulate {B}
 joining" (or Debug menu) → Day 1 starts tomorrow → Debug → "Advance to next day".
@@ -75,7 +82,9 @@ In the Simulator there's no camera: the shutter generates a sample photo with th
 5. CloudKit Console → your container → **Schema**: check the record types listed in
    `App/Sources/Data/CloudKitSchema.swift`:
    `Couple, Member, RoundConfig, Rule, RuleTweak, TweakAnswer, CheckIn, Reaction, PauseRequest, PauseAnswer,
-   BetPaid` (couple zone) and `InviteCode, Waitlist` (public database).
+   BetPaid` (couple zone) and `InviteCode, Waitlist` (public database). `RoundConfig` has the challenge fields
+   `length`, `saves`, `challengeID`, `proofRequired` and `quitBy`: start a challenge (and give one up) once in
+   Development so they exist before you deploy.
    No queries are used (everything is fetched by zone change tokens or by record name), so no extra indexes
    are needed. In **Security Roles** make sure `InviteCode` is readable by "Authenticated" users (default).
 6. **Deploy Schema Changes…** to Production. Do this again whenever a record type gains a field.
@@ -136,12 +145,33 @@ stores: **name**, **character choice**, **time zone**, **photos** (check-in proo
 (user content), and, for the Android waitlist only, an **email address** in the public database. Nothing is
 used for tracking. Photos are personal data under GDPR; "Leave couple" and "Delete my data" remove them.
 
-Couples 75 is not affiliated with 44Seven Media or the 75 HARD program.
+Pact's "The 75" challenge is not affiliated with 44Seven Media or the 75 HARD program.
+
+## Renaming the app
+
+`Brand.appName` in `Shared/Brand.swift` is used for every name the user sees in the app and widgets. Also change
+`CFBundleDisplayName` in `Config/App-Info.plist` and `Config/Widgets-Info.plist`, the Watch title in
+`Watch/WatchTodayView.swift`, the usage strings in `Config/App-Info.plist`, and the group name in
+`Config/Products.storekit`. Bundle IDs, the CloudKit container and the URL scheme stay as they are (changing them
+would reset everyone's data).
 
 ## Art
 
 `Shared/Assets.xcassets` contains one image set per PNG in `ArtSource/` (`char_{w1…w6,m1…m6}_{stand,crossed,cheer,stretch,bust}`,
-`partner_outline`, `trophy`) and `AppIcon.png` as the single-size app icon. If the art changes, replace the files
+`partner_outline`, `trophy`) and `AppIcon.png` as the single-size app icon.
+
+Custom icons (tab bar, areas, challenges, rank badges, the streak flame, goal chips) are optional: each one has an
+SF Symbol fallback and is picked up by name as soon as its PNG is in `Shared/Assets.xcassets`. The names and the
+prompts to generate them are in `docs/IMAGE_PROMPTS.md`.
+
+## Motion
+
+Animations follow the rossark motion skill (`.claude/skills/rossark-motion-skill`). Its SwiftUI engine is in
+`App/Sources/Design/Motion.swift` (clocks, tracks, `wave`, `seg`, `seeded`, the two curves) and the living pieces
+are in `App/Sources/Design/LivingViews.swift`, with every number in `MotionTokens`: the streak flame (leans 3° and
+stretches 5% on 700 / 1100 ms waves), the breathing couple on Today and the hook (1.6 pt, out of phase), the XP bar
+(draws on with ease-out), and the badge reveal on rank-up and challenge-complete screens. Everything freezes at
+frame 0 with Reduce Motion and pauses off screen. If the art changes, replace the files
 in `ArtSource/` and run `python3 scripts/import_art.py` (optional helper; the imported art is committed).
 
 ## Font

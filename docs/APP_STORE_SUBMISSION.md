@@ -1,32 +1,35 @@
 # App Store submission kit
 
 ## Name and subtitle
-- **Name:** Couples 75
-- **Subtitle:** 75 days. Same rules. One bet.
+- **Name:** Pact (working name; check availability in App Store Connect before you commit to it)
+- **Subtitle:** Level up as a couple
 
 ## Promotional text
-Start a 75-day challenge with your partner. Daily rules, live photo proof, three shared saves and a real-life bet.
+Daily habits and challenges you do together. One streak, one rank, both of you. Try The 75 if you dare.
 
 ## Description
-Couples 75 is a 75-day challenge you do together.
+Pact is couple maxing: the two of you level up together, every day.
 
-Each of you gets 4 to 6 daily rules, picked from what you want to work on: workouts, reading, water, sleep, money, phone time, or something personal like learning a language or an instrument. Prove photo rules with a live in-app photo and honour rules with an evening tap. Your partner reacts, cheers you on, or calls it sus.
+Pick what you want to work on, in three areas: Body (gym, diet, sleep), Looks (skin, glow-up, posture) and Mind & money (reading, skills, saving, phone time). Each of you gets 4 to 6 daily habits at your own level. Check them off with a live photo for your partner (recommended) or a quick tap. Your partner cheers you on, or calls it sus.
 
-Life happens, so the two of you share 3 saves that cover missed days. Whoever misses more by Day 75 owes the bet: plan the date, cook for a week, plan the trip, or your own.
+You share everything: one streak, one XP total and one rank, from Spark to Legend. Habits have no stakes, so a bad day never ends anything.
 
-Take a daily progress pic if you like. Progress photos are private by default: they stay in your own iCloud, and your partner only sees them if you choose to share. Line up each pic with your Day 1 ghost, compare Day 1 with today using the before/after slider, and play your 75 days back as a timelapse you can save or share.
+Want a push? Start a challenge together: the 21-Day Shred, a 30-Day Glow-Up, a No-Spend Week, Read 30 and more. Add a bet if you like: whoever misses more plans the date. Or take on The 75: 75 days, photo proof and a bet, no saves.
+
+Take a daily progress pic if you like. Progress photos are private by default: they stay in your own iCloud, and your partner only sees them if you choose to share. Compare Day 1 with today and play it back as a timelapse.
 
 - One subscription covers you both
-- 4 to 6 daily rules each, at your own intensity (Gentle, Couples 75 or Hard mode)
-- Live photo proof, reactions and approvals
-- 3 shared saves, a pause for when life happens
-- Private daily progress photos with a before/after slider and timelapse video
-- Widgets and reminders, no account to create: it runs on iCloud
+- Daily habits for body, looks, mind and money
+- Challenges with optional bets, and The 75
+- Shared streak, XP, ranks and badges
+- Live photo proof, reactions and love notes
+- Private progress photos with a before/after slider and timelapse
+- Widgets, Live Activity, Apple Watch and Apple Health. No account to create: it runs on iCloud
 
-Couples 75 is not affiliated with 44Seven Media or the 75 HARD program.
+The 75 challenge in Pact is not affiliated with 44Seven Media or the 75 HARD program.
 
 ## Keywords
-couples,challenge,75 days,habit,partner,accountability,streak,relationship,goals,progress photo
+couples,habits,glow up,self improvement,challenge,partner,accountability,streak,goals,level up
 
 ## Subscriptions
 - Yearly, 39,99 € (3-day free trial) — covers both partners
