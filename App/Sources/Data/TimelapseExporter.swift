@@ -24,7 +24,7 @@ enum TimelapseExporter {
         format.scale = 1
         format.opaque = true
         let rendered = UIGraphicsImageRenderer(size: size, format: format).image { ctx in
-            UIColor(red: 0.99, green: 0.89, blue: 0.85, alpha: 1).setFill()
+            UIColor(red: 0xF7 / 255, green: 0xF1 / 255, blue: 0xE8 / 255, alpha: 1).setFill()   // warm cream
             ctx.fill(CGRect(origin: .zero, size: size))
             let s = image.size
             let scale = max(size.width / max(s.width, 1), size.height / max(s.height, 1))

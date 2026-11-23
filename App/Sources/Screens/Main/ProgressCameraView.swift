@@ -126,7 +126,7 @@ struct ProgressCameraView: View {
                     HStack {
                         Button("Cancel") { dismiss() }
                             .font(.app(18, .medium))
-                            .foregroundStyle(Color(hex: 0xF3E6DC))
+                            .foregroundStyle(Color(hex: 0xF2E6D4))
                         Spacer()
                         Button {
                             camera.flip()

@@ -14,10 +14,12 @@ struct PactWatchApp: App {
     }
 }
 
+/// The Pact palette on the Watch's black background (docs/BRAND.md): coral for done/progress, sage for the
+/// partner, sand for the day number.
 enum WatchColors {
-    static let coral = Color(red: 0xC9 / 255, green: 0x45 / 255, blue: 0x2A / 255)
-    static let sage = Color(red: 0x3F / 255, green: 0x8F / 255, blue: 0x6B / 255)
-    static let gold = Color(red: 0xE8 / 255, green: 0xA5 / 255, blue: 0x4B / 255)
+    static let coral = Color(red: 0xE2 / 255, green: 0x70 / 255, blue: 0x4C / 255)
+    static let sage = Color(red: 0x90 / 255, green: 0x9C / 255, blue: 0x78 / 255)
+    static let gold = Color(red: 0xE6 / 255, green: 0xC2 / 255, blue: 0x8E / 255)
 }
 
 /// Receives today's payload from the iPhone and sends honour check-ins back.

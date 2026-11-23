@@ -57,8 +57,8 @@ enum ImageTools {
         let format = UIGraphicsImageRendererFormat.default()
         format.scale = 1
         let image = UIGraphicsImageRenderer(size: size, format: format).image { ctx in
-            let colors = [UIColor(red: 0.99, green: 0.89, blue: 0.85, alpha: 1).cgColor,
-                          UIColor(red: 0.91, green: 0.65, blue: 0.29, alpha: 1).cgColor]
+            let colors = [UIColor(red: 0xF7 / 255, green: 0xF1 / 255, blue: 0xE8 / 255, alpha: 1).cgColor,   // cream
+                          UIColor(red: 0xC2 / 255, green: 0x80 / 255, blue: 0x4C / 255, alpha: 1).cgColor]   // caramel
             if let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors as CFArray,
                                          locations: [0, 1]) {
                 ctx.cgContext.drawLinearGradient(gradient, start: .zero, end: CGPoint(x: size.width, y: size.height),
@@ -66,14 +66,14 @@ enum ImageTools {
             }
             let attrs: [NSAttributedString.Key: Any] = [
                 .font: UIFont.systemFont(ofSize: 72, weight: .heavy),
-                .foregroundColor: UIColor(red: 0.16, green: 0.09, blue: 0.08, alpha: 1),
+                .foregroundColor: UIColor(red: 0x38 / 255, green: 0x2A / 255, blue: 0x22 / 255, alpha: 1),
             ]
             let s = title as NSString
             let ts = s.size(withAttributes: attrs)
             s.draw(at: CGPoint(x: (size.width - ts.width) / 2, y: size.height * 0.42), withAttributes: attrs)
             let small: [NSAttributedString.Key: Any] = [
                 .font: UIFont.systemFont(ofSize: 34, weight: .semibold),
-                .foregroundColor: UIColor(red: 0.29, green: 0.2, blue: 0.17, alpha: 1),
+                .foregroundColor: UIColor(red: 0x6B / 255, green: 0x5A / 255, blue: 0x4E / 255, alpha: 1),
             ]
             let note = "Simulator photo" as NSString
             let ns = note.size(withAttributes: small)

@@ -68,7 +68,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 
     /// Outfit in navigation bars and bar buttons (sheets with a NavigationStack).
     static func styleNavigationBars() {
-        let ink = UIColor(red: 0x2A / 255, green: 0x18 / 255, blue: 0x14 / 255, alpha: 1)
+        let ink = UIColor(red: 0x38 / 255, green: 0x2A / 255, blue: 0x22 / 255, alpha: 1)   // espresso
         let appearance = UINavigationBarAppearance()
         appearance.configureWithTransparentBackground()
         appearance.titleTextAttributes = [.font: AppFont.uiFont(17, .semibold), .foregroundColor: ink]

@@ -147,20 +147,20 @@ struct CheckInCameraView: View {
             } else {
                 Text("Snap proof for \(model.partnerName)")
                     .font(.app(16, .medium))
-                    .foregroundStyle(Color(hex: 0xF3E6DC))
+                    .foregroundStyle(Color(hex: 0xF2E6D4))
                     .padding(.top, 16)
                 // Proof is optional but recommended, except in challenges that require it (The 75).
                 if !model.photoProofRequired {
                     Button("No photo? Check it off") { showNoPhoto = true }
                         .font(.app(14, .semibold))
-                        .foregroundStyle(Color(hex: 0xF3E6DC).opacity(0.8))
+                        .foregroundStyle(Color(hex: 0xF2E6D4).opacity(0.8))
                         .padding(.top, -8)
                 }
                 ZStack {
                     HStack {
                         Button("Cancel") { dismiss() }
                             .font(.app(18, .medium))
-                            .foregroundStyle(Color(hex: 0xF3E6DC))
+                            .foregroundStyle(Color(hex: 0xF2E6D4))
                         Spacer()
                         Button {
                             camera.flip()
