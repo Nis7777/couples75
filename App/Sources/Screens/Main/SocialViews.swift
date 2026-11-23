@@ -49,43 +49,6 @@ struct SyncStatusLine: View {
     }
 }
 
-/// A love note from the partner, shown on Today until dismissed (24 h max).
-struct NoteBanner: View {
-    @Environment(AppModel.self) private var model
-    var note: NudgeFact
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "heart.fill")
-                .font(.system(size: 18))
-                .foregroundStyle(Color.coral)
-                .padding(.top, 2)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("\(model.name(of: note.from)) sent you a note")
-                    .font(.app(13, .semibold))
-                    .foregroundStyle(Color.textSecondary)
-                Text(note.text ?? "❤️")
-                    .font(.app(17, .semibold))
-                    .foregroundStyle(Color.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer(minLength: 4)
-            Button {
-                withAnimation(.easeInOut(duration: 0.25)) { model.dismissNote(note) }
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Color.textSecondary)
-                    .frame(width: 32, height: 32)
-            }
-            .accessibilityLabel("Dismiss note")
-        }
-        .padding(14)
-        .peachBox(radius: 18)
-        .transition(.move(edge: .top).combined(with: .opacity))
-    }
-}
-
 /// Quick love notes plus one custom line (80 characters).
 struct LoveNoteSheet: View {
     @Environment(AppModel.self) private var model

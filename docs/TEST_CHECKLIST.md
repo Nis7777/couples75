@@ -41,7 +41,8 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
 - [ ] Profile: Partner checked in / Daily reminder / Weekly recap switches match what you chose.
 
 ## 2. Today
-- [ ] iPhone 16 Pro, no scrolling needed for: the header card, the week strip, both habit cards and the main button.
+- [ ] iPhone 16 Pro, no scrolling needed for: the header card, the week strip, both habit cards and the main button,
+      also with 6 + 6 habits and a banner showing (try: Debug → Simulate pause request).
       iPhone SE: those are reachable with a short scroll; only "More today" is far below.
 - [ ] Header card (espresso, about a quarter of the screen): "{A} & {B}" and "Pact #… · Daily pact" on the left;
       rank badge, flame and streak number on the right, then "…" (Life happens, Debug). Both busts either side of a
@@ -49,10 +50,16 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
       warm-up "Warm-up · Day 1 starts tomorrow" (or "…the day after {B} joins"), then "Day 12", and in a challenge
       "Day 3 of 21 · 1 save left". No "PACT" label, no orange blob, no "4 left" pills, no warm-up banner.
       Tap the card (not the "…"): the full Pact Card in a sheet.
+- [ ] Banners never push the screen down: at most one shows, as a one-line pill in the header card where the
+      status line is (highest first: pause request to answer, change to review, subscription ended, not sent, a
+      love note, "n habits left" after 21:00, your pause request waiting). Tap it: pause / change open their answer
+      sheets; the rest open a detail sheet (a note: "Send one back" / "Clear note"). Debug → Simulate pause request.
 - [ ] Week strip: completed days are caramel with a tick, today is ringed and labelled "Today", future days empty.
       No "0-day streak" line.
 - [ ] "Today": two cards side by side, the same height and both full contrast (the partner's is not greyed out).
       Labels stay on one line ("Skincare AM+PM", "Workout 45m", "Socials ≤30m"), long ones end in "…".
+      At most 5 rows each: with 6 habits, unfinished ones come first and "+1 more" opens the card in place
+      ("Show less" closes it). Each row is at least 36 pt tall. The sync line ("Updated just now") sits right of "Today".
       Your card: tap a habit to check in. Partner's card: ○ pending (tap shows the full name), ✓ done, a coral dot
       and "Tap to approve" when they checked in and you haven't reacted (tap opens it in Proof). A heart next to the
       partner's name opens "A note for {B}"; a nudge icon appears next to it when they're behind.

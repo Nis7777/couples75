@@ -21,6 +21,12 @@ struct TodayView: View {
     @State private var showProgressCamera = false
     @State private var showPactCard = false
     @State private var showNote = false
+    /// Habit cards opened past 5 rows ("+N more"), by member (or name, before the partner joins).
+    @State private var expanded: Set<String> = []
+    @State private var bannerDetail: TodayBanner?
+
+    /// Habit rows per card before "+N more", so 5 + 5 and the button fit an iPhone 16 Pro without scrolling.
+    private static let maxRows = 5
 
     private var round: RoundState? { model.currentRound }
     private var hour: Int {
@@ -42,11 +48,6 @@ struct TodayView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 header
-                SyncStatusLine()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, -10)
-                if let note = model.unreadNote { NoteBanner(note: note) }
-                banners
                 WeekDotsView(days: weekDays)
                 rulesSection
                 checkInSection
@@ -84,6 +85,11 @@ struct TodayView: View {
         }
         .sheet(isPresented: $showDebug) { DebugMenuView() }
         .sheet(isPresented: $showPactCard) { PactCardSheet().presentationDragIndicator(.visible) }
+        .sheet(item: $bannerDetail) { b in
+            TodayBannerSheet(banner: b, sendNote: { showNote = true })
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+        }
         .sheet(isPresented: $showNote) {
             LoveNoteSheet()
                 .presentationDetents([.medium, .large])
@@ -96,8 +102,10 @@ struct TodayView: View {
     /// The compact Pact Card. Tap anywhere but the "…" menu to open the full card.
     private var header: some View {
         let ring = checkedToday
+        let banner = topBanner
         return PactCardCompact(data: model.pactCard, done: ring.done, total: ring.total, status: statusLine,
-                               shields: model.state.streakShields) {
+                               shields: model.state.streakShields, bannerIcon: banner?.icon,
+                               bannerText: banner?.text, onBanner: { if let banner { openBanner(banner) } }) {
             if !warmup { menu }
         }
         .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
@@ -117,7 +125,7 @@ struct TodayView: View {
                 : "Warm-up · Day 1 starts the day after \(model.partnerName) joins"
         }
         if t?.isPaused == true || model.state.isFrozen { return "Paused today · nothing counts" }
-        if let c = model.upcomingChallenge { return "\(c.title) starts tomorrow" }
+        if let c = model.upcomingChallenge { return "\(c.title) starts tomorrow · today still counts" }
         if t?.beforeStart == true || model.state.phase == .betweenRounds { return "Day 1 starts tomorrow" }
         guard let r = round else { return "Day 1 starts tomorrow" }
         if t?.finishedRound == true { return "Done · \(r.length) of \(r.length)" }
@@ -153,69 +161,65 @@ struct TodayView: View {
             .accessibilityLabel("More")
     }
 
-    // MARK: Banners
+    // MARK: Banner
 
-    @ViewBuilder
-    private var banners: some View {
-        if model.subscriptionLapsed {
-            Banner(text: model.iAmPayer
-                   ? "Your subscription ended. Your run is paused until it's renewed."
-                   : "\(model.payerName)'s subscription ended. Your run is paused until it's renewed.",
-                   icon: "pause.circle.fill")
+    /// At most one banner, highest priority first; it sits in the header card's status line (one line, never
+    /// pushes the screen down) and opens the details. "Starts tomorrow" and "Paused today" aren't banners: the
+    /// status line already says them.
+    private var topBanner: TodayBanner? {
+        if let p = model.pauseForMeToAnswer {
+            let who = model.name(of: p.request.requestedBy)
+            return TodayBanner(id: "pause-\(p.request.id)", icon: "pause.circle.fill", text: "\(who) asked to pause · Answer",
+                               title: "\(who) asked to pause", detail: "", kind: .pauseAnswer)
         }
         if let t = model.tweakForMeToAnswer {
-            actionCard(title: "\(model.name(of: t.tweak.proposedBy)) suggested a change", button: "Review") {
-                showTweakAnswer = true
-            }
+            let who = model.name(of: t.tweak.proposedBy)
+            return TodayBanner(id: "tweak-\(t.tweak.id)", icon: "slider.horizontal.3", text: "\(who) suggested a change · Review",
+                               title: "\(who) suggested a change", detail: "", kind: .tweakAnswer)
         }
-        if let p = model.pauseForMeToAnswer {
-            actionCard(title: "\(model.name(of: p.request.requestedBy)) asked to pause", button: "Answer") {
-                showPauseAnswer = true
-            }
-        } else if let p = model.state.pendingPause, p.request.requestedBy == model.meID {
-            Banner(text: "Pause request sent. Waiting for \(model.partnerName).", fill: .peach, foreground: .coral,
-                   icon: "hourglass")
-        }
-        if model.myToday?.isPaused == true {
-            Banner(text: "Paused today. Nothing counts for either of you.", fill: .peach, foreground: .coral,
-                   icon: "pause.circle")
-        }
-        if let c = model.upcomingChallenge {
-            Banner(text: "\(c.title) starts tomorrow. Today's habits still count.", fill: .peach, foreground: .coral,
-                   icon: "flag.checkered")
-        } else if model.state.phase == .betweenRounds {
-            Banner(text: betweenRoundsText, fill: .peach, foreground: .coral, icon: "arrow.clockwise")
+        if model.subscriptionLapsed {
+            return TodayBanner(id: "lapsed", icon: "pause.circle.fill", text: "Run paused · subscription ended",
+                               title: "Your run is paused",
+                               detail: model.iAmPayer
+                                ? "Your subscription ended. Your days stop counting until it's renewed. One subscription covers you both."
+                                : "\(model.payerName)'s subscription ended. Your days stop counting until it's renewed. Either of you can subscribe.",
+                               kind: .info)
         }
         if model.myToday?.items.contains(where: { $0.state == .notSent }) == true {
-            Banner(text: "Not sent yet. Connect to the internet so it counts.", fill: .peach, foreground: .coral,
-                   icon: "icloud.and.arrow.up")
+            return TodayBanner(id: "notsent", icon: "icloud.and.arrow.up", text: "Not sent yet · connect to the internet",
+                               title: "Not sent yet",
+                               detail: "Some of your check-ins are saved on this phone but haven't reached \(model.partnerName) yet. Connect to the internet so they count; they're sent automatically.",
+                               kind: .info)
+        }
+        if let note = model.unreadNote {
+            let from = model.name(of: note.from)
+            return TodayBanner(id: "note-\(note.id)", icon: "heart.fill", text: "\(from): \(note.text ?? "❤️")",
+                               title: "\(from) sent you a note", detail: note.text ?? "❤️", kind: .note(note))
         }
         if hour >= 21, let t = model.myToday, t.dayNumber != nil, t.remaining > 0 {
-            Banner(text: "\(t.remaining) \(t.remaining == 1 ? "rule" : "rules") left. \(max(1, 24 - hour)) \(24 - hour == 1 ? "hour" : "hours") to go.",
-                   icon: "moon.stars.fill")
+            let hours = max(1, 24 - hour)
+            let left = "\(t.remaining) \(t.remaining == 1 ? "habit" : "habits") left"
+            return TodayBanner(id: "evening", icon: "moon.stars.fill",
+                               text: "\(left) · \(hours) \(hours == 1 ? "hour" : "hours") to go",
+                               title: "\(left) today",
+                               detail: "Your day closes at midnight. Check in on what's left before then so it counts.",
+                               kind: .info)
         }
+        if let p = model.state.pendingPause, p.request.requestedBy == model.meID {
+            return TodayBanner(id: "pausesent", icon: "hourglass", text: "Pause request sent · waiting for \(model.partnerName)",
+                               title: "Pause request sent",
+                               detail: "\(model.partnerName) can accept or decline it. If they don't answer, it's accepted automatically.",
+                               kind: .info)
+        }
+        return nil
     }
 
-    private var betweenRoundsText: String {
-        guard let r = round else { return "Your daily habits start tomorrow." }
-        if r.status == .waiting { return r.mode.isMaintenance ? "Back to your daily habits tomorrow." : "Your challenge starts tomorrow." }
-        if r.status == .abandoned { return "Paused because a subscription lapsed. It picks up once the subscription is renewed." }
-        if r.status == .completed { return "You finished! Your daily habits are back tomorrow." }
-        return "Back to your daily habits tomorrow."
-    }
-
-    private func actionCard(title: String, button: String, action: @escaping () -> Void) -> some View {
-        HStack {
-            Text(title)
-                .font(.app(16, .semibold))
-                .foregroundStyle(Color.textPrimary)
-            Spacer()
-            Button(button, action: action)
-                .font(.app(16, .bold))
-                .foregroundStyle(Color.coral)
+    private func openBanner(_ b: TodayBanner) {
+        switch b.kind {
+        case .pauseAnswer: showPauseAnswer = true
+        case .tweakAnswer: showTweakAnswer = true
+        case .note, .info: bannerDetail = b
         }
-        .padding(16)
-        .card(radius: 16)
     }
 
     // MARK: Ring
@@ -259,10 +263,14 @@ struct TodayView: View {
 
     private var rulesSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Today")
-                .font(.app(21, .bold))
-                .foregroundStyle(Color.textPrimary)
-                .accessibilityAddTraits(.isHeader)
+            HStack(alignment: .firstTextBaseline) {
+                Text("Today")
+                    .font(.app(21, .bold))
+                    .foregroundStyle(Color.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer(minLength: 8)
+                SyncStatusLine()
+            }
             // Equal height: both cards stretch to the taller one.
             HStack(alignment: .top, spacing: 12) {
                 rulesCard(member: model.memberA, today: model.todayA, name: model.nameA, color: .coral)
@@ -280,8 +288,14 @@ struct TodayView: View {
         let isMe = member?.id == model.meID
         let items = today?.items ?? fallback.map { ChecklistItem(rule: $0, checkIn: nil, state: .open) }
         let done = items.filter(\.isChecked).count
+        let key = member?.id ?? name
+        let isOpen = expanded.contains(key)
+        // More than 5: unfinished first, then the first 5 and "+N more" (opens the card in place).
+        let ordered = items.count > Self.maxRows ? items.filter { !$0.isChecked } + items.filter(\.isChecked) : items
+        let shown = isOpen ? ordered : Array(ordered.prefix(Self.maxRows))
+        let hidden = ordered.count - shown.count
         let partnerJoined = !isMe && member?.joinedAt != nil
-        return VStack(alignment: .leading, spacing: 8) {
+        return VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 6) {
                 Text(name)
                     .font(.app(17, .bold))
@@ -310,19 +324,40 @@ struct TodayView: View {
                     .foregroundStyle(Color.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            ForEach(items) { item in
-                Button {
-                    tap(item, isMe: isMe, today: today)
-                } label: {
-                    ruleRow(item, isMe: isMe)
+            VStack(spacing: 0) {
+                ForEach(shown) { item in
+                    Button {
+                        tap(item, isMe: isMe, today: today)
+                    } label: {
+                        ruleRow(item, isMe: isMe)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(a11yText(item, isMe: isMe, name: name))
+                    .accessibilityHint(isMe && !item.isChecked ? "Check in" : (item.checkIn != nil ? "Open check-in" : ""))
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(a11yText(item, isMe: isMe, name: name))
-                .accessibilityHint(isMe && !item.isChecked ? "Check in" : (item.checkIn != nil ? "Open check-in" : ""))
+                if hidden > 0 || (isOpen && items.count > Self.maxRows) {
+                    Button {
+                        Haptics.tap()
+                        withAnimation(.open(0.3)) {
+                            if isOpen { expanded.remove(key) } else { expanded.insert(key) }
+                        }
+                    } label: {
+                        HStack {
+                            Text(isOpen ? "Show less" : "+\(hidden) more")
+                                .font(.app(14, .semibold))
+                                .foregroundStyle(Color.coral)
+                            Spacer(minLength: 0)
+                        }
+                        .frame(minHeight: 36)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(isOpen ? "Show fewer of \(name)'s habits" : "Show \(hidden) more of \(name)'s habits")
+                }
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 12)
+        .padding(.vertical, 10)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .card(radius: 18)
     }
@@ -335,7 +370,7 @@ struct TodayView: View {
             Image(systemName: symbol)
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(Color.coral)
-                .frame(width: 30, height: 30)
+                .frame(width: 28, height: 28)
                 .background(Circle().fill(Color.peach))
                 .contentShape(Circle())
         }
@@ -382,7 +417,7 @@ struct TodayView: View {
             }
             Spacer(minLength: 0)
         }
-        .frame(minHeight: 28)
+        .frame(minHeight: 36)
         .contentShape(Rectangle())
     }
 
@@ -726,5 +761,71 @@ struct WeekDotsView: View {
         case .today: return "today"
         case .future, .empty: return "upcoming"
         }
+    }
+}
+
+/// The one banner Today shows (see `TodayView.topBanner`).
+struct TodayBanner: Identifiable {
+    enum Kind {
+        case pauseAnswer, tweakAnswer
+        case note(NudgeFact)
+        case info
+    }
+    var id: String
+    var icon: String
+    /// One line, in the header card.
+    var text: String
+    var title: String
+    var detail: String
+    var kind: Kind
+}
+
+/// A banner's full detail. A love note can be cleared or answered from here.
+struct TodayBannerSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    var banner: TodayBanner
+    var sendNote: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Image(systemName: banner.icon)
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundStyle(Color.coral)
+                .frame(width: 48, height: 48)
+                .background(Circle().fill(Color.peach))
+                .padding(.top, 26)
+            Text(banner.title)
+                .font(.app(22, .bold))
+                .foregroundStyle(Color.textPrimary)
+            Text(banner.detail)
+                .font(.app(17, isNote ? .semibold : .regular))
+                .foregroundStyle(isNote ? Color.textPrimary : Color.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+            if case .note(let n) = banner.kind {
+                PrimaryButton("Send one back") {
+                    model.dismissNote(n)
+                    dismiss()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { sendNote() }
+                }
+                TextLinkButton("Clear note", color: .coral) {
+                    model.dismissNote(n)
+                    dismiss()
+                }
+                .frame(maxWidth: .infinity)
+            } else {
+                PrimaryButton("OK") { dismiss() }
+            }
+        }
+        .padding(.horizontal, Metrics.side)
+        .padding(.bottom, 16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.ivory.ignoresSafeArea())
+    }
+
+    private var isNote: Bool {
+        if case .note = banner.kind { return true }
+        return false
     }
 }

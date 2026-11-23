@@ -375,14 +375,19 @@ struct PactCardReveal: View {
 
 /// Today's header: the compact Pact Card. Names with the card number and mode; rank and streak; both busts either
 /// side of today's ring ("2/8": habits both of you have done today, out of all of them); one status line
-/// ("Warm-up · Day 1 starts tomorrow", "Day 12", "Day 12 of 21 · 1 save left"). `trailing` sits at the end of the
-/// top row (Today's "…" menu). Tapping the card is handled by the caller (it opens the full card).
+/// ("Warm-up · Day 1 starts tomorrow", "Day 12", "Day 12 of 21 · 1 save left"). When something needs attention,
+/// a slim one-line banner takes the status line's place (`bannerText`; tap → `onBanner`), so it never pushes the
+/// screen down. `trailing` sits at the end of the top row (Today's "…" menu). Tapping the card itself is handled
+/// by the caller (it opens the full card).
 struct PactCardCompact<Trailing: View>: View {
     var data: PactCardData
     var done: Int
     var total: Int
     var status: String
     var shields: Int = 0
+    var bannerIcon: String? = nil
+    var bannerText: String? = nil
+    var onBanner: (() -> Void)? = nil
     @ViewBuilder var trailing: Trailing
 
     private var progress: Double { total == 0 ? 0 : Double(done) / Double(total) }
@@ -421,20 +426,51 @@ struct PactCardCompact<Trailing: View>: View {
             }
             .foregroundStyle(Color.white)
             HStack(spacing: 0) {
-                BustCircle(avatar: data.avatarA, size: 72, ring: .white, ringWidth: 2, fill: Color.white.opacity(0.92))
+                BustCircle(avatar: data.avatarA, size: 64, ring: .white, ringWidth: 2, fill: Color.white.opacity(0.92))
                     .accessibilityHidden(true)
                 Spacer(minLength: 8)
                 ring
                 Spacer(minLength: 8)
-                BustCircle(avatar: data.avatarB, size: 72, ring: .white, ringWidth: 2, fill: Color.white.opacity(0.92))
+                BustCircle(avatar: data.avatarB, size: 64, ring: .white, ringWidth: 2, fill: Color.white.opacity(0.92))
                     .accessibilityHidden(true)
             }
             .padding(.horizontal, 6)
-            Text(status)
-                .font(.app(13, .semibold))
-                .foregroundStyle(Color.white.opacity(0.8))
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
+            if let bannerText {
+                Button {
+                    Haptics.tap()
+                    onBanner?()
+                } label: {
+                    HStack(spacing: 7) {
+                        if let bannerIcon {
+                            Image(systemName: bannerIcon)
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(Color.sand)
+                        }
+                        Text(bannerText)
+                            .font(.app(13, .semibold))
+                            .foregroundStyle(Color.white)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                        Spacer(minLength: 4)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(Color.white.opacity(0.7))
+                    }
+                    .padding(.horizontal, 12)
+                    .frame(height: 30)
+                    .background(Capsule().fill(Color.white.opacity(0.16)))
+                    .contentShape(Capsule())
+                }
+                .buttonStyle(PressableStyle())
+                .accessibilityLabel(bannerText)
+                .accessibilityHint("Opens the details")
+            } else {
+                Text(status)
+                    .font(.app(13, .semibold))
+                    .foregroundStyle(Color.white.opacity(0.8))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
@@ -452,7 +488,7 @@ struct PactCardCompact<Trailing: View>: View {
                 .rotationEffect(.degrees(-90))
             VStack(spacing: 0) {
                 Text("\(done)/\(total)")
-                    .font(.app(24, .heavy))
+                    .font(.app(22, .heavy))
                     .monospacedDigit()
                     .contentTransition(.numericText())
                     .foregroundStyle(Color.white)
@@ -461,7 +497,7 @@ struct PactCardCompact<Trailing: View>: View {
                     .foregroundStyle(Color.white.opacity(0.7))
             }
         }
-        .frame(width: 88, height: 88)
+        .frame(width: 80, height: 80)
         .animation(.open(0.6), value: progress)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Today: \(done) of \(total) habits done between you")
