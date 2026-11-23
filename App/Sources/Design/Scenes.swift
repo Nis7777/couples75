@@ -340,7 +340,7 @@ struct TrophyScene: View {
                     .frame(height: h * 0.96)
                 if ribbon {
                     RibbonShape()
-                        .fill(LinearGradient(colors: [Color(hex: 0xB58A63), Color(hex: 0xD8C49E), Color(hex: 0xB58A63)],
+                        .fill(LinearGradient(colors: [Color(hex: 0xC2804C), Color(hex: 0xE6C28E), Color(hex: 0xC2804C)],
                                              startPoint: .leading, endPoint: .trailing))
                         .frame(width: w * 1.1, height: h * 0.07)
                         .shadow(color: .black.opacity(0.08), radius: 3, y: 2)
@@ -422,7 +422,7 @@ private struct ConfettiPiece: Identifiable {
     let size = CGFloat.random(in: 9...15)
     let startAngle = Double.random(in: 0...90)
     let spin = Double.random(in: 120...420)
-    let color = [Color(hex: 0xB58A63), Color(hex: 0xD8C49E), Color(hex: 0xA9B39A), Color(hex: 0xE98268)]
+    let color = [Color(hex: 0xC2804C), Color(hex: 0xE6C28E), Color(hex: 0x909C78), Color(hex: 0xE2704C)]
         .randomElement() ?? Color.gold
 }
 

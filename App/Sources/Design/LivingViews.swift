@@ -116,7 +116,7 @@ struct LivingFlame: View {
                 } else {
                     Image(systemName: "flame.fill")
                         .resizable().scaledToFit()
-                        .foregroundStyle(lit ? LinearGradient(colors: [Color(hex: 0xF2A48C), Color(hex: 0xD9694F)],
+                        .foregroundStyle(lit ? LinearGradient(colors: [Color(hex: 0xEE9470), Color(hex: 0xE2704C)],
                                                               startPoint: .top, endPoint: .bottom)
                                              : LinearGradient(colors: [Color.gray.opacity(0.5)], startPoint: .top, endPoint: .bottom))
                     if lit {

@@ -17,8 +17,8 @@ size); the app icon and the splash logo are in `Shared/Assets.xcassets`. To repl
 
 > Flat, friendly vector illustration for a premium iOS app called Pact, for couples leveling up together.
 > Soft rounded shapes, thick smooth outlines in espresso #382A22, flat colours with at most one soft highlight.
-> Palette: caramel #B58A63 (main), sage #A9B39A (secondary), sand #D8C49E (details), warm cream #F7F1E8 (light
-> fills), and muted coral #E98268 only as a small accent on achievements. Centered, fills about 80% of the square,
+> Palette: caramel #C2804C (main), sage #909C78 (secondary), tan #D2AE7E, sand #E6C28E (details), light sand
+> #F2E6D4 (fills), and coral #E2704C ONLY as a small accent on achievements. Centered, fills about 80% of the square,
 > generous padding, transparent background, no text, no letters, no shadow on the background. Consistent with a
 > set: same line weight, same corner roundness, same lighting from the top left.
 

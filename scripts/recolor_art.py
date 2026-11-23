@@ -6,13 +6,20 @@ import numpy as np
 from PIL import Image
 
 def hexrgb(h): return np.array([int(h[i:i+2], 16) for i in (0, 2, 4)], np.float32) / 255
-ESPRESSO, CARAMEL, SAGE, CORAL, SAND = map(hexrgb, ['382A22', 'B58A63', 'A9B39A', 'E98268', 'D8C49E'])
-SAGE_DEEP, LIGHT = hexrgb('8E9A7E'), hexrgb('F1E6D3')
+# The locked Pact palette for illustrations (sampled from the approved sheet).
+ESPRESSO = hexrgb('382A22')    # every outline
+CARAMEL = hexrgb('C2804C')     # everyday habits (main)
+TAN = hexrgb('D2AE7E')         # everyday habits (light: people, moons, heads)
+SAGE = hexrgb('909C78')        # everyday habits (secondary)
+SAGE_DEEP = hexrgb('7F8864')   # deeper sage for big sage shapes
+SAND = hexrgb('E6C28E')        # badges, coins, trophies, neutral details
+CORAL = hexrgb('E2704C')       # ONLY achievements, progress and special moments
+LIGHT = hexrgb('F2E6D4')       # pale fills and icon circles
 SCHEMES = {
-    'A': dict(coral=CARAMEL, gold=SAND, green=SAGE),     # caramel-led
+    'A': dict(coral=CARAMEL, gold=SAND, green=SAGE),       # caramel-led
     'B': dict(coral=SAGE, gold=CARAMEL, green=SAGE_DEEP),  # sage-led
-    'C': dict(coral=SAND, gold=CARAMEL, green=SAGE),     # sand-led
-    'D': dict(coral=CORAL, gold=SAND, green=SAGE),       # achievements: muted coral accent
+    'C': dict(coral=TAN, gold=CARAMEL, green=SAGE),        # tan-led
+    'D': dict(coral=CORAL, gold=SAND, green=SAGE),         # achievements: coral accent
 }
 
 def hsv(rgb):
@@ -63,7 +70,7 @@ PLAN = {
     'challenge_detox7': 'B', 'challenge_skill30': 'C',
     'goal_fitness': 'B', 'goal_diet': 'B', 'goal_sleep': 'C', 'goal_steps': 'A', 'goal_skin': 'A',
     'goal_glowUp': 'A', 'goal_posture': 'C', 'goal_money': 'C', 'goal_phoneTime': 'A', 'goal_discipline': 'B',
-    'goal_skills': 'A',
+    'goal_skills': 'B',
     'icon_flame': 'D', 'icon_challenge': 'D', 'trophy': 'D',
     'empty_proof': 'A', 'empty_challenges': 'B', 'empty_badges': 'C',
 }

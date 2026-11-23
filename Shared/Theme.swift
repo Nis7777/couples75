@@ -12,8 +12,9 @@ extension Color {
                   opacity: opacity)
     }
 
-    // The hybrid palette: warm cream, espresso, caramel, sage, sand, and muted coral for achievements only.
-    // The token names are the original ones, so every screen picks the colours up without changes:
+    // THE PACT PALETTE (locked; see docs/BRAND.md). Brand rule: coral means achievement, progress or something
+    // special. Sage and caramel are everyday habits. Espresso is text and outlines.
+    // Token names are the original ones, so every screen picks the colours up without changes:
     // "ivory" is cream, "peach" a light sand tint, "coral" espresso, "gold" caramel, "sage" a readable sage.
 
     /// Every screen background: warm cream.
@@ -34,20 +35,20 @@ extension Color {
     /// Primary buttons, selected radios and checks, accents, partner A: espresso.
     static let coral = Color(hex: 0x382A22)
     /// Progress, ring, streak, "Best value": caramel.
-    static let gold = Color(hex: 0xB58A63)
+    static let gold = Color(hex: 0xC2804C)
     /// "Done", "Partner linked", partner B: sage, deepened so it reads as text and behind white text.
-    static let sage = Color(hex: 0x7D8A6A)
+    static let sage = Color(hex: 0x7F8864)
     /// "Pending" / "x left" chips.
     static let brownChip = Color(hex: 0x8A7362)
     static let faint = Color(hex: 0xEDE5D9)
     /// Unselected radio rings.
     static let radio = Color(hex: 0xD9CCB8)
     /// Achievements and small highlights only (earned badges, the streak flame, celebrations): muted coral.
-    static let highlight = Color(hex: 0xE98268)
+    static let highlight = Color(hex: 0xE2704C)
     /// Badges and neutral details: sand.
-    static let sand = Color(hex: 0xD8C49E)
+    static let sand = Color(hex: 0xE6C28E)
     /// Sage as drawn in the illustrations (too light for text).
-    static let sageLight = Color(hex: 0xA9B39A)
+    static let sageLight = Color(hex: 0x909C78)
 }
 
 // MARK: - Typography: Outfit (bundled, OFL), falling back to SF Pro Rounded.
