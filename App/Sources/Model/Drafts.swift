@@ -7,7 +7,8 @@ struct OnboardingDraft: Codable, Equatable {
              partnerGoals, handBack, together, longDistance, goals, personal, fitness, wakeUp, quit, mirror, level, building, planReveal,
              stakes,  // no longer shown: daily habits have no stakes (bets come with challenges)
              // Between the plan review and the paywall: sign, score, the 90-day plan + FAQ, reviews, notifications.
-             signPact, coupleScore, ninetyDays, socialProof, notifySetup
+             signPact, coupleScore, ninetyDays, notifySetup,
+             socialProof  // removed (the reviews screen); kept so old saved progress still loads
         // Without a step counter (the paywall has its own pages: outcome, trial, plans):
         case paywall, invite, notifications, android
     }
@@ -60,7 +61,7 @@ struct OnboardingDraft: Codable, Equatable {
     static let countedSteps: [Step] = [.hook, .character, .names, .partnerIPhone, .togetherNow,
                                        .together, .longDistance, .goals, .personal,
                                        .fitness, .wakeUp, .quit, .mirror, .level, .building, .planReveal,
-                                       .signPact, .coupleScore, .ninetyDays, .socialProof, .notifySetup]
+                                       .signPact, .coupleScore, .ninetyDays, .notifySetup]
 
     /// The counted steps. Branch-only steps (handing the phone to the partner and B's answers there,
     /// the Android waitlist) never count and show no counter, so the total never jumps mid-flow.

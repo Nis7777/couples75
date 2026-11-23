@@ -1,7 +1,7 @@
 import Foundation
 
 // Everything the pre-paywall onboarding screens SAY lives here, so copy can be edited in one place:
-// the mirror lines and tiny wins, the couple score, the FAQ and the testimonials.
+// the mirror lines and tiny wins, the couple score and the FAQ.
 
 // MARK: - Mirror (echoes their answers)
 
@@ -172,31 +172,4 @@ enum OnboardingFAQ {
         FAQItem(question: "Is The 75 included?",
                 answer: "Yes. The 75 is our hardest challenge: 75 days, photo proof and a bet, no saves. Start it, or any shorter challenge, whenever you're both ready."),
     ]
-}
-
-// MARK: - Testimonials (placeholders only: replace with real reviews before release)
-
-struct Testimonial: Identifiable {
-    var quote: String
-    var name: String
-    /// Placeholders are shown in DEBUG builds only, so nothing fake ever ships.
-    var isPlaceholder: Bool
-    var id: String { quote + name }
-}
-
-enum Testimonials {
-    /// Edit here. Set `isPlaceholder: false` only for real reviews you have permission to use.
-    static let all: [Testimonial] = [
-        Testimonial(quote: "Placeholder: replace with a real review.", name: "Placeholder name", isPlaceholder: true),
-        Testimonial(quote: "Placeholder: replace with a real review.", name: "Placeholder name", isPlaceholder: true),
-        Testimonial(quote: "Placeholder: replace with a real review.", name: "Placeholder name", isPlaceholder: true),
-    ]
-
-    static var shown: [Testimonial] {
-        #if DEBUG
-        return all
-        #else
-        return all.filter { !$0.isPlaceholder }
-        #endif
-    }
 }

@@ -74,8 +74,9 @@ struct OnboardingFlow: View {
         // Between the plan review and the paywall.
         case .signPact: SignPactView(next: { go(.coupleScore) }, back: back)
         case .coupleScore: CoupleScoreView(next: { go(.ninetyDays) }, back: back)
-        case .ninetyDays: NinetyDayPlanView(next: { go(.socialProof) }, back: back)
-        case .socialProof: SocialProofView(next: { go(.notifySetup) }, back: back)
+        case .ninetyDays: NinetyDayPlanView(next: { go(.notifySetup) }, back: back)
+        // The reviews screen was removed: old saved progress on it continues at notifications.
+        case .socialProof: NotificationSetupView(next: { go(.paywall) }, back: { go(.ninetyDays, forward: false) })
         case .notifySetup: NotificationSetupView(next: { go(.paywall) }, back: back)
         // Old drafts saved on the removed stakes step continue at the sign step.
         case .stakes: SignPactView(next: { go(.coupleScore) }, back: { go(.planReveal, forward: false) })

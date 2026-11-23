@@ -9,7 +9,7 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
 
 ## 1. Launch and onboarding
 - [ ] Hook: "Level up as a couple." with the one-line pitch; the couple breathes gently (try Reduce Motion: still).
-- [ ] Step counter reads "of 21" on every counted step and never jumps.
+- [ ] Step counter reads "of 20" on every counted step and never jumps.
 - [ ] Goals: three groups (Body, Looks, Mind & money) with icons; Continue needs 2 picks.
 - [ ] "How big should your habits be?": Gentle / Steady (Most popular) / Hard mode.
 - [ ] "Anything personal?": type "Learn to speak chinese", tap Add → pill "Learn Chinese".
@@ -26,8 +26,6 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
       ticks to the real 90-day projection (Forge, level 5), the button turns into Continue. Reduce Motion: jumps.
 - [ ] Your next 90 days: today's date highlighted + the next 6; edit a habit (pencil or tap the row), delete one
       (blocked below 4 habits or 2 photo habits, with the reason), "+ Add a habit" (up to 6). FAQ rows expand.
-- [ ] Help us help more couples: 3 cards marked PLACEHOLDER (DEBUG only; Release hides placeholders), the rating
-      prompt appears once.
 - [ ] Notifications: three toggles on; Continue shows the iOS prompt (not if all are off). No second ask after the invite.
 - [ ] Paywall: yearly preselected as "$3.33/mo, billed $39.99 yearly after 3 free days" with "SAVE 58%",
       monthly "€7.99/mo". × goes back to "Your next 90 days".
