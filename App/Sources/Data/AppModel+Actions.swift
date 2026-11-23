@@ -69,7 +69,47 @@ extension AppModel {
             await afterStateChange()
             return true
         } catch {
-            errorMessage = (error as? StoreError)?.errorDescription ?? error.localizedDescription
+            // The paywall shows its own "not set up yet" screen with Try again (no generic alert).
+            lastSetupError = (error as? StoreError) ?? .other(error.localizedDescription)
+            return false
+        }
+    }
+
+    /// Why the last attempt to set up the couple after paying failed (shown with Try again).
+    var setupErrorText: String {
+        switch lastSetupError {
+        case .quotaExceeded:
+            return "Your iCloud is full. \(Brand.appName) keeps your pact in your iCloud, so it needs a little space (a few MB to start). Free some up in Settings → your name → iCloud, then tap Try again."
+        case .notAuthenticated:
+            return "You're not signed in to iCloud. Sign in in Settings, then tap Try again."
+        case .network:
+            return "No connection to iCloud. Check your internet, then tap Try again."
+        default:
+            return lastSetupError?.errorDescription.map { "\($0) Then tap Try again." }
+                ?? "Something went wrong. Check your internet and iCloud, then tap Try again."
+        }
+    }
+
+    /// A: make the invite if it's missing (the setup stopped half-way). `quiet`: no alert (automatic retries).
+    @discardableResult
+    func ensureInvite(quiet: Bool = false) async -> Bool {
+        guard invite == nil, isOwner, facts.couple != nil, memberB?.joinedAt == nil, !makingInvite else {
+            return invite != nil
+        }
+        makingInvite = true
+        defer { makingInvite = false }
+        do {
+            invite = try await store.ensureInvite(inviterName: nameA, force: !quiet)
+            apply(store.cachedFacts())
+            return true
+        } catch {
+            apply(store.cachedFacts())
+            guard !quiet else { return false }
+            if case .quotaExceeded = error as? StoreError {
+                errorMessage = "Your iCloud is full, so \(Brand.appName) can't make your invite code yet. Free up a little space in Settings → your name → iCloud, then try again."
+            } else {
+                errorMessage = (error as? StoreError)?.errorDescription ?? error.localizedDescription
+            }
             return false
         }
     }

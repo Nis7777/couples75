@@ -216,7 +216,8 @@ final class CloudKitStore: Store {
     }
 
     /// Uploads queued facts. Network errors keep them queued.
-    private func flush(retrying: Bool = true) async throws {
+    /// `force`: try now even if iCloud was full a moment ago (the user tapped Try again).
+    private func flush(retrying: Bool = true, force: Bool = false) async throws {
         if state.pending.isEmpty, state.quotaFullSince != nil {
             // Nothing waiting any more: no reason to keep saying iCloud is full.
             state.quotaFullSince = nil
@@ -225,7 +226,7 @@ final class CloudKitStore: Store {
         }
         guard !isFlushing, !state.pending.isEmpty, let zoneID, let rootName = state.facts.couple?.id else { return }
         // iCloud is full: don't hammer it. Try again every couple of minutes (on any sync or save).
-        if state.quotaFullSince != nil, let last = state.lastQuotaAttempt,
+        if !force, state.quotaFullSince != nil, let last = state.lastQuotaAttempt,
            Date().timeIntervalSince(last) < Self.quotaRetryInterval {
             throw StoreError.quotaExceeded(ownerName: state.facts.memberA?.name ?? "The couple owner")
         }
@@ -354,6 +355,11 @@ final class CloudKitStore: Store {
 
     func createCouple(couple: CoupleFact, records: [FactRecord], inviterName: String) async throws -> InviteInfo {
         let zone = CKRecordZone(zoneName: CloudKitSchema.zonePrefix + couple.id)
+        // A retry after a failed setup (e.g. iCloud was full): everything is already saved on this phone and
+        // queued, so send it and make the invite, instead of starting over with new records.
+        if state.isOwner, state.zoneName == zone.zoneID.zoneName, state.facts.couple?.id == couple.id {
+            return try await ensureInvite(inviterName: inviterName, force: true)
+        }
         do {
             _ = try await privateDB.save(zone)
             state = State()
@@ -403,6 +409,21 @@ final class CloudKitStore: Store {
             }
         }
         throw StoreError.other("Couldn't create an invite code. Try again.")
+    }
+
+    /// A: the couple exists but its invite was never made (setup stopped half-way, e.g. iCloud was full):
+    /// upload what's queued, then make the share and code. Returns the existing invite if there is one.
+    func ensureInvite(inviterName: String, force: Bool) async throws -> InviteInfo {
+        guard zoneID != nil, state.isOwner else { throw StoreError.noCouple }
+        if let invite = state.invite { return invite }
+        do {
+            try await flush(force: force)
+            return try await regenerateInvite(inviterName: inviterName)
+        } catch let e as StoreError {
+            throw e
+        } catch {
+            throw map(error)
+        }
     }
 
     func regenerateInvite(inviterName: String) async throws -> InviteInfo {

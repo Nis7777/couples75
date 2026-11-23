@@ -43,12 +43,24 @@ struct WaitingView: View {
                 if model.isOwner {
                     if !bIsJoining {
                         InviteShareButton(title: "Remind \(model.nameB)")
-                        SecondaryButton("Copy invite code") {
-                            var text = model.invite?.code ?? ""
-                            if let link = model.invite?.shareURL?.absoluteString { text += " \(link)" }
-                            UIPasteboard.general.string = text
-                            Haptics.success()
-                            model.toast = "Invite code and link copied."
+                        if let code = model.invite?.code {
+                            Text("Invite code: \(code)")
+                                .font(.app(17, .bold))
+                                .tracking(1.5)
+                                .foregroundStyle(Color.textPrimary)
+                                .textSelection(.enabled)
+                                .accessibilityLabel("Invite code \(code.map(String.init).joined(separator: " "))")
+                        }
+                        SecondaryButton(model.makingInvite ? "Making your invite code…" : "Copy invite code") {
+                            Task {
+                                // Setup may have stopped before the code was made (e.g. iCloud was full).
+                                guard await model.ensureInvite() else { return }
+                                var text = model.invite?.code ?? ""
+                                if let link = model.invite?.shareURL?.absoluteString { text += " \(link)" }
+                                UIPasteboard.general.string = text
+                                Haptics.success()
+                                model.toast = "Invite code and link copied."
+                            }
                         }
                     }
                     if daysSincePaid >= 7 {

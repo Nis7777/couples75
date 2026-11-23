@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import StoreKit
 
 /// Social proof shown on the outcome page. NEVER invent ratings, review counts, quotes or user numbers.
@@ -547,11 +548,15 @@ struct AllPlansSheet: View {
 }
 
 /// A's paywall: purchase → "You're in. Now invite {B}." → create the couple → invite.
+/// If setting up the couple fails after paying (iCloud full, offline), it never goes back to the paywall:
+/// it shows why, with Try again (the subscription is already active, so there's nothing to pay twice).
 struct PaywallAView: View {
     @Environment(AppModel.self) private var model
     var onClose: () -> Void
     var onDone: () -> Void
     @State private var confirming = false
+    @State private var failed = false
+    @State private var retrying = false
 
     var body: some View {
         ZStack {
@@ -571,16 +576,50 @@ struct PaywallAView: View {
                 .background(Color.ivory.ignoresSafeArea())
                 .transition(.opacity)
             }
+            if failed {
+                setupFailed
+                    .transition(.opacity)
+            }
         }
+    }
+
+    private var iCloudFull: Bool {
+        if case .quotaExceeded = model.lastSetupError { return true }
+        return false
+    }
+
+    /// Paid, but the couple isn't in iCloud yet: why, and Try again.
+    private var setupFailed: some View {
+        VStack(spacing: 16) {
+            Spacer(minLength: 0)
+            Image(systemName: iCloudFull ? "icloud.slash" : "exclamationmark.icloud")
+                .font(.system(size: 52, weight: .regular))
+                .foregroundStyle(Color.coral)
+            TitleText("Your pact isn't set up yet", size: 26)
+            BodyText(model.setupErrorText)
+            Text("Your subscription is active. You won't be charged again.")
+                .font(.app(14, .semibold))
+                .foregroundStyle(Color.sage)
+                .multilineTextAlignment(.center)
+            Spacer(minLength: 0)
+            PrimaryButton("Try again", isLoading: retrying) { Task { await retry() } }
+            if iCloudFull {
+                SecondaryButton("Open Settings") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+                }
+            }
+        }
+        .padding(.horizontal, Metrics.side)
+        .padding(.vertical, 24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.ivory.ignoresSafeArea())
     }
 
     private func afterPurchase() async {
         withAnimation { confirming = true }
         let started = Date()
-        var ok = true
-        if model.me == nil {
-            ok = await model.createCouple()
-        }
+        // Also when a previous attempt stopped half-way (the couple exists but has no invite yet).
+        let ok = model.me == nil || model.invite == nil ? await model.createCouple() : true
         let remaining = 1.4 - Date().timeIntervalSince(started)
         if remaining > 0 {
             try? await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000))
@@ -588,7 +627,22 @@ struct PaywallAView: View {
         if ok {
             onDone()
         } else {
-            withAnimation { confirming = false }
+            withAnimation {
+                confirming = false
+                failed = true
+            }
+        }
+    }
+
+    private func retry() async {
+        retrying = true
+        let ok = await model.createCouple()
+        retrying = false
+        if ok {
+            failed = false
+            onDone()
+        } else {
+            Haptics.warning()
         }
     }
 }

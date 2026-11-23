@@ -220,6 +220,10 @@ final class AppModel {
     var curtain = false
     /// The error from the last failed save (e.g. iCloud full).
     var lastSaveError: StoreError?
+    /// Why setting up the couple after paying failed (the paywall's Try again screen).
+    var lastSetupError: StoreError?
+    /// An invite is being made right now (no second attempt in parallel).
+    var makingInvite = false
     /// Since when the couple owner's iCloud has been full (writes are queued and retried). Drives Today's banner.
     private(set) var iCloudFullSince: Date?
     var iCloudFull: Bool { iCloudFullSince != nil }
@@ -485,6 +489,10 @@ final class AppModel {
     func afterStateChange() async {
         updateTimeZoneIfNeeded()
         await closeInviteIfPartnerJoined()
+        // Setup stopped before the invite was made (e.g. iCloud was full): keep trying quietly.
+        if isOwner, invite == nil, facts.couple != nil, memberB?.joinedAt == nil {
+            await ensureInvite(quiet: true)
+        }
         writeWidgetSnapshot()
         await NotificationManager.shared.reschedule(model: self)
         await LiveActivityManager.shared.update(model: self)

@@ -76,6 +76,11 @@ final class MockStore: Store {
         return invite
     }
 
+    func ensureInvite(inviterName: String, force: Bool) async throws -> InviteInfo {
+        if let invite = state.invite { return invite }
+        return try await regenerateInvite(inviterName: inviterName)
+    }
+
     func closeInvite() async {
         state.invite = nil
         persist()

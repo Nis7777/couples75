@@ -98,7 +98,7 @@ struct InviteCodeLine: View {
             }
             .accessibilityLabel("Or share code \(code.map(String.init).joined(separator: " ")). Double tap to copy.")
         } else {
-            Button("Get a code") { Task { await model.regenerateInvite() } }
+            Button(model.makingInvite ? "Making your code…" : "Get a code") { Task { await model.ensureInvite() } }
                 .font(.app(15, .semibold))
         }
     }
@@ -135,7 +135,7 @@ struct InviteCodeCard: View {
             } else {
                 HStack(spacing: 10) {
                     ProgressView().tint(.coral)
-                    Button("Get a code") { Task { await model.regenerateInvite() } }
+                    Button(model.makingInvite ? "Making your code…" : "Get a code") { Task { await model.ensureInvite() } }
                         .font(.app(15, .semibold))
                 }
                 .frame(height: 44)
@@ -156,7 +156,15 @@ struct InviteShareButton: View {
 
     var body: some View {
         Group {
-            if let card {
+            if model.invite == nil && model.isOwner {
+                // Setup stopped before the code was made (e.g. iCloud was full): make it first.
+                Button {
+                    Task { await model.ensureInvite() }
+                } label: {
+                    label.opacity(model.makingInvite ? 0.5 : 1)
+                }
+                .disabled(model.makingInvite)
+            } else if let card {
                 ShareLink(item: Image(uiImage: card),
                           subject: Text("\(model.nameA) invited you to \(Brand.appName)"),
                           message: Text(model.inviteMessage()),

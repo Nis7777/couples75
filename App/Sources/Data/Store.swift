@@ -62,6 +62,9 @@ protocol Store: AnyObject {
     var currentInvite: InviteInfo? { get }
     /// A: new code and new share link; the old ones stop working.
     func regenerateInvite(inviterName: String) async throws -> InviteInfo
+    /// A: make the invite if setup stopped before it was made (uploads what's queued first).
+    /// `force`: try iCloud now even if it was full a moment ago (the user tapped Try again).
+    func ensureInvite(inviterName: String, force: Bool) async throws -> InviteInfo
     /// A, once B has joined: stop anyone else joining with the old link or code.
     func closeInvite() async
 
