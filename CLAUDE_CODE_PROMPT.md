@@ -50,17 +50,17 @@ You are building a native iOS app, ready for the App Store, in **Swift + SwiftUI
 ```
 APP_NAME             = "Pact"                  // formerly "Couples 75"; never "75 Hard"
 TAGLINE              = "Level up as a couple."
-BUNDLE_ID            = "com.dinismagina.pact"
-APP_GROUP            = "group.com.dinismagina.pact"
+BUNDLE_ID            = "com.tomasbeja.pact"
+APP_GROUP            = "group.com.tomasbeja.pact"
 URL_SCHEME           = "pactapp"
-SUPPORT_EMAIL        = "nismagina@gmail.com"
+SUPPORT_EMAIL        = "pactapp.support@gmail.com"
 TERMS_URL            = "https://example.com/terms"
 PRIVACY_URL          = "https://example.com/privacy"
-CLOUDKIT_CONTAINER   = "iCloud.com.dinismagina.pact"
+CLOUDKIT_CONTAINER   = "iCloud.com.tomasbeja.pact"
 CHECKIN_UPLOAD_WINDOW_H = 6                     // a check-in must reach iCloud within 6 h of being taken
-IAP_YEARLY           = "com.dinismagina.pact.yearly"    // 39,99 € / $39.99 a year, 3-day free trial (covers both partners)
-IAP_YEARLY7          = "com.dinismagina.pact.yearly7"   // same price, 7-day free trial (offered only on the exit sheet)
-IAP_MONTHLY          = "com.dinismagina.pact.monthly"   // 7,99 € / $7.99 a month, no trial
+IAP_YEARLY           = "com.tomasbeja.pact.yearly"    // 39,99 € / $39.99 a year, 3-day free trial (covers both partners)
+IAP_YEARLY7          = "com.tomasbeja.pact.yearly7"   // same price, 7-day free trial (offered only on the exit sheet)
+IAP_MONTHLY          = "com.tomasbeja.pact.monthly"   // 7,99 € / $7.99 a month, no trial
 SAVES_PER_ROUND      = 3
 ROUND_LENGTH_DAYS    = 75
 MAX_PAUSE_DAYS       = 3

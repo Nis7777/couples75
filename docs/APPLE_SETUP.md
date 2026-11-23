@@ -7,18 +7,18 @@ Do the steps in order. Values to copy are in `code`.
 
 | What | Value |
 |---|---|
-| App bundle ID | `com.dinismagina.pact` |
-| Widgets bundle ID | `com.dinismagina.pact.widgets` |
-| Apple Watch bundle ID | `com.dinismagina.pact.watchkitapp` |
-| Tests bundle ID (never uploaded) | `com.dinismagina.pact.tests` |
-| App Group | `group.com.dinismagina.pact` |
-| iCloud container | `iCloud.com.dinismagina.pact` |
+| App bundle ID | `com.tomasbeja.pact` |
+| Widgets bundle ID | `com.tomasbeja.pact.widgets` |
+| Apple Watch bundle ID | `com.tomasbeja.pact.watchkitapp` |
+| Tests bundle ID (never uploaded) | `com.tomasbeja.pact.tests` |
+| App Group | `group.com.tomasbeja.pact` |
+| iCloud container | `iCloud.com.tomasbeja.pact` |
 | Subscription group | `Pact` |
-| Yearly (3-day free trial) | `com.dinismagina.pact.yearly` |
-| Yearly (7-day free trial, exit offer) | `com.dinismagina.pact.yearly7` |
-| Monthly | `com.dinismagina.pact.monthly` |
+| Yearly (3-day free trial) | `com.tomasbeja.pact.yearly` |
+| Yearly (7-day free trial, exit offer) | `com.tomasbeja.pact.yearly7` |
+| Monthly | `com.tomasbeja.pact.monthly` |
 | URL scheme | `pactapp` |
-| Background task | `com.dinismagina.pact.refresh` (already in Info.plist) |
+| Background task | `com.tomasbeja.pact.refresh` (already in Info.plist) |
 
 ## 0. On your Mac
 
@@ -51,8 +51,8 @@ App Store; as an **organization**, the company name (needs a D-U-N-S number, tak
 In Xcode, for each of the targets **Pact**, **Widgets** and **PactWatch**: Signing & Capabilities → tick
 "Automatically manage signing" → pick your Team. Then on the **Pact** target:
 
-- **iCloud**: tick CloudKit, then under Containers press **+** and add `iCloud.com.dinismagina.pact` (tick it).
-- **App Groups**: press **+** and add `group.com.dinismagina.pact` (tick it). Do the same on **Widgets**.
+- **iCloud**: tick CloudKit, then under Containers press **+** and add `iCloud.com.tomasbeja.pact` (tick it).
+- **App Groups**: press **+** and add `group.com.tomasbeja.pact` (tick it). Do the same on **Widgets**.
 - **Push Notifications**, **Background Modes** (Remote notifications, Background fetch) and **HealthKit** are
   already in the project; leave them on.
 
@@ -60,13 +60,13 @@ Xcode registers the App IDs, the container and the group in your developer accou
 
 If you'd rather do it by hand (developer.apple.com → Certificates, Identifiers & Profiles → Identifiers → **+**):
 
-1. **App Groups** → `group.com.dinismagina.pact`
-2. **iCloud Containers** → `iCloud.com.dinismagina.pact`
+1. **App Groups** → `group.com.tomasbeja.pact`
+2. **iCloud Containers** → `iCloud.com.tomasbeja.pact`
 3. **App IDs** → App:
-   - `com.dinismagina.pact`: tick **App Groups** (configure → the group), **iCloud** (CloudKit, configure → the
+   - `com.tomasbeja.pact`: tick **App Groups** (configure → the group), **iCloud** (CloudKit, configure → the
      container), **Push Notifications**, **HealthKit**.
-   - `com.dinismagina.pact.widgets`: tick **App Groups** (the same group).
-   - `com.dinismagina.pact.watchkitapp`: no capabilities needed.
+   - `com.tomasbeja.pact.widgets`: tick **App Groups** (the same group).
+   - `com.tomasbeja.pact.watchkitapp`: no capabilities needed.
 
 ## 3. App Store Connect: the app
 
@@ -75,7 +75,7 @@ bank details. Subscriptions (even free test ones in TestFlight) don't load until
 
 Apps → **+** → New App:
 - Platform **iOS**, Name **Pact** (it must be unique on the App Store; if it's taken, use e.g. `Pact: Couples Habits`.
-  The name under the icon stays "Pact"), Primary language **English (U.S.)**, Bundle ID `com.dinismagina.pact`,
+  The name under the icon stays "Pact"), Primary language **English (U.S.)**, Bundle ID `com.tomasbeja.pact`,
   SKU `pact-ios`, User access Full.
 
 App Information: category **Health & Fitness** (secondary **Lifestyle**), **Privacy Policy URL**
@@ -90,9 +90,9 @@ Your app → Monetization → **Subscriptions** → create the group **Pact**, t
 
 | Reference name | Product ID | Duration | Price | Introductory offer |
 |---|---|---|---|---|
-| Pact Yearly | `com.dinismagina.pact.yearly` | 1 year | 39,99 € (Portugal base) | Free trial, 3 days |
-| Pact Yearly 7-day trial | `com.dinismagina.pact.yearly7` | 1 year | 39,99 € | Free trial, 1 week |
-| Pact Monthly | `com.dinismagina.pact.monthly` | 1 month | 7,99 € | none |
+| Pact Yearly | `com.tomasbeja.pact.yearly` | 1 year | 39,99 € (Portugal base) | Free trial, 3 days |
+| Pact Yearly 7-day trial | `com.tomasbeja.pact.yearly7` | 1 year | 39,99 € | Free trial, 1 week |
+| Pact Monthly | `com.tomasbeja.pact.monthly` | 1 month | 7,99 € | none |
 
 For each: a display name and description (e.g. "Pact for both of you, billed yearly"), and a review screenshot of
 the paywall. Put the yearly plans above the monthly in the group's ranking. They're submitted with the first
@@ -112,7 +112,7 @@ first, then copy its layout to Production:
    `Waitlist` record type and **untick Read for `_world` and `_icloud`** (keep Create for `_icloud`). Otherwise any
    iCloud user's app could read the emails people typed. Leave `InviteCode` as it is (it must be readable so the
    partner can look up the code).
-4. icloud.developer.apple.com → CloudKit Console → `iCloud.com.dinismagina.pact` → **Deploy Schema Changes…** →
+4. icloud.developer.apple.com → CloudKit Console → `iCloud.com.tomasbeja.pact` → **Deploy Schema Changes…** →
    Production. Do this again whenever a new kind of data or field is added.
 
 ## 6. TestFlight

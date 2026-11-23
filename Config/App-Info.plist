@@ -4,7 +4,7 @@
 <dict>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>com.dinismagina.pact.refresh</string>
+		<string>com.tomasbeja.pact.refresh</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
@@ -26,7 +26,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.dinismagina.pact</string>
+			<string>com.tomasbeja.pact</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>pactapp</string>

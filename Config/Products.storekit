@@ -36,7 +36,7 @@
               "locale": "en_US"
             }
           ],
-          "productID": "com.dinismagina.pact.yearly",
+          "productID": "com.tomasbeja.pact.yearly",
           "recurringSubscriptionPeriod": "P1Y",
           "referenceName": "Yearly",
           "subscriptionGroupID": "C75GROUP",
@@ -63,7 +63,7 @@
               "locale": "en_US"
             }
           ],
-          "productID": "com.dinismagina.pact.yearly7",
+          "productID": "com.tomasbeja.pact.yearly7",
           "recurringSubscriptionPeriod": "P1Y",
           "referenceName": "Yearly (7-day trial)",
           "subscriptionGroupID": "C75GROUP",
@@ -85,7 +85,7 @@
               "locale": "en_US"
             }
           ],
-          "productID": "com.dinismagina.pact.monthly",
+          "productID": "com.tomasbeja.pact.monthly",
           "recurringSubscriptionPeriod": "P1M",
           "referenceName": "Monthly",
           "subscriptionGroupID": "C75GROUP",

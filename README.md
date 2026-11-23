@@ -69,11 +69,11 @@ In the Simulator there's no camera: the shutter generates a sample photo with th
 
 ## CloudKit setup
 
-1. Apple Developer → Identifiers: create the App ID `com.dinismagina.pact` with **iCloud (CloudKit)**,
-   **Push Notifications** and **App Groups**; create the widget App ID `com.dinismagina.pact.widgets` with
+1. Apple Developer → Identifiers: create the App ID `com.tomasbeja.pact` with **iCloud (CloudKit)**,
+   **Push Notifications** and **App Groups**; create the widget App ID `com.tomasbeja.pact.widgets` with
    **App Groups**.
-2. Create the iCloud container `iCloud.com.dinismagina.pact` and the App Group
-   `group.com.dinismagina.pact`, and enable them on both App IDs (the container only on the app).
+2. Create the iCloud container `iCloud.com.tomasbeja.pact` and the App Group
+   `group.com.tomasbeja.pact`, and enable them on both App IDs (the container only on the app).
 3. In Xcode, select your team on the Pact and Widgets targets (Signing & Capabilities). The device
    entitlements are in `Config/App.entitlements` and `Config/Widgets.entitlements` (Simulator builds use none).
 4. Run once on a device signed into iCloud (Development environment). CloudKit creates the record types the
@@ -101,13 +101,13 @@ returning to the foreground, every few minutes while open, and in a background r
 
 One subscription covers both partners: only the person who starts (A) pays; the partner joins free.
 
-1. Create the app with bundle ID `com.dinismagina.pact`.
+1. Create the app with bundle ID `com.tomasbeja.pact`.
 2. Subscriptions → create the group **Pact** with three auto-renewable subscriptions:
-   - `com.dinismagina.pact.yearly`: 1 year, 39,99 € (Portugal base; let Apple fill other storefronts, e.g. $39.99),
+   - `com.tomasbeja.pact.yearly`: 1 year, 39,99 € (Portugal base; let Apple fill other storefronts, e.g. $39.99),
      introductory offer **free trial, 3 days**. Preselected on the paywall.
-   - `com.dinismagina.pact.yearly7`: 1 year, 39,99 €, introductory offer **free trial, 1 week**. Only offered on
+   - `com.tomasbeja.pact.yearly7`: 1 year, 39,99 €, introductory offer **free trial, 1 week**. Only offered on
      the paywall's exit sheet ("Get a 7-day free trial instead").
-   - `com.dinismagina.pact.monthly`: 1 month, 7,99 €, no introductory offer.
+   - `com.tomasbeja.pact.monthly`: 1 month, 7,99 €, no introductory offer.
 3. Add a display name and description to each, a review screenshot of the paywall, and submit them with the
    first app version.
 4. The app sends `appAccountToken` = the member's UUID and writes `subscribedUntil` / `subscriptionProduct` to the
