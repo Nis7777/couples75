@@ -1,7 +1,8 @@
 import SwiftUI
 import UIKit
 
-/// 16: Progress. Two characters at the top, the 75-dot gold grid in a card, rounded photo thumbnails in a row.
+/// 16: Progress. Two characters at the top, the gold day grid in a card, rounded photo thumbnails in a row,
+/// stats, badges, finished challenges and the bucket list.
 struct ProgressScreen: View {
     @Environment(AppModel.self) private var model
     @State private var viewing: CheckInFact?
@@ -54,19 +55,22 @@ struct ProgressScreen: View {
                 statsRow
                 BadgesCard()
                 BucketListCard()
-                HStack(spacing: 12) {
-                    Image(systemName: "trophy.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(Color.gold)
-                    Text("Stakes: \(round?.betText ?? model.currentBet)")
-                        .font(.app(16, .semibold))
-                        .foregroundStyle(Color.textPrimary)
-                    Spacer()
+                if model.activeChallenge != nil, let bet = round?.betText, !bet.isEmpty {
+                    HStack(spacing: 12) {
+                        Image(systemName: "trophy.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(Color.gold)
+                        Text("Stakes: \(bet)")
+                            .font(.app(16, .semibold))
+                            .foregroundStyle(Color.textPrimary)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 15)
+                    .card(radius: 16)
+                    .accessibilityElement(children: .combine)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 15)
-                .card(radius: 16)
-                .accessibilityElement(children: .combine)
+                FinishedChallengesCard()
             }
             .padding(.horizontal, Metrics.side)
             .padding(.bottom, 24)
@@ -77,7 +81,29 @@ struct ProgressScreen: View {
         .sheet(item: $recap) { r in WeeklyRecapView(recap: r) }
     }
 
-    // MARK: 75-day grid
+    // MARK: Day grid (a challenge's days, or the latest 48 days of habits)
+
+    private var isChallenge: Bool { round.map { !$0.mode.isMaintenance } ?? false }
+
+    private var gridRange: ClosedRange<Int> {
+        if isChallenge, let r = round { return 1...max(1, r.length) }
+        let end = max(currentDay, 1)
+        let start = max(1, end - 47)
+        return start...(start + 47)
+    }
+
+    private var gridTitle: String {
+        if isChallenge { return model.activeChallenge?.title ?? "\(round?.length ?? 0)-day grid" }
+        return "Daily habits"
+    }
+
+    private var dayLine: String {
+        if isChallenge {
+            let total = round?.length ?? 0
+            return currentDay == 0 ? "Day 0 done. \(total) to go." : "Day \(currentDay) of \(total)"
+        }
+        return currentDay == 0 ? "Your habits start tomorrow." : "Day \(currentDay) of your habits"
+    }
 
     private enum Cell { case both, half, saves, miss, today, future }
 
@@ -108,7 +134,7 @@ struct ProgressScreen: View {
     private var gridCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("75-day grid")
+                Text(gridTitle)
                     .font(.app(20, .semibold))
                     .foregroundStyle(Color.textPrimary)
                 Spacer()
@@ -127,15 +153,15 @@ struct ProgressScreen: View {
                 .accessibilityElement(children: .combine)
             }
             LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(1...Brand.roundLengthDays, id: \.self) { n in
+                ForEach(Array(gridRange), id: \.self) { n in
                     cellView(cell(n))
                         .aspectRatio(1, contentMode: .fit)
                 }
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("75-day grid")
+            .accessibilityLabel(gridTitle)
             .accessibilityValue(gridSummary)
-            Text(currentDay == 0 ? "Day 0 done. \(Brand.roundLengthDays) to go." : "Day \(currentDay) of \(Brand.roundLengthDays)")
+            Text(dayLine)
                 .font(.app(18, .semibold))
                 .foregroundStyle(Color.textPrimary)
                 .frame(maxWidth: .infinity)
@@ -151,10 +177,10 @@ struct ProgressScreen: View {
     }
 
     private var gridSummary: String {
-        let cells = (1...Brand.roundLengthDays).map(cell)
+        let cells = gridRange.map(cell)
         let both = cells.filter { if case .both = $0 { return true } else { return false } }.count
         if currentDay == 0 { return "Warm-up done. Day 1 has not started yet." }
-        return "Day \(currentDay) of 75. \(both) days complete for both."
+        return "\(dayLine). \(both) days complete for both."
     }
 
     @ViewBuilder
@@ -217,8 +243,8 @@ struct ProgressScreen: View {
     private var statsRow: some View {
         HStack(spacing: 12) {
             stat("\(model.state.bestStreak)", "Best streak")
-            stat("\(max(model.state.roundsPlayed, 1))", "Rounds")
-            stat("\(round?.savesLeft ?? Brand.savesPerRound)", "Saves left")
+            stat("\(model.finishedChallenges.count)", "Challenges")
+            stat("\(model.xp.total)", "Couple XP")
         }
     }
 
@@ -339,6 +365,37 @@ struct PhotoViewer: View {
         case .comment: return "\(who): \(r.comment ?? "")"
         case .sus: return "\(who) 🤨"
         case .seen: return ""
+        }
+    }
+}
+
+/// Challenges finished together, newest first.
+struct FinishedChallengesCard: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        let done = model.finishedChallenges
+        if !done.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Challenges finished").font(.app(20, .semibold)).foregroundStyle(Color.textPrimary)
+                ForEach(done) { r in
+                    let c = Challenges.challenge(r.challengeID)
+                    HStack(spacing: 12) {
+                        CustomIcon(asset: c?.asset ?? "challenge_the75", symbol: c?.icon ?? "flame.fill", size: 38)
+                            .background(Circle().fill(Color.peach))
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(c?.title ?? "The 75").font(.app(16, .semibold)).foregroundStyle(Color.textPrimary)
+                            Text("\(r.length) days · \(r.endedAt?.formatted(date: .abbreviated, time: .omitted) ?? "")")
+                                .font(.app(13)).foregroundStyle(Color.textSecondary)
+                        }
+                        Spacer()
+                        Image(systemName: "checkmark.seal.fill").foregroundStyle(Color.sage)
+                    }
+                }
+            }
+            .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .card()
         }
     }
 }

@@ -4,7 +4,8 @@ import Foundation
 struct OnboardingDraft: Codable, Equatable {
     enum Step: String, Codable, CaseIterable {
         case hook, character, names, partnerIPhone, togetherNow, handOff, partnerAvatar, partnerFitness, partnerWake,
-             handBack, together, longDistance, goals, personal, fitness, wakeUp, quit, mirror, level, building, planReveal, stakes
+             handBack, together, longDistance, goals, personal, fitness, wakeUp, quit, mirror, level, building, planReveal,
+             stakes  // no longer shown: daily habits have no stakes (bets come with challenges)
         // Without a step counter (the paywall has its own pages: outcome, trial, plans):
         case paywall, invite, notifications, android
     }
@@ -51,8 +52,7 @@ struct OnboardingDraft: Codable, Equatable {
     /// Steps that show "Step X of N" (paywall, invite, notifications and Android are outside the count).
     static let countedSteps: [Step] = [.hook, .character, .names, .partnerIPhone, .togetherNow,
                                        .together, .longDistance, .goals, .personal,
-                                       .fitness, .wakeUp, .quit, .mirror, .level, .building, .planReveal,
-                                       .stakes]
+                                       .fitness, .wakeUp, .quit, .mirror, .level, .building, .planReveal]
 
     /// The counted steps. Branch-only steps (handing the phone to the partner and B's answers there,
     /// the Android waitlist) never count and show no counter, so the total never jumps mid-flow.

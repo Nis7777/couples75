@@ -25,9 +25,9 @@ struct SaveUsedView: View {
                 BodyText("\(model.name(of: event.memberID)) missed a rule on Day \(event.dayNumber). One save covered it, so the run continues.", size: 16)
                     .padding(.horizontal, 12)
                 VStack(alignment: .leading, spacing: 12) {
-                    infoRow("Saves left", "\(round?.savesLeft ?? 0) of \(Brand.savesPerRound)")
+                    infoRow("Saves left", "\(round?.savesLeft ?? 0) of \(round?.savesAllowed ?? 0)")
                     infoRow("Score", scoreText)
-                    Text("Whoever has more misses at Day 75 owes the bet.")
+                    Text("Whoever has more misses at the end owes the bet.")
                         .font(.app(14))
                         .foregroundStyle(Color.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)

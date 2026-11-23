@@ -49,7 +49,7 @@ enum RuleLibrary {
                     hard: "Bed by 23:30", photoPrompt: ""),
         LibraryRule(key: "noTakeaway", type: .honour, gentle: "No takeaway spending", standard: "No takeaway spending",
                     hard: "No takeaway spending", photoPrompt: ""),
-        // Personal goals: Gentle 10 min, Couples 75 15 min, Hard mode 30 min (set by the level, see PlanGenerator).
+        // Personal goals: Gentle 10 min, Steady 15 min, Hard mode 30 min (set by the level, see PlanGenerator).
         LibraryRule(key: "language", type: .photo, gentle: "Language: 10 min", standard: "Language: 15 min",
                     hard: "Language: 30 min",
                     photoPrompt: "Photo of your lesson, app streak or notebook."),
@@ -69,6 +69,25 @@ enum RuleLibrary {
                     hard: "Stretch: 30 min", photoPrompt: "Photo of your mat or where you stretched."),
         LibraryRule(key: "study", type: .photo, gentle: "Study: 10 min", standard: "Study: 15 min",
                     hard: "Study: 30 min", photoPrompt: "Photo of your desk or notes."),
+        // Couple maxing: looks, sleep, money and growth.
+        LibraryRule(key: "skincare", type: .photo, gentle: "Skincare: PM", standard: "Skincare: AM + PM",
+                    hard: "Skincare: AM + PM", photoPrompt: "Photo of your products lined up. Not your face if you'd rather not."),
+        LibraryRule(key: "sleep23", type: .honour, gentle: "Bed by 23:30", standard: "Bed by 23:00",
+                    hard: "Bed by 22:30", photoPrompt: ""),
+        LibraryRule(key: "noSpend", type: .honour, gentle: "No impulse buys", standard: "No-spend day",
+                    hard: "No-spend day", photoPrompt: ""),
+        LibraryRule(key: "noSocialNight", type: .honour, gentle: "No socials after 22:00",
+                    standard: "No socials after 21:00", hard: "No socials after 20:00", photoPrompt: ""),
+        LibraryRule(key: "skill", type: .photo, gentle: "New skill: 10 min", standard: "New skill: 20 min",
+                    hard: "New skill: 30 min", photoPrompt: "Photo of what you're learning: screen, notes or tools."),
+        LibraryRule(key: "progressPic", type: .photo, gentle: "Progress pic", standard: "Progress pic",
+                    hard: "Progress pic", photoPrompt: "Same spot, same light. Clothes on, it's for you two."),
+        LibraryRule(key: "protein", type: .photo, gentle: "Protein: 100 g", standard: "Protein: 130 g",
+                    hard: "Protein: 160 g", photoPrompt: "Photo of a meal or your tracker."),
+        LibraryRule(key: "saveMoney", type: .photo, gentle: "Save: 5 a day", standard: "Save: 10 a day",
+                    hard: "Save: 20 a day", photoPrompt: "Screenshot of the transfer (hide the balance)."),
+        LibraryRule(key: "posture", type: .photo, gentle: "Mobility: 5 min", standard: "Mobility: 10 min",
+                    hard: "Mobility: 20 min", photoPrompt: "Photo of your mat or where you did it."),
     ]
 
     static func rule(_ key: String) -> LibraryRule? { all.first { $0.key == key } }
@@ -140,46 +159,78 @@ struct RuleIdea: Identifiable, Equatable, Hashable, Codable {
     }
 }
 
+/// "What do you want to level up?" in onboarding, grouped by area (Body, Looks, Mind & money).
 enum Goal: String, Codable, CaseIterable, Identifiable {
-    case fitness, money, phoneTime, discipline, sleep, diet
+    // Body
+    case fitness, diet, sleep, steps
+    // Looks
+    case skin, glowUp, posture
+    // Mind & money
+    case money, phoneTime, discipline, skills
     var id: String { rawValue }
+
+    var area: Area {
+        switch self {
+        case .fitness, .diet, .sleep, .steps: return .body
+        case .skin, .glowUp, .posture: return .looks
+        case .money, .phoneTime, .discipline, .skills: return .mind
+        }
+    }
 
     var title: String {
         switch self {
-        case .fitness: return "Fitness"
+        case .fitness: return "Gym"
+        case .diet: return "Eat clean"
+        case .sleep: return "Sleep"
+        case .steps: return "Move more"
+        case .skin: return "Skin"
+        case .glowUp: return "Glow-up"
+        case .posture: return "Posture"
         case .money: return "Money"
         case .phoneTime: return "Phone time"
-        case .discipline: return "Discipline"
-        case .sleep: return "Sleep"
-        case .diet: return "Diet"
+        case .discipline: return "Read more"
+        case .skills: return "New skill"
         }
     }
 
     var icon: String {
         switch self {
-        case .fitness: return "figure.run"
-        case .money: return "eurosign.circle"
+        case .fitness: return "dumbbell.fill"
+        case .diet: return "leaf.fill"
+        case .sleep: return "moon.zzz.fill"
+        case .steps: return "figure.walk"
+        case .skin: return "drop.fill"
+        case .glowUp: return "sparkles"
+        case .posture: return "figure.stand"
+        case .money: return "banknote.fill"
         case .phoneTime: return "iphone"
-        case .discipline: return "target"
-        case .sleep: return "moon.zzz"
-        case .diet: return "leaf"
+        case .discipline: return "book.fill"
+        case .skills: return "graduationcap.fill"
         }
     }
 
-    /// The rule this goal adds (Diet's second choice is used when the first is already taken).
+    /// Custom icon `goal_{rawValue}` (docs/IMAGE_PROMPTS.md) replaces the SF Symbol when it's in the assets.
+    var asset: String { "goal_\(rawValue)" }
+
+    /// The habit this goal adds (the second choice is used when the first is already taken).
     var ruleKeys: [String] {
         switch self {
         case .fitness: return ["workout"]
-        case .discipline: return ["reading"]
-        case .sleep: return ["bedtime"]
         case .diet: return ["noJunk", "noSugar"]
-        case .phoneTime: return ["noPhoneInBed"]
-        case .money: return ["noTakeaway"]
+        case .sleep: return ["sleep23", "bedtime"]
+        case .steps: return ["steps"]
+        case .skin: return ["skincare"]
+        case .glowUp: return ["progressPic", "water"]
+        case .posture: return ["posture", "stretch"]
+        case .money: return ["noSpend", "saveMoney"]
+        case .phoneTime: return ["noSocialNight", "noPhoneInBed"]
+        case .discipline: return ["reading"]
+        case .skills: return ["skill"]
         }
     }
 }
 
-/// The level picked in onboarding (step 12): shown as "Gentle", "Couples 75", "Hard mode".
+/// The level picked in onboarding (step 12): shown as "Gentle", "Steady", "Hard mode".
 enum Level: String, Codable, CaseIterable, Identifiable {
     case gentle, couples75, hard
     var id: String { rawValue }
@@ -187,7 +238,7 @@ enum Level: String, Codable, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .gentle: return "Gentle"
-        case .couples75: return "Couples 75"
+        case .couples75: return "Steady"
         case .hard: return "Hard mode"
         }
     }
@@ -207,7 +258,7 @@ enum Level: String, Codable, CaseIterable, Identifiable {
 
     init(mode: RoundMode) { self = mode == .hard ? .hard : .couples75 }
 
-    /// Personal and typed goals: Gentle 10 min, Couples 75 15 min, Hard mode 30 min.
+    /// Personal and typed goals: Gentle 10 min, Steady 15 min, Hard mode 30 min.
     var personalIntensity: Intensity {
         switch self {
         case .gentle: return .gentle

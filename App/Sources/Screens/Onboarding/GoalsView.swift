@@ -1,6 +1,8 @@
 import SwiftUI
+import UIKit
 
-/// Step 7 (06): 2-column grid of big rounded cards; selected ones are coral with a white check.
+/// Step 7 (06): "What do you want to level up?": Body, Looks and Mind & money, each a 2-column grid of rounded
+/// cards; selected ones are coral with a white check.
 struct GoalsView: View {
     @Environment(AppModel.self) private var model
     var next: () -> Void
@@ -10,14 +12,23 @@ struct GoalsView: View {
     var body: some View {
         OnboardingPage(step: model.draft.stepNumber, back: back) {
             VStack(spacing: 8) {
-                TitleText("What do you want to fix together?", size: 30)
+                TitleText("What do you want to level up together?", size: 30)
                     .padding(.top, 26)
-                Text("Pick two or more")
+                Text("Pick two or more. Each one becomes a daily habit.")
                     .font(.app(17))
                     .foregroundStyle(Color.textSecondary)
-                    .padding(.bottom, 14)
-                LazyVGrid(columns: columns, spacing: 14) {
-                    ForEach(Goal.allCases) { g in goalChip(g) }
+                    .multilineTextAlignment(.center)
+                    .padding(.bottom, 10)
+                ForEach(Area.allCases) { area in
+                    HStack(spacing: 8) {
+                        CustomIcon(asset: area.asset, symbol: area.icon, size: 24)
+                        Text(area.title).font(.app(18, .bold)).foregroundStyle(Color.textPrimary)
+                        Spacer()
+                    }
+                    .padding(.top, 8)
+                    LazyVGrid(columns: columns, spacing: 12) {
+                        ForEach(Goal.allCases.filter { $0.area == area }) { g in goalChip(g) }
+                    }
                 }
                 Spacer(minLength: 0)
             }
@@ -30,7 +41,7 @@ struct GoalsView: View {
         let selected = model.draft.goals.contains(g)
         return Button {
             Haptics.tap()
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+            withAnimation(.open(0.22)) {
                 if selected { model.draft.goals.removeAll { $0 == g } } else { model.draft.goals.append(g) }
                 model.draft.ruleChanges = []   // the plan's rows change with the goals
             }
@@ -39,15 +50,19 @@ struct GoalsView: View {
                 if selected {
                     Image(systemName: "checkmark")
                         .font(.system(size: 17, weight: .bold))
-                        .transition(.scale.combined(with: .opacity))
+                        .transition(.scale(scale: 0.9).combined(with: .opacity))
+                } else if UIImage(named: g.asset) != nil {
+                    Image(g.asset).resizable().scaledToFit().frame(width: 28, height: 28)
+                } else {
+                    Image(systemName: g.icon).font(.system(size: 17, weight: .semibold)).foregroundStyle(Color.coral)
                 }
                 Text(g.title)
-                    .font(.app(19, .semibold))
+                    .font(.app(18, .semibold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
             .foregroundStyle(selected ? Color.white : Color.textPrimary)
-            .frame(maxWidth: .infinity, minHeight: 86)
+            .frame(maxWidth: .infinity, minHeight: 64)
             .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(selected ? Color.coral : Color.white))
             .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .stroke(selected ? Color.coral : Color.cardBorder, lineWidth: 1))

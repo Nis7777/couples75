@@ -25,11 +25,11 @@ struct PauseRequestView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     if !canRequest {
                         Banner(text: model.pauseUsedThisRound
-                               ? "You've already used this round's pause. One per round."
+                               ? "You've already used your pause. One per challenge (or stretch of habits)."
                                : "You can pause once Day 1 has started.",
                                fill: .peach, foreground: .coral, icon: "info.circle")
                     }
-                    BodyText("Once per round. Paused days don't count for either of you and don't use a save. \(model.partnerName) can agree or say not now; no answer in \(Int(Brand.pauseAutoAcceptHours)) hours means yes.",
+                    BodyText("Once per challenge. Paused days don't count for either of you and don't use a save. \(model.partnerName) can agree or say not now; no answer in \(Int(Brand.pauseAutoAcceptHours)) hours means yes.",
                              alignment: .leading)
 
                     VStack(alignment: .leading, spacing: 8) {

@@ -20,7 +20,7 @@ struct MirrorView: View {
                 .padding(.horizontal, -Metrics.side)
                 .padding(.top, 18)
                 .frame(maxHeight: .infinity)
-                Text("Most couples quit before it gets hard. Not because they're weak. Because no one's watching.")
+                Text("Most people quit their habits alone. Not because they're weak. Because no one's watching. Do it as a team.")
                     .font(.app(23, .bold))
                     .foregroundStyle(Color.textPrimary)
                     .multilineTextAlignment(.center)

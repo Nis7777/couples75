@@ -94,7 +94,7 @@ private enum OnDeviceIdeas {
     static func generate(for text: String) async -> [RuleIdea]? {
         guard case .available = SystemLanguageModel.default.availability else { return nil }
         let instructions = """
-        You suggest daily habit rules for a 75-day challenge a couple does together. \
+        You suggest daily habits for a couple leveling up together: body, looks, mind and money. \
         Each rule must be something one person can do every single day and prove. \
         Use the short format "Name: amount", like "Guitar: 15 min". \
         Never suggest anything about bodies, weight or intimacy. Never use app, company or brand names.

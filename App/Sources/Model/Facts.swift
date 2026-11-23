@@ -24,8 +24,8 @@ enum RuleType: String, Codable, Equatable {
 enum RoundMode: String, Codable, Equatable {
     case standard
     case hard
-    /// After Day 75: keep some rules going with no stakes. No saves, no bet, misses don't end anything,
-    /// no end date. It ends when the couple starts a new 75-day round.
+    /// Daily habits: no saves, no bet, misses don't end anything, no end date. It ends when the couple
+    /// starts a challenge (and comes back when the challenge ends).
     case maintenance
 }
 
@@ -57,7 +57,7 @@ enum FitnessLevel: String, Codable, CaseIterable, Equatable {
     }
 }
 
-/// Rule intensity, shown to users as "Gentle" / "Couples 75" / "Hard mode".
+/// Rule intensity, shown to users as "Gentle" / "Steady" / "Hard mode".
 enum Intensity: String, Codable, CaseIterable, Equatable {
     case gentle
     case standard
@@ -134,6 +134,9 @@ struct MemberFact: Codable, Equatable, Identifiable {
     }
 }
 
+/// What a round is. Ongoing daily habits are a `maintenance` round (no end, no stakes); a challenge is a
+/// round with its own length, saves, proof rule and (optional or required) bet. Starting a challenge also
+/// writes the habits config for the round after it, so the couple goes back to habits when it ends.
 struct RoundConfigFact: Codable, Equatable, Identifiable {
     var id: String
     var fromRound: Int
@@ -142,6 +145,17 @@ struct RoundConfigFact: Codable, Equatable, Identifiable {
     var rewardText: String?
     var createdBy: MemberID
     var createdAt: Date
+    /// Challenge length in days (nil: the mode's default; 75 for older rounds).
+    var length: Int? = nil
+    /// Shared saves for this round (nil: 3 in standard mode, 0 otherwise).
+    var saves: Int? = nil
+    /// The challenge from the catalogue (nil for habits and older rounds).
+    var challengeID: String? = nil
+    /// Photo rules need a photo (challenges like The 75). Otherwise proof is optional but recommended.
+    var proofRequired: Bool? = nil
+    /// Set on the habits config written when someone gives up the challenge before it ends: the challenge
+    /// round ends right then, as lost by this member.
+    var quitBy: MemberID? = nil
 }
 
 struct RuleFact: Codable, Equatable, Identifiable {

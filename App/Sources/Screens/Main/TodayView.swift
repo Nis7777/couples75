@@ -37,16 +37,17 @@ struct TodayView: View {
                 banners
                 hero
                 WeekDotsView(days: weekDays, streak: model.state.streak)
-                if round?.mode.isMaintenance != true {
-                    DayProgressBar(day: warmup ? 0 : (model.myToday?.dayNumber ?? 0))
+                if !warmup, let r = round, !r.mode.isMaintenance, !r.isOver {
+                    DayProgressBar(day: model.myToday?.dayNumber ?? 0, total: r.length)
                 }
+                if !warmup { XPCard(xp: model.xp, compact: true) }
                 savesRow
                 newFromPartnerRow
                 rulesSection
                 checkInButton
                 PartnerActionsRow()
                 ProgressPhotoCard { showProgressCamera = true }
-                if round?.mode.isMaintenance == true { MaintenanceRow() } else { stakesRow }
+                if model.activeChallenge == nil { HabitsRow() } else if !(round?.betText ?? "").isEmpty { stakesRow }
             }
             .padding(.horizontal, Metrics.side)
             .padding(.bottom, 24)
@@ -187,7 +188,10 @@ struct TodayView: View {
             Banner(text: "Paused today. Nothing counts for either of you.", fill: .peach, foreground: .coral,
                    icon: "pause.circle")
         }
-        if model.state.phase == .betweenRounds {
+        if let c = model.upcomingChallenge {
+            Banner(text: "\(c.title) starts tomorrow. Today's habits still count.", fill: .peach, foreground: .coral,
+                   icon: "flag.checkered")
+        } else if model.state.phase == .betweenRounds {
             Banner(text: betweenRoundsText, fill: .peach, foreground: .coral, icon: "arrow.clockwise")
         }
         if model.myToday?.items.contains(where: { $0.state == .notSent }) == true {
@@ -201,11 +205,11 @@ struct TodayView: View {
     }
 
     private var betweenRoundsText: String {
-        guard let r = round else { return "Your next round starts soon." }
-        if r.status == .waiting { return "Round \(r.number) starts tomorrow. Back to Day 1." }
-        if r.status == .abandoned { return "This round ended because a subscription lapsed. It restarts once the subscription is renewed." }
-        if r.status == .completed { return "You finished! Start round \(r.number + 1) from the Day 75 screen." }
-        return "Back to Day 1 tomorrow."
+        guard let r = round else { return "Your daily habits start tomorrow." }
+        if r.status == .waiting { return r.mode.isMaintenance ? "Back to your daily habits tomorrow." : "Your challenge starts tomorrow." }
+        if r.status == .abandoned { return "Paused because a subscription lapsed. It picks up once the subscription is renewed." }
+        if r.status == .completed { return "You finished! Your daily habits are back tomorrow." }
+        return "Back to your daily habits tomorrow."
     }
 
     private func actionCard(title: String, button: String, action: @escaping () -> Void) -> some View {
@@ -236,19 +240,31 @@ struct TodayView: View {
         } else if model.myToday?.beforeStart == true {
             title = "Day 1"; subtitle = "tomorrow"
         } else if model.myToday?.finishedRound == true {
-            title = "Done"; subtitle = "75 / 75"
+            title = "Done"; subtitle = "\(round?.length ?? 0) / \(round?.length ?? 0)"
         } else if round?.mode.isMaintenance == true {
-            title = "DAY \(day ?? 0)"; subtitle = "Keep it up"
+            title = "TODAY"; subtitle = "\(checkedToday.done) / \(checkedToday.total)"
         } else {
-            title = "DAY \(day ?? 0)"; subtitle = "/ \(Brand.roundLengthDays)"
+            title = "DAY \(day ?? 0)"; subtitle = "/ \(round?.length ?? Brand.roundLengthDays)"
         }
         let bubble = speechBubble(ta: ta, tb: tb)
+        // Habits: the ring fills with today's check-ins (both of you). A challenge: with its days.
+        let progress = round?.mode.isMaintenance == true
+            ? Double(checkedToday.done) / Double(max(1, checkedToday.total))
+            : Double(day ?? 0) / Double(max(1, round?.length ?? Brand.roundLengthDays))
         return RingHero(left: model.sceneA, right: model.sceneBJoined ?? (warmup ? nil : model.sceneB),
-                        progress: round?.mode.isMaintenance == true ? 1 : Double(day ?? 0) / Double(Brand.roundLengthDays),
-                        centerTitle: title, centerSubtitle: subtitle, topLabel: Brand.appName,
+                        progress: progress,
+                        centerTitle: title, centerSubtitle: subtitle,
+                        topLabel: warmup ? Brand.appName : (model.activeChallenge?.title ?? "Daily habits"),
                         leftChip: chip(ta), rightChip: chip(tb),
-                        bubble: bubble?.text, bubbleFromLeft: bubble?.fromA ?? true, panelRadius: 22)
+                        bubble: bubble?.text, bubbleFromLeft: bubble?.fromA ?? true, panelRadius: 22, alive: true)
+            .animation(.open(0.6), value: progress)
             .frame(height: 340)
+    }
+
+    /// Today's check-ins for both of us (the habits ring).
+    private var checkedToday: (done: Int, total: Int) {
+        let items = [model.todayA, model.todayB].compactMap { $0 }.flatMap(\.items)
+        return (items.filter(\.isChecked).count, items.count)
     }
 
     private func speechBubble(ta: MemberToday?, tb: MemberToday?) -> (text: String, fromA: Bool)? {
@@ -296,18 +312,18 @@ struct TodayView: View {
     private var savesRow: some View {
         HStack(spacing: 10) {
             if (round?.mode ?? model.currentMode) == .maintenance {
-                Text("Maintenance · no stakes")
+                Text("Daily habits · no stakes")
                     .font(.app(15, .semibold))
                     .foregroundStyle(Color.textPrimary)
-            } else if (round?.mode ?? model.currentMode) == .hard {
-                Text("Hard mode · no saves")
+            } else if (round?.savesAllowed ?? 0) == 0 {
+                Text("No saves")
                     .font(.app(15, .semibold))
                     .foregroundStyle(Color.textPrimary)
             } else {
                 Text("Saves")
                     .font(.app(15, .semibold))
                     .foregroundStyle(Color.textPrimary)
-                SaveSquares(left: round?.savesLeft ?? Brand.savesPerRound, total: Brand.savesPerRound, size: 16)
+                SaveSquares(left: round?.savesLeft ?? 0, total: round?.savesAllowed ?? 0, size: 16)
             }
             Spacer()
             Text(scoreText)
@@ -368,7 +384,7 @@ struct TodayView: View {
 
     private var rulesSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(warmup ? "Today's practice" : "Today's rules")
+            Text(warmup ? "Today's practice" : (model.activeChallenge == nil ? "Today's habits" : "Today's rules"))
                 .font(.app(21, .bold))
                 .foregroundStyle(Color.textPrimary)
             HStack(alignment: .top, spacing: 12) {
@@ -659,7 +675,7 @@ struct WhichRuleSheet: View {
                                 .font(.app(16, .semibold))
                                 .foregroundStyle(Color.textPrimary)
                                 .lineLimit(2)
-                            Text(r.type == .photo ? "Photo" : "Honour tap")
+                            Text(r.type == .photo ? "Photo (recommended)" : "Honour tap")
                                 .font(.app(12))
                                 .foregroundStyle(Color.textSecondary)
                         }
@@ -693,7 +709,7 @@ struct StreakPill: View {
 
     var body: some View {
         HStack(spacing: 5) {
-            Text("🔥").font(.system(size: 16))
+            LivingFlame(size: 18, lit: streak > 0)
             Text("\(streak)").font(.app(18, .semibold))
                 .contentTransition(.numericText())
             if shields > 0 {
@@ -785,27 +801,33 @@ struct WeekDotsView: View {
     }
 }
 
-/// In maintenance: no stakes, and a way back into a full 75-day round.
-struct MaintenanceRow: View {
+/// On daily habits: no stakes, and a way into a challenge.
+struct HabitsRow: View {
     @Environment(AppModel.self) private var model
-    @State private var startNew = false
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "leaf.fill").foregroundStyle(Color.sage)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Maintenance mode").font(.app(16, .semibold)).foregroundStyle(Color.textPrimary)
-                Text("No saves, no bet. Just keep it up.").font(.app(13)).foregroundStyle(Color.textSecondary)
+        Button {
+            Haptics.tap()
+            model.tab = .challenges
+        } label: {
+            HStack(spacing: 12) {
+                CustomIcon(asset: "icon_challenge", symbol: "trophy.fill", size: 34, color: .gold)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(model.upcomingChallenge.map { "\($0.title) starts tomorrow" } ?? "Want a push?")
+                        .font(.app(16, .semibold)).foregroundStyle(Color.textPrimary)
+                    Text(model.upcomingChallenge == nil ? "Start a challenge together. Bets optional."
+                                                        : "Your habits still count today.")
+                        .font(.app(13)).foregroundStyle(Color.textSecondary)
+                }
+                Spacer()
+                Text("Challenges ›")
+                    .font(.app(15, .bold))
+                    .foregroundStyle(Color.coral)
             }
-            Spacer()
-            Button("New 75 ›") { startNew = true }
-                .font(.app(15, .bold))
-                .foregroundStyle(Color.coral)
+            .padding(16)
+            .card(radius: 16)
+            .contentShape(Rectangle())
         }
-        .padding(16)
-        .card(radius: 16)
-        .sheet(isPresented: $startNew) {
-            if let r = model.currentRound { StartNextRoundSheet(round: r) }
-        }
+        .buttonStyle(PressableStyle())
     }
 }

@@ -35,8 +35,9 @@ enum CloudKitSchema {
     static let roundConfig = RecordType(
         name: "RoundConfig",
         fields: ["fromRound": "Int(64)", "mode": "String", "betText": "String", "rewardText": "String",
-                 "createdBy": "String", "createdAt": "Date/Time"],
-        dateKeys: ["createdAt"], boolKeys: [], jsonKeys: [])
+                 "createdBy": "String", "createdAt": "Date/Time", "length": "Int(64)", "saves": "Int(64)",
+                 "challengeID": "String", "proofRequired": "Int(64)", "quitBy": "String"],
+        dateKeys: ["createdAt"], boolKeys: ["proofRequired"], jsonKeys: [])
 
     static let rule = RecordType(
         name: "Rule",

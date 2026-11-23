@@ -51,7 +51,7 @@ struct BucketListCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Our bucket list").font(.app(20, .semibold)).foregroundStyle(Color.textPrimary)
-            Text("Things to do together. Finish a round with nobody owing and one becomes your shared reward.")
+            Text("Things to do together. Finish a challenge with nobody owing and one becomes your shared reward.")
                 .font(.app(13))
                 .foregroundStyle(Color.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)

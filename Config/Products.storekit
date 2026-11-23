@@ -14,7 +14,7 @@
     {
       "id": "C75GROUP",
       "localizations": [],
-      "name": "Couples 75",
+      "name": "Pact",
       "subscriptions": [
         {
           "adHocOffers": [],
@@ -31,7 +31,7 @@
           },
           "localizations": [
             {
-              "description": "Couples 75 for both of you, billed yearly after a 3-day free trial.",
+              "description": "Pact for both of you, billed yearly after a 3-day free trial.",
               "displayName": "Yearly",
               "locale": "en_US"
             }
@@ -58,7 +58,7 @@
           },
           "localizations": [
             {
-              "description": "Couples 75 for both of you, billed yearly after a 7-day free trial.",
+              "description": "Pact for both of you, billed yearly after a 7-day free trial.",
               "displayName": "Yearly (7-day trial)",
               "locale": "en_US"
             }
@@ -80,7 +80,7 @@
           "introductoryOffer": null,
           "localizations": [
             {
-              "description": "Couples 75 for both of you, billed monthly.",
+              "description": "Pact for both of you, billed monthly.",
               "displayName": "Monthly",
               "locale": "en_US"
             }

@@ -27,7 +27,7 @@ struct OnboardingFlow: View {
 
     private func edgeBack() {
         switch model.draft.step {
-        case .hook, .building, .paywall, .invite, .notifications: return
+        case .hook, .building, .paywall, .stakes, .invite, .notifications: return
         case .handOff: go(.togetherNow, forward: false)
         case .partnerAvatar: go(.handOff, forward: false)
         case .partnerFitness: go(.partnerAvatar, forward: false)
@@ -68,8 +68,9 @@ struct OnboardingFlow: View {
             // The plan is generated ONCE here and stored in the draft (one source of truth).
             BuildingPlanView(next: { go(.planReveal) })
                 .onAppear { model.draft.generatePlan() }
-        case .planReveal: PlanRevealView(next: { go(.stakes) }, back: { go(.level, forward: false) })
-        case .stakes: StakesView(next: { go(.paywall) }, back: back)
+        case .planReveal: PlanRevealView(next: { go(.paywall) }, back: { go(.level, forward: false) })
+        // Old drafts saved on the stakes step go straight on to the paywall.
+        case .stakes: PaywallAView(onClose: { go(.planReveal, forward: false) }, onDone: { go(.invite) })
         // × on any paywall page opens the exit sheet; closing the paywall goes back to the plan, never into the app.
         case .paywall: PaywallAView(onClose: { go(.planReveal, forward: false) }, onDone: { go(.invite) })
         case .invite: InviteView(next: { go(.notifications) })

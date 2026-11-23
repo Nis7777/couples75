@@ -20,7 +20,7 @@ struct InvitedView: View {
                         .padding(.vertical, 8)
                         .accessibilityLabel(model.nameA)
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("\(model.nameA) picked this plan for you both")
+                        Text("\(model.nameA) picked these daily habits for you both")
                             .font(.app(15, .medium))
                             .foregroundStyle(Color.textSecondary)
                         HStack(alignment: .top, spacing: 14) {
@@ -29,15 +29,13 @@ struct InvitedView: View {
                         }
                         HStack(spacing: 10) {
                             Circle().fill(Color.gold).frame(width: 8, height: 8)
-                            Text(model.currentMode == .hard ? "Hard mode · no saves" : "\(Brand.savesPerRound) saves, shared")
-                                .font(.app(16, .medium))
+                            Text("No stakes on habits. Challenges and bets come when you want them.")
+                                .font(.app(15, .medium))
                                 .foregroundStyle(Color.textPrimary)
-                            Spacer()
-                            if model.currentMode != .hard {
-                                SaveSquares(left: Brand.savesPerRound, total: Brand.savesPerRound, size: 16)
-                            }
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: 0)
                         }
-                        BetBox(bet: model.currentBet)
+                        if !model.currentBet.isEmpty { BetBox(bet: model.currentBet) }
                     }
                     .padding(18)
                     .card()
@@ -46,7 +44,7 @@ struct InvitedView: View {
             }
         } actions: {
             PrimaryButton("See the plan") { next() }
-            Text("You can swap one rule and change the bet. Free for you: \(model.nameA)'s subscription covers you both.")
+            Text("You can swap one habit. Free for you: \(model.nameA)'s subscription covers you both.")
                 .font(.app(13))
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)

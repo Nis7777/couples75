@@ -18,7 +18,7 @@ enum PreviewData {
         let joined = day1.adding(-1).startInstant(in: tz).addingTimeInterval(10 * 3600)
         let periods = [SubscriptionPeriod(start: joined.addingTimeInterval(-86_400), end: now.addingTimeInterval(86_400 * 300))]
         var f = Facts()
-        f.couple = CoupleFact(id: "preview-couple", createdAt: joined, ownerMemberID: a, title: "Maya's Couples 75",
+        f.couple = CoupleFact(id: "preview-couple", createdAt: joined, ownerMemberID: a, title: "Maya's Pact",
                               invitedName: "Joao")
         var ma = MemberFact(id: a, role: .a, name: "Maya", characterID: "w1", timeZone: tz.identifier, wakeTime: "07:30",
                             fitnessLevel: .somewhatActive, joinedAt: joined.addingTimeInterval(-3600),
@@ -32,7 +32,7 @@ enum PreviewData {
                                         subscribedUntil: periods[0].end, subscriptionProduct: Brand.iapMonthly,
                                         subscriptionPeriods: periods, leftAt: nil))
         }
-        f.roundConfigs = [RoundConfigFact(id: "cfg", fromRound: 1, mode: .standard, betText: BetOption.date.title,
+        f.roundConfigs = [RoundConfigFact(id: "cfg", fromRound: 1, mode: .maintenance, betText: "",
                                           rewardText: nil, createdBy: a, createdAt: joined)]
         let keys = PlanGenerator.ruleKeys(goals: [.fitness, .discipline])
         f.rules = PlanGenerator.rules(keys: keys, memberID: a, intensity: .standard, round: 1, now: joined)

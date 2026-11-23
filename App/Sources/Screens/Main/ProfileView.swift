@@ -59,10 +59,11 @@ struct ProfileView: View {
                     .padding(.bottom, 6)
 
                 section {
-                    row("Mode", value: (round?.mode ?? model.currentMode) == .maintenance ? "Maintenance · no stakes"
-                        : (round?.mode ?? model.currentMode) == .hard ? "Hard mode" : "Couples 75 · \(Brand.savesPerRound) saves")
-                    if (round?.mode ?? model.currentMode) == .standard {
-                        row("Saves left", value: "\(round?.savesLeft ?? Brand.savesPerRound) of \(Brand.savesPerRound)")
+                    row("Rank", value: "\(model.xp.rank.title) · \(model.xp.total) XP")
+                    row("Now", value: model.activeChallenge.map { "\($0.title) · Day \(model.myToday?.dayNumber ?? 0) of \($0.days)" }
+                        ?? model.upcomingChallenge.map { "\($0.title) · starts tomorrow" } ?? "Daily habits · no stakes")
+                    if let r = round, model.activeChallenge != nil, r.savesAllowed > 0 {
+                        row("Saves left", value: "\(r.savesLeft) of \(r.savesAllowed)")
                     }
                     Button { showWake = true } label: {
                         row("Wake-up reminder", value: ClockTime.display(model.me?.wakeTime ?? "07:30"), chevron: true)
@@ -141,7 +142,7 @@ struct ProfileView: View {
                         Task { await model.setShareProgressPhotos(on) }
                     }
                     Button { showRules = true } label: {
-                        row("Our rules", value: model.myPendingProposals.isEmpty ? nil : "Pending", chevron: true)
+                        row("Our habits", value: model.myPendingProposals.isEmpty ? nil : "Pending", chevron: true)
                     }
                 }
 

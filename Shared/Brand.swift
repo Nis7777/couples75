@@ -2,8 +2,11 @@ import Foundation
 
 /// Every product-level constant lives here. Use these everywhere instead of literals.
 enum Brand {
-    static let appName = "Couples 75"
-    static let tagline = "75 days. Same rules. One bet."
+    /// Working name. Renaming the app is this one line (plus the display name in Config, see README).
+    static let appName = "Pact"
+    static let tagline = "Level up as a couple."
+    /// One line on what the app is, for the paywall, share cards and the App Store.
+    static let pitch = "Daily habits and challenges you do together. Body, looks, mind and money."
     static let bundleID = "com.dinismagina.couples75"
     static let appGroup = "group.com.dinismagina.couples75"
     static let urlScheme = "couples75"
@@ -23,6 +26,7 @@ enum Brand {
     static let minRules = 4
     static let maxRules = 6
     static let minPhotoRules = 2
+    /// The 75 (the signature challenge) and rounds from before challenges existed.
     static let roundLengthDays = 75
     static let maxPauseDays = 3
     static let pauseAutoAcceptHours: Double = 12
@@ -32,5 +36,5 @@ enum Brand {
     static let minIOS = "17.0"
 
     static let backgroundRefreshID = "com.dinismagina.couples75.refresh"
-    static let disclaimer = "Couples 75 is not affiliated with 44Seven Media or the 75 HARD program."
+    static let disclaimer = "\(appName)'s The 75 challenge is not affiliated with 44Seven Media or the 75 HARD program."
 }

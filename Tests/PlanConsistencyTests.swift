@@ -15,7 +15,7 @@ final class PlanConsistencyTests: XCTestCase {
         d.goals = [.fitness, .discipline]
         d.personalGoals = [.instrument]
         d.customGoals = [CustomGoal(text: "Learn to speak chinese", name: GoalNamer.keywordName("Learn to speak chinese"))]
-        d.fitness = .veryActive          // A: Hard intensity on Couples 75
+        d.fitness = .veryActive          // A: Hard intensity on Pact
         d.partnerFitness = nil           // B: Gentle until B answers
         d.level = .couples75
         d.generatePlan()

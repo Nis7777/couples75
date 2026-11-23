@@ -4,7 +4,7 @@ import UIKit
 
 /// Progress tab → "Transformation": a before/after slider (Day 1 vs the latest photo), a timeline of every
 /// progress photo (tap for full screen), "Play" (timelapse, ~0.15 s per photo) and "Save / Share"
-/// (a 9:16 video with a small "Couples 75" watermark). Only my own photos, plus the partner's when they share.
+/// (a 9:16 video with a small "Pact" watermark). Only my own photos, plus the partner's when they share.
 struct TransformationSection: View {
     @Environment(AppModel.self) private var model
     var takePhoto: () -> Void
@@ -354,7 +354,7 @@ struct ActivityView: UIViewControllerRepresentable {
     func updateUIViewController(_ controller: UIActivityViewController, context: Context) {}
 }
 
-/// Day 25, 50 and 75: a celebration with Day 1 next to today. Only my own photos, plus my partner's
+/// A milestone (habits: 30/100/365 days, challenges: part way): a celebration with Day 1 next to today. Only my own photos, plus my partner's
 /// if they share theirs.
 struct MilestoneView: View {
     @Environment(AppModel.self) private var model
@@ -365,17 +365,23 @@ struct MilestoneView: View {
     @State private var partnerLatest: UIImage?
     @State private var appeared = false
 
+    private var milestoneLine: String {
+        guard let r = model.currentRound, !r.mode.isMaintenance else {
+            return "\(day) days of daily habits together. Look how far you've come."
+        }
+        return day >= r.length ? "You made it. Look how far you've come."
+                               : "\(r.length - day) days to go. Look how far you've come."
+    }
+
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 16) {
                 SmallLabel(text: "Milestone")
                     .padding(.top, 28)
                 TitleText("Day \(day)!", size: 40)
-                    .scaleEffect(appeared ? 1 : 0.6)
+                    .scaleEffect(appeared ? 1 : 0.92)
                     .opacity(appeared ? 1 : 0)
-                BodyText(day == Brand.roundLengthDays
-                         ? "You made it. Look how far you've come."
-                         : "\(Brand.roundLengthDays - day) days to go. Look how far you've come.")
+                BodyText(milestoneLine)
                 pair(name: model.me?.name ?? "You",
                      first: model.progress.first.flatMap { model.progress.image(for: $0) },
                      latest: model.progress.latest.flatMap { model.progress.image(for: $0) })
@@ -401,7 +407,7 @@ struct MilestoneView: View {
         .background(AppBackground())
         .task {
             Haptics.success()
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) { appeared = true }
+            withAnimation(.open(0.5)) { appeared = true }
             let shares = model.partnerProgressShares
             if let f = shares.first { partnerFirst = await model.partnerProgressImage(f) }
             if shares.count > 1, let l = shares.last { partnerLatest = await model.partnerProgressImage(l) }

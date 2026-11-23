@@ -151,7 +151,7 @@ struct InviteShareButton: View {
 }
 
 /// The shareable invite card image (360×560 pt rendered at 3×): both avatars (the partner as the dashed outline
-/// until built), "{A} invited you to Couples 75", each partner's 4 rules, the bet and "Free for you".
+/// until built), "{A} invited you to Pact", each partner's habits, the tagline (or a bet) and "Free for you".
 struct InviteCardView: View {
     var inviter: SceneCharacter
     var partner: SceneCharacter?
@@ -180,8 +180,8 @@ struct InviteCardView: View {
             .padding(12)
             .background(RoundedRectangle(cornerRadius: 14).fill(Color.white))
             HStack(spacing: 8) {
-                Image(systemName: "trophy.fill").foregroundStyle(Color.gold)
-                Text(bet).font(.app(14, .bold)).foregroundStyle(Color.textPrimary)
+                Image(systemName: bet.isEmpty ? "sparkles" : "trophy.fill").foregroundStyle(Color.gold)
+                Text(bet.isEmpty ? Brand.tagline : bet).font(.app(14, .bold)).foregroundStyle(Color.textPrimary)
             }
             Text("Free for you: \(inviter.name)'s subscription covers you both.")
                 .font(.app(13, .semibold))

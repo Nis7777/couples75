@@ -124,9 +124,16 @@ struct PaywallView: View {
 
     private var outcomePage: some View {
         VStack(spacing: 10) {
-            TitleText("In 75 days, you'll be the couple who finished.", size: 30)
+            TitleText("Become the best version of you. Together.", size: 30)
                 .padding(.horizontal, 28)
                 .padding(.top, 10)
+            VStack(alignment: .leading, spacing: 8) {
+                valueRow("checklist", "Daily habits for body, looks, mind and money")
+                valueRow("flame.fill", "Challenges with real stakes, like The 75")
+                valueRow("crown.fill", "One streak, one rank, both of you")
+            }
+            .padding(.horizontal, 32)
+            .padding(.top, 4)
             if let rating = SocialProof.appStoreRating, let count = SocialProof.appStoreRatingCount {
                 // Real App Store rating only (see SocialProof).
                 Text("\(rating.formatted(.number.precision(.fractionLength(1)))) on the App Store · \(count) ratings")
@@ -144,6 +151,18 @@ struct PaywallView: View {
                 PrimaryButton("Continue") { page = hasTrial ? .trial : .plans }
             }
         }
+    }
+
+    private func valueRow(_ icon: String, _ text: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(Color.coral)
+                .frame(width: 22)
+            Text(text).font(.app(16, .medium)).foregroundStyle(Color.textPrimary)
+            Spacer(minLength: 0)
+        }
+        .accessibilityElement(children: .combine)
     }
 
     // MARK: 2. Trial timeline (13b)
@@ -244,10 +263,10 @@ struct PaywallView: View {
     private var plansHeader: some View {
         switch variant {
         case .onboarding:
-            header(title: "Start your 75 days together", subtitle: "No commitment. Cancel anytime.")
+            header(title: "Start leveling up together", subtitle: "No commitment. Cancel anytime.")
         case .renew:
             header(title: "Renew to keep your run",
-                   subtitle: "Your subscription ended, so your run is paused. Renew within \(Brand.lapseGraceDays) days or the round ends with no bet.")
+                   subtitle: "Your subscription ended, so your run is paused. Renew within \(Brand.lapseGraceDays) days or a running challenge ends with no bet.")
         case .takeOver(let payer):
             header(title: "Keep your run going: take over the subscription",
                    subtitle: "\(payer)'s subscription ended, so your run is paused. Subscribe and it continues for you both.")

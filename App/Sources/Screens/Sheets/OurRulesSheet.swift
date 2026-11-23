@@ -46,7 +46,7 @@ struct OurRulesSheet: View {
                 .padding(.vertical, 12)
             }
             .background(Color.ivory.ignoresSafeArea())
-            .navigationTitle("Our rules")
+            .navigationTitle("Our habits")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {

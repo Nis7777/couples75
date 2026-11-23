@@ -259,8 +259,10 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
         if let r = newState.lastFinishedRound, oldState.lastFinishedRound?.number != r.number {
             switch r.status {
-            case .completed where !r.mode.isMaintenance: post("Day 75. You finished \(Brand.appName)!", route: "today")
-            case .failed: post("Round over. Out of saves on Day \(r.failedOnDay ?? 0).", route: "today")
+            case .completed where !r.mode.isMaintenance:
+                post("Day \(r.length). You finished \(Challenges.challenge(r.challengeID)?.title ?? "the challenge")!", route: "today")
+            case .failed:
+                post("\(Challenges.challenge(r.challengeID)?.title ?? "The challenge") is over on Day \(r.failedOnDay ?? 0). Back to your habits tomorrow.", route: "today")
             default: break
             }
         }

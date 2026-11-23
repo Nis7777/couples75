@@ -15,6 +15,7 @@ struct CheckInCameraView: View {
     @State private var sending = false
     @State private var showQuotaAlert = false
     @State private var showHonourFallback = false
+    @State private var showNoPhoto = false
 
     /// No usable camera (Simulator, or access denied).
     private var cameraMissing: Bool { AppEnvironment.isSimulator || !camera.isAvailable }
@@ -89,6 +90,11 @@ struct CheckInCameraView: View {
         .sheet(isPresented: $showHonourFallback, onDismiss: { dismiss() }) {
             HonourSheet(rule: rule, fallback: true).presentationDetents([.height(430)])
         }
+        .sheet(isPresented: $showNoPhoto, onDismiss: {
+            if model.myToday?.items.first(where: { $0.rule.id == rule.id })?.isChecked == true { dismiss() }
+        }) {
+            HonourSheet(rule: rule, withoutPhoto: true).presentationDetents([.height(430)])
+        }
     }
 
     private var topBar: some View {
@@ -142,6 +148,13 @@ struct CheckInCameraView: View {
                     .font(.app(16, .medium))
                     .foregroundStyle(Color(hex: 0xF3E6DC))
                     .padding(.top, 16)
+                // Proof is optional but recommended, except in challenges that require it (The 75).
+                if !model.photoProofRequired {
+                    Button("No photo? Check it off") { showNoPhoto = true }
+                        .font(.app(14, .semibold))
+                        .foregroundStyle(Color(hex: 0xF3E6DC).opacity(0.8))
+                        .padding(.top, -8)
+                }
                 ZStack {
                     HStack {
                         Button("Cancel") { dismiss() }

@@ -5,6 +5,14 @@ import SwiftUI
 extension AppModel {
     static let milestoneDays = [25, 50, 75]
 
+    /// Habits: 30, 100 and 365 days. The 75: Day 25 and 50 (Day 75 has its own screen). Other challenges of
+    /// 3 weeks or more: halfway.
+    static func milestones(for r: RoundState) -> [Int] {
+        if r.mode.isMaintenance { return [30, 100, 365] }
+        if r.length == Brand.roundLengthDays { return [25, 50] }
+        return r.length >= 21 ? [r.length / 2] : []
+    }
+
     var myLocalDate: String { LocalDate(now(), in: me?.tz ?? .current).string }
 
     var myProgressToday: ProgressPhoto? { progress.photo(on: myLocalDate) }
@@ -62,11 +70,11 @@ extension AppModel {
         await store.progressSharePhotoData(id: f.id).flatMap(UIImage.init(data:))
     }
 
-    /// Day 25, 50 and 75: a celebration with Day 1 next to today, once per milestone and round.
+    /// Milestones (see `milestones(for:)`): a celebration with Day 1 next to today, once per milestone and round.
     func evaluateMilestone() {
-        guard route == .main, presentedMilestone == nil, currentRound?.mode.isMaintenance != true,
+        guard route == .main, presentedMilestone == nil, let r = currentRound,
               let n = myToday?.dayNumber,
-              Self.milestoneDays.contains(n), !progress.photos.isEmpty else { return }
+              Self.milestones(for: r).contains(n), !progress.photos.isEmpty else { return }
         let key = "milestone-\(currentRound?.number ?? 1)-\(n)"
         guard !SeenEvents.contains(key) else { return }
         SeenEvents.insert([key])

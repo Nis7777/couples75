@@ -33,7 +33,7 @@ struct DebugMenuView: View {
                     }
                     Section("Time") {
                         action("Advance to next day") { await model.debugAdvanceDay() }
-                        action("Jump to Day 74") { await model.debugJumpToDay74() }
+                        action("Jump to the last day") { await model.debugJumpToDay74() }
                         action("Simulate miss") { await model.debugSimulateMiss() }
                     }
                     Section("Subscription") {

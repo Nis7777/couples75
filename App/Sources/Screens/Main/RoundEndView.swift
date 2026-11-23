@@ -8,6 +8,16 @@ struct RoundEndView: View {
     @State private var paying = false
 
     private var live: RoundState { model.state.rounds.first { $0.number == round.number } ?? round }
+    private var name: String { Challenges.challenge(live.challengeID)?.title ?? "The challenge" }
+    /// Someone gave up (the habits config after it says who).
+    private var quitter: MemberID? {
+        model.facts.roundConfigs.first { $0.fromRound == live.number + 1 && $0.quitBy != nil && $0.createdAt == live.endedAt }?.quitBy
+    }
+    private var headline: String {
+        if live.status == .completed { return "You finished \(name)" }
+        if let q = quitter { return q == model.meID ? "You gave up on Day \(live.failedOnDay ?? 0)" : "\(model.name(of: q)) gave up on Day \(live.failedOnDay ?? 0)" }
+        return "Out of saves on Day \(live.failedOnDay ?? 0)"
+    }
 
     var body: some View {
         OnboardingPage(step: nil, back: nil) {
@@ -20,13 +30,17 @@ struct RoundEndView: View {
                         .frame(height: 270)
                         .padding(.horizontal, -8)
                         .padding(.top, 20)
-                    SmallLabel(text: live.status == .completed ? "Day 75" : "Round over")
-                    TitleText(live.status == .completed ? "You finished the round"
-                                                        : "Out of saves on Day \(live.failedOnDay ?? 0)", size: 28)
-                    BetCard(round: live, footer: live.status == .failed
-                            ? "Back to Day 1 tomorrow. Best streak: \(model.state.bestStreak) days. Your history is kept."
-                            : nil)
-                        .padding(.top, 14)
+                    SmallLabel(text: live.status == .completed ? "Day \(live.length)" : "\(name) is over")
+                    TitleText(headline, size: 28)
+                    if live.betText.isEmpty {
+                        BodyText("Back to your daily habits tomorrow. Best streak: \(model.state.bestStreak) days. Your XP and history are kept. Try it again whenever you're ready.")
+                            .padding(.top, 10)
+                    } else {
+                        BetCard(round: live, footer: live.status == .failed
+                                ? "Back to your daily habits tomorrow. Best streak: \(model.state.bestStreak) days. Your XP is kept."
+                                : nil)
+                            .padding(.top, 14)
+                    }
                 }
             }
         } actions: {
@@ -45,8 +59,11 @@ struct RoundEndView: View {
                     .foregroundStyle(Color.sage)
                     .frame(height: 44)
             }
-            TextLinkButton(live.status == .failed ? "Start round \(live.number + 1)" : "Back to today", color: .coral) {
-                onDone()
+            TextLinkButton("Back to today", color: .coral) {
+                Task {
+                    await model.returnToHabits(after: live)
+                    onDone()
+                }
             }
         }
         .screenBackground()

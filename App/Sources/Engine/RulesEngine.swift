@@ -68,6 +68,11 @@ struct TweakInfo: Equatable {
 struct RoundState: Equatable, Identifiable {
     var number: Int
     var mode: RoundMode
+    /// Days in this round (a challenge's length; effectively endless for habits).
+    var length: Int = Brand.roundLengthDays
+    /// The challenge being played (nil for daily habits and older rounds).
+    var challengeID: String? = nil
+    var proofRequired = false
     var savesAllowed: Int
     var betText: String
     var rewardText: String?
@@ -262,18 +267,16 @@ enum RulesEngine {
             result.pendingPause = p
         }
 
-        // Streaks: consecutive day numbers where both members completed.
-        var best = 0
-        for (i, r) in rounds.enumerated() {
-            var s = trailingStreak(r)
-            if i == rounds.count - 1, r.status == .active {
-                s += todayBonus(round: r, today: result.today, members: members)
-                result.streak = s
-                result.streakShields = shields(r)
-            }
-            best = max(best, r.bestStreak, s)
+        // Streaks: consecutive days where both members completed. One couple streak that carries on from habits
+        // into a challenge and back (pure team), with the same shields.
+        let run = streakRun(rounds.flatMap { coupleDays($0) })
+        var best = run.best
+        if let r = rounds.last, r.status == .active {
+            result.streak = run.current + todayBonus(round: r, today: result.today, members: members)
+            result.streakShields = run.shields
+            best = max(best, result.streak)
         }
-        result.bestStreak = best
+        result.bestStreak = max(best, rounds.map(\.bestStreak).max() ?? 0)
         return result
     }
 
@@ -458,9 +461,14 @@ enum RulesEngine {
                                       now: Date) -> SimResult {
         let cfg = config(for: number, facts: facts)
         let mode = cfg?.mode ?? .standard
-        let savesAllowed = mode == .standard ? Brand.savesPerRound : 0
+        let savesAllowed = cfg?.saves ?? (mode == .standard ? Brand.savesPerRound : 0)
+        let length = mode.isMaintenance ? mode.length : (cfg?.length ?? mode.length)
         // Maintenance ends when a new round is set up (its config is the stop signal).
         let stopAt = mode.isMaintenance ? facts.roundConfigs.first(where: { $0.fromRound == number + 1 })?.createdAt : nil
+        // A challenge ends early when someone gives up (a later habits config with `quitBy`).
+        let quit = mode.isMaintenance ? nil : facts.roundConfigs
+            .filter { $0.fromRound == number + 1 && $0.quitBy != nil && $0.createdAt > (cfg?.createdAt ?? .distantPast) }
+            .min { $0.createdAt < $1.createdAt }
         var cursors = members.map { Cursor(member: $0, date: starts[$0.id] ?? LocalDate(now, in: $0.tz)) }
         let startInstant = cursors.map { $0.date.startInstant(in: $0.member.tz) }.min() ?? now
 
@@ -498,9 +506,18 @@ enum RulesEngine {
                 endedAt = ab
                 break
             }
-            if let st = stopAt, st <= t, st <= now {
+            // Habits stop once the day the challenge was started on has settled (so today still counts).
+            if let st = stopAt, st <= now,
+               open.allSatisfy({ cursors[$0].date.startInstant(in: cursors[$0].member.tz) > st }) {
                 status = .completed
                 endedAt = st
+                break
+            }
+            if let q = quit, q.createdAt <= t, q.createdAt <= now {
+                // Cancelled before Day 1: nothing lost.
+                status = q.createdAt < startInstant ? .abandoned : .failed
+                endedAt = q.createdAt
+                if status == .failed { failedOnDay = (cursors.map(\.counted).max() ?? 0) + 1 }
                 break
             }
             if t > now { break }
@@ -525,7 +542,7 @@ enum RulesEngine {
                                                       outcome: complete ? .complete : .miss,
                                                       closedAt: t, coveredBySave: false))
                     if !complete { groupMisses.append((i, n, date)) }
-                    if n >= mode.length { cursors[i].finished = true }
+                    if n >= length { cursors[i].finished = true }
                 }
                 cursors[i].date = date.adding(1)
             }
@@ -561,9 +578,15 @@ enum RulesEngine {
             status = .abandoned
             endedAt = ab
         }
-        if status == .active, let st = stopAt, st <= now, endedAt == nil {
+        if status == .active, let st = stopAt, st <= now, endedAt == nil,
+           cursors.allSatisfy({ $0.finished || $0.date.startInstant(in: $0.member.tz) > st }) {
             status = .completed
             endedAt = st
+        }
+        if status == .active, let q = quit, q.createdAt <= now, endedAt == nil {
+            status = q.createdAt < startInstant ? .abandoned : .failed
+            endedAt = q.createdAt
+            if status == .failed { failedOnDay = (cursors.map(\.counted).max() ?? 0) + 1 }
         }
         if status == .active,
            cursors.allSatisfy({ $0.days.isEmpty && now < $0.date.startInstant(in: $0.member.tz) }) {
@@ -575,30 +598,39 @@ enum RulesEngine {
                              days: $0.days, misses: $0.misses, countedDays: $0.counted)
         }
 
-        // Settle the bet once, when the round ends (never for abandoned rounds).
+        // Settle the bet once, when the round ends (never for abandoned rounds). No bet: nobody owes.
         var owes: [MemberID] = []
         var rewardUnlocked = false
+        let roundEnd = endedAt ?? now
+        let bet = betText(for: number, facts: facts, at: roundEnd)
         if status == .completed || status == .failed, memberStates.count == 2, !mode.isMaintenance {
             let m0 = memberStates[0], m1 = memberStates[1]
-            if m0.misses > m1.misses { owes = [m0.memberID] }
+            if let q = quit, endedAt == q.createdAt, let who = q.quitBy {
+                // Giving up loses the bet.
+                if !bet.isEmpty { owes = [who] }
+            } else if bet.isEmpty {
+                rewardUnlocked = m0.misses == 0 && m1.misses == 0 && !(cfg?.rewardText ?? "").isEmpty
+            } else if m0.misses > m1.misses { owes = [m0.memberID] }
             else if m1.misses > m0.misses { owes = [m1.memberID] }
             else if m0.misses > 0 { owes = [m0.memberID, m1.memberID] }
             else { rewardUnlocked = !(cfg?.rewardText ?? "").isEmpty }
         }
 
-        let roundEnd = endedAt ?? now
         let sus = facts.reactions.filter {
             $0.kind == .sus && $0.createdAt >= startInstant && $0.createdAt <= roundEnd
         }.count
         let paid = facts.betPayments.filter { $0.roundNumber == number }.map { $0.paidAt }.min()
 
         var round = RoundState(number: number, mode: mode, savesAllowed: savesAllowed,
-                               betText: betText(for: number, facts: facts, at: roundEnd),
+                               betText: bet,
                                rewardText: cfg?.rewardText, status: status, startedAt: startInstant,
                                endedAt: endedAt, failedOnDay: failedOnDay, members: memberStates,
                                savesUsed: savesUsed, saveEvents: saveEvents, owes: owes,
                                rewardUnlocked: rewardUnlocked, paidAt: paid, pause: pause,
                                susCount: sus, bestStreak: 0)
+        round.length = length
+        round.challengeID = cfg?.challengeID
+        round.proofRequired = cfg?.proofRequired ?? false
         round.bestStreak = bestRun(round)
         return SimResult(round: round, halted: halted)
     }
@@ -621,7 +653,7 @@ enum RulesEngine {
             return MemberToday(memberID: m.id, localDate: todayDate, dayNumber: nil, isPaused: false,
                                isFrozen: false, beforeStart: true, finishedRound: false, items: items)
         }
-        if ms.countedDays >= round.mode.length {
+        if ms.countedDays >= round.length {
             return MemberToday(memberID: m.id, localDate: todayDate, dayNumber: nil, isPaused: false,
                                isFrozen: false, beforeStart: false, finishedRound: true, items: items)
         }
@@ -637,7 +669,7 @@ enum RulesEngine {
         }
         let isPaused = paused.contains(todayDate.string)
         return MemberToday(memberID: m.id, localDate: todayDate,
-                           dayNumber: (isPaused || frozen) ? nil : min(n, round.mode.length),
+                           dayNumber: (isPaused || frozen) ? nil : min(n, round.length),
                            isPaused: isPaused, isFrozen: frozen, beforeStart: false,
                            finishedRound: false, items: items)
     }

@@ -18,7 +18,7 @@ struct WeeklyRecapView: View {
                 TitleText(recap.headline, size: 30)
                 WeekRecapCard(recap: recap, left: model.sceneA, right: model.sceneBBuilt)
                 if let shareImage {
-                    ShareLink(item: shareImage, preview: SharePreview("Our week on Couples 75", image: shareImage)) {
+                    ShareLink(item: shareImage, preview: SharePreview("Our week on \(Brand.appName)", image: shareImage)) {
                         PrimaryButtonLabel(title: "Share our week")
                     }
                 }

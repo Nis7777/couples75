@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 3.4: "Couples 75 is iPhone-only for now". No paywall ever.
+/// 3.4: "Pact is iPhone-only for now". No paywall ever.
 struct AndroidWaitlistView: View {
     @Environment(AppModel.self) private var model
     var done: () -> Void

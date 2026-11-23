@@ -204,7 +204,12 @@ final class AppModel {
     // Shown once (section 6.1).
     var presentedSave: SaveEvent?
     var presentedRoundEnd: RoundState?
+    /// A finished challenge (the celebration screen).
     var presentedDay75: RoundState?
+    /// The couple just reached a new rank.
+    var presentedRankUp: Rank?
+    /// Shared XP and rank, recomputed with the state.
+    private(set) var xp = CoupleXP(total: 0, today: 0, rank: Ranks.all[0], next: Ranks.all[1])
 
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private var lastFetch: Date = .distantPast
@@ -440,7 +445,9 @@ final class AppModel {
 
     func recompute() {
         state = RulesEngine.state(facts: facts, now: now())
+        xp = XP.compute(state: state, facts: facts, now: now())
         evaluatePresentations()
+        evaluateRankUp()
         evaluateMilestone()
         evaluateRecap()
         evaluateBadges()
@@ -536,6 +543,12 @@ final class AppModel {
 
     // MARK: - Widgets
 
+    /// A challenge's length; 0 on daily habits (no end).
+    private var widgetRoundLength: Int {
+        guard let r = currentRound, !r.mode.isMaintenance else { return 0 }
+        return r.length
+    }
+
     func writeWidgetSnapshot() {
         guard let a = memberA else { return }
         let ta = todayA, tb = todayB
@@ -543,14 +556,14 @@ final class AppModel {
         var status: String?
         switch state.phase {
         case .waitingForPartner, .warmup: status = "Warm-up"
-        case .betweenRounds: status = "Next round soon"
+        case .betweenRounds: status = "Starts tomorrow"
         case .partnerLeft: status = nil
         default:
             if state.isFrozen { status = "Paused" } else if myToday?.isPaused == true { status = "Paused" }
         }
         let snap = WidgetSnapshot(nameA: a.name, nameB: memberB?.name ?? nameB,
                                   characterA: a.characterID, characterB: memberB?.characterID ?? "",
-                                  dayNumber: day, roundLength: Brand.roundLengthDays,
+                                  dayNumber: day, roundLength: widgetRoundLength,
                                   doneA: ta?.isComplete ?? false, doneB: tb?.isComplete ?? false,
                                   streak: state.streak, statusLine: status, updatedAt: Date(),
                                   avatarA: a.avatar, avatarB: memberB?.avatar)
@@ -564,7 +577,7 @@ final class AppModel {
         full.partnerTotal = partnerToday?.items.count ?? 0
         full.save()
         WatchSync.shared.push(WatchPayload(
-            day: day, roundLength: Brand.roundLengthDays, streak: state.streak, myName: full.myName,
+            day: day, roundLength: widgetRoundLength, streak: state.streak, myName: full.myName,
             partnerName: full.partnerName, partnerLeft: full.partnerLeft, partnerTotal: full.partnerTotal,
             rules: full.myRules.map { WatchPayload.Rule(id: $0.id, title: $0.title, isHonour: $0.isHonour, done: $0.done) },
             updatedAt: Date()))

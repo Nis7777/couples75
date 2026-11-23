@@ -2,7 +2,7 @@
 import UIKit
 
 /// Exports progress photos as a vertical 9:16 timelapse video (1080×1920, H.264) with a small
-/// "Couples 75" watermark. Each photo shows for 0.15 s; the last one holds for a second.
+/// "Pact" watermark. Each photo shows for 0.15 s; the last one holds for a second.
 enum TimelapseExporter {
     static let size = CGSize(width: 1080, height: 1920)
     static let secondsPerPhoto: Double = 0.15

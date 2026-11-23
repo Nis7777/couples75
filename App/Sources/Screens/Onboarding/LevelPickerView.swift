@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Step 12 (09): "How hard should it be?" with both characters stretching above the title,
-/// then Gentle / Couples 75 (Most popular, preselected) / Hard mode. Also used by "Start round 2".
+/// then Gentle / Steady (Most popular, preselected) / Hard mode: how big the daily habits are.
 struct LevelPickerView: View {
     @Binding var level: Level
     var left: SceneCharacter
@@ -27,19 +27,19 @@ struct LevelPickerView: View {
                                 crop: 1, overlap: 0.04)
                         .frame(height: 190)
                         .padding(.top, 14)
-                    TitleText("How hard should it be?", size: 30)
+                    TitleText("How big should your habits be?", size: 30)
                         .padding(.vertical, 6)
-                    OptionCard(title: Level.gentle.title, subtitle: "Lighter daily rules · 3 saves",
+                    OptionCard(title: Level.gentle.title, subtitle: "Small wins first · 10 min goals",
                                isSelected: level == .gentle, minHeight: 72) {
                         pick(.gentle)
                     }
-                    OptionCard(title: Level.couples75.title, subtitle: "The full plan · 3 shared saves",
+                    OptionCard(title: Level.couples75.title, subtitle: "A real push · 15 min goals",
                                isSelected: level == .couples75, minHeight: 72) {
                         pick(.couples75)
                     } trailing: {
                         Pill(text: "Most popular", fill: .gold, size: 13)
                     }
-                    OptionCard(title: Level.hard.title, subtitle: "The full plan · no saves, one miss restarts",
+                    OptionCard(title: Level.hard.title, subtitle: "Go all in · 30 min goals",
                                isSelected: level == .hard, minHeight: 72) {
                         pick(.hard)
                     }
@@ -58,7 +58,7 @@ struct OnboardingLevelStep: View {
 
     var body: some View {
         @Bindable var model = model
-        // Couples 75 is preselected, so this step keeps a pinned Continue button instead of auto-advancing.
+        // Steady is preselected, so this step keeps a pinned Continue button instead of auto-advancing.
         LevelPickerView(level: $model.draft.level, left: model.draftScene, right: model.sceneBBuilt,
                         step: model.draft.stepNumber, back: back, autoAdvances: false, next: next)
     }

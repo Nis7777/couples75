@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - Couple composition
 
@@ -17,6 +18,8 @@ struct CoupleScene: View {
     var alignment: VerticalAlignment = .bottom
     /// Show as much of the figures as the height allows (at least `crop`), so there's no empty band.
     var fillHeight = false
+    /// Idle life: each person breathes on their own period (see LivingViews / MotionTokens).
+    var alive = false
 
     private var leftAsset: String { Characters.assetName(left.characterID, leftPose) }
     private var rightAsset: String { right.map { Characters.assetName($0.characterID, rightPose) } ?? "partner_outline" }
@@ -30,6 +33,7 @@ struct CoupleScene: View {
             let full = max(1, min(geo.size.height / c, byWidth))
             HStack(alignment: .top, spacing: -(aL + aR) * full * overlap) {
                 CharacterView(avatar: left.avatar, pose: leftPose)
+                    .breathing(alive, period: MotionTokens.breathePeriodA)
                     .frame(width: aL * full, height: full)
                     .frame(height: full * c, alignment: .top)
                     .clipped()
@@ -37,6 +41,7 @@ struct CoupleScene: View {
                 Group {
                     if let right {
                         CharacterView(avatar: right.avatar, pose: rightPose)
+                            .breathing(alive, period: MotionTokens.breathePeriodB, phase: 0.37)
                     } else {
                         Image("partner_outline").resizable().scaledToFit()
                     }
@@ -155,6 +160,7 @@ struct RingHero: View {
     var inset: CGFloat = 16
     var leftPose: CharacterPose = .stand
     var rightPose: CharacterPose = .stand
+    var alive = false
 
     var body: some View {
         GeometryReader { geo in
@@ -197,7 +203,7 @@ struct RingHero: View {
                 .position(x: w / 2, y: ringCenterY - ring * 0.05)
                 // Head to waist, inside the panel with a margin on every side.
                 CoupleScene(left: left, right: right, leftPose: leftPose, rightPose: rightPose,
-                            crop: 0.56, overlap: -0.46)
+                            crop: 0.56, overlap: -0.46, alive: alive)
                     .frame(width: w - inset * 2, height: h * 0.70)
                     .position(x: w / 2, y: h - h * 0.35)
                     .accessibilityHidden(true)
@@ -415,12 +421,13 @@ private struct ConfettiPiece: Identifiable {
 // MARK: - Floating tab bar
 
 enum MainTab: String, CaseIterable, Identifiable {
-    case today, proof, progress, profile
+    case today, challenges, proof, progress, profile
     var id: String { rawValue }
 
     var title: String {
         switch self {
         case .today: return "Today"
+        case .challenges: return "Challenges"
         case .proof: return "Proof"
         case .progress: return "Progress"
         case .profile: return "Profile"
@@ -430,6 +437,7 @@ enum MainTab: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .today: return "sun.max"
+        case .challenges: return "trophy"
         case .proof: return "checkmark.seal"
         case .progress: return "circle.grid.2x2"
         case .profile: return "person"
@@ -454,8 +462,7 @@ struct FloatingTabBar: View {
                     selection = tab
                 } label: {
                     VStack(spacing: 4) {
-                        Image(systemName: active ? tab.icon + ".fill" : tab.icon)
-                            .font(.system(size: 20, weight: .semibold))
+                        tabIcon(tab, active: active)
                             .frame(height: 24)
                             .overlay(alignment: .topTrailing) {
                                 if tab == .proof && proofBadge > 0 {
@@ -469,7 +476,7 @@ struct FloatingTabBar: View {
                                         .offset(x: 12, y: -6)
                                 }
                             }
-                        Text(tab.title).font(.app(12, .semibold))
+                        Text(tab.title).font(.app(11, .semibold)).lineLimit(1).minimumScaleFactor(0.8)
                     }
                     .foregroundStyle(active ? Color.coral : Color.textPrimary)
                     .frame(maxWidth: .infinity)
@@ -488,5 +495,19 @@ struct FloatingTabBar: View {
                 .shadow(color: Color.black.opacity(0.10), radius: 16, y: 6)
         )
         .padding(.horizontal, Metrics.side)
+    }
+
+    /// A custom `tab_{name}` / `tab_{name}_active` image (docs/IMAGE_PROMPTS.md) replaces the SF Symbol.
+    @ViewBuilder
+    private func tabIcon(_ tab: MainTab, active: Bool) -> some View {
+        let asset = "tab_\(tab.rawValue)" + (active ? "_active" : "")
+        if UIImage(named: asset) != nil {
+            Image(asset).resizable().scaledToFit().frame(width: 26, height: 26)
+                .scaleEffect(active ? 1.08 : 1)
+                .animation(.open(0.2), value: active)
+        } else {
+            Image(systemName: active ? tab.icon + ".fill" : tab.icon)
+                .font(.system(size: 20, weight: .semibold))
+        }
     }
 }

@@ -33,13 +33,13 @@ struct WatchTodayView: View {
                         }
                     }
                 }
-                .navigationTitle("Couples 75")
+                .navigationTitle("Pact")
             } else {
                 VStack(spacing: 8) {
                     Image(systemName: "iphone")
                         .font(.title2)
                         .foregroundStyle(WatchColors.coral)
-                    Text("Open Couples 75 on your iPhone to start.")
+                    Text("Open Pact on your iPhone to start.")
                         .font(.system(.footnote, design: .rounded))
                         .multilineTextAlignment(.center)
                 }

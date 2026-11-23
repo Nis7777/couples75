@@ -157,14 +157,14 @@ enum MockData {
         var f = Facts()
         let coupleID = String.newID()
         let created = now.addingTimeInterval(-3600)
-        f.couple = CoupleFact(id: coupleID, createdAt: created, ownerMemberID: simulatedA, title: "Maya's Couples 75")
+        f.couple = CoupleFact(id: coupleID, createdAt: created, ownerMemberID: simulatedA, title: "Maya's Pact")
         let periods = farFutureSubscription(from: now)
         f.members = [MemberFact(id: simulatedA, role: .a, name: "Maya", characterID: "w1",
                                 timeZone: TimeZone.current.identifier, wakeTime: "07:00",
                                 fitnessLevel: .somewhatActive, joinedAt: created,
                                 subscribedUntil: periods.last?.end, subscriptionProduct: Brand.iapMonthly,
                                 subscriptionPeriods: periods, leftAt: nil)]
-        f.roundConfigs = [RoundConfigFact(id: .newID(), fromRound: 1, mode: .standard, betText: BetOption.date.title,
+        f.roundConfigs = [RoundConfigFact(id: .newID(), fromRound: 1, mode: .maintenance, betText: "",
                                           rewardText: nil, createdBy: simulatedA, createdAt: created)]
         let keys = PlanGenerator.ruleKeys(goals: [.fitness, .discipline])
         f.rules = PlanGenerator.rules(keys: keys, memberID: simulatedA, intensity: .standard, round: 1, now: created)

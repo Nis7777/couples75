@@ -70,8 +70,15 @@ struct CoupleMediumWidget: Widget {
     }
 }
 
+/// A challenge: its days. Daily habits: today's done state for the two of you.
+private func ringProgress(_ s: WidgetSnapshot) -> Double {
+    if s.roundLength > 0 { return Double(s.dayNumber ?? 0) / Double(s.roundLength) }
+    return (s.doneA ? 0.5 : 0) + (s.doneB ? 0.5 : 0)
+}
+
 private func dayText(_ s: WidgetSnapshot) -> String {
-    if let d = s.dayNumber { return "Day \(d)/\(s.roundLength)" }
+    // roundLength 0: daily habits (no end).
+    if let d = s.dayNumber { return s.roundLength > 0 ? "Day \(d)/\(s.roundLength)" : "🔥 \(s.streak) · habits" }
     return s.statusLine ?? "Not started"
 }
 
@@ -80,7 +87,7 @@ struct SmallWidgetView: View {
 
     var body: some View {
         let s = entry.snapshot
-        let progress = Double(s.dayNumber ?? 0) / Double(max(s.roundLength, 1))
+        let progress = ringProgress(s)
         VStack(spacing: 6) {
             ZStack {
                 Circle().stroke(Color.track, lineWidth: 7)
@@ -212,7 +219,7 @@ struct MyRulesWidgetView: View {
                 }
             }
             if s.myRules.isEmpty {
-                Text("Open Couples 75 to see today's rules.")
+                Text("Open \(Brand.appName) to see today's habits.")
                     .font(.app(13))
                     .foregroundStyle(Color.textSecondary)
             }
@@ -276,7 +283,7 @@ struct LockScreenWidget: Widget {
             LockScreenWidgetView(entry: entry)
                 .containerBackground(.clear, for: .widget)
         }
-        .configurationDisplayName("Couples 75")
+        .configurationDisplayName(Brand.appName)
         .description("Your day and rules left.")
         .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
@@ -290,7 +297,7 @@ struct LockScreenWidgetView: View {
         let s = entry.snapshot
         switch family {
         case .accessoryCircular:
-            Gauge(value: Double(s.dayNumber ?? 0), in: 0...Double(max(s.roundLength, 1))) {
+            Gauge(value: ringProgress(s), in: 0...1) {
                 Text("Day")
             } currentValueLabel: {
                 Text("\(s.dayNumber ?? 0)")

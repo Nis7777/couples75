@@ -6,7 +6,7 @@ struct BuildingPlanView: View {
     @Environment(AppModel.self) private var model
     var next: () -> Void
     @State private var done = 0
-    private let items = ["Matching rules to your goals…", "Building Day 1", "Setting the finish line"]
+    private let items = ["Matching habits to your goals…", "Sizing them for each of you", "Lighting your streak"]
 
     var body: some View {
         OnboardingPage(step: model.draft.stepNumber, back: nil) {

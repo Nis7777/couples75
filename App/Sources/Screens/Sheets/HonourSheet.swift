@@ -7,6 +7,8 @@ struct HonourSheet: View {
     @Environment(\.dismiss) private var dismiss
     var rule: RuleFact
     var fallback = false
+    /// A photo rule checked off without a photo (proof is optional outside The 75).
+    var withoutPhoto = false
     @State private var saving = false
 
     private var isEvening: Bool {
@@ -15,12 +17,12 @@ struct HonourSheet: View {
         return cal.component(.hour, from: model.now()) >= 18
     }
 
-    private var enabled: Bool { fallback || model.isWarmup || isEvening }
+    private var enabled: Bool { fallback || withoutPhoto || model.isWarmup || isEvening }
 
     var body: some View {
         VStack(spacing: 16) {
             Capsule().fill(Color.cardBorder).frame(width: 40, height: 5).padding(.top, 10)
-            IconBadge(systemName: fallback ? "icloud.slash" : "hand.raised.fill",
+            IconBadge(systemName: fallback ? "icloud.slash" : (withoutPhoto ? "checkmark" : "hand.raised.fill"),
                       color: fallback ? .coral : .sage, size: 70)
                 .padding(.top, 4)
             TitleText(rule.title.contains(":") ? "Did you do “\(rule.title)” today?" : "Did you stick to \(rule.title.lowercasedFirst) today?", size: 24)
@@ -28,6 +30,8 @@ struct HonourSheet: View {
                 BodyText("Come back after 18:00 to confirm. Tap tonight.")
             } else if fallback {
                 BodyText("iCloud is full, so this counts as an honour tap for today only.")
+            } else if withoutPhoto {
+                BodyText("No photo this time? That's fine. Photos are recommended though: \(model.partnerName) loves seeing them.")
             } else {
                 BodyText("Be honest. \(model.partnerName) can react, but can't fail your day.")
             }

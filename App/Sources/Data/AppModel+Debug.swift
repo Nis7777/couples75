@@ -89,17 +89,19 @@ extension AppModel {
         await debugAdvanceDay()
     }
 
-    /// Fills days 1–73 with complete check-ins for both and moves the clock to Day 74.
+    /// Fills every day but the last of the current challenge (habits: 29 days) with complete check-ins for both
+    /// and moves the clock to its last day.
     func debugJumpToDay74() async {
         guard let mock = mockStore, let round = currentRound, round.status == .active || round.status == .waiting
         else { toast = "Start a round first."; return }
         var f = facts
         let current = now()
         var target = current
+        let days = round.mode.isMaintenance ? 29 : max(1, round.length - 1)
         for ms in round.members {
             guard let m = f.member(ms.memberID) else { continue }
             let rules = RulesEngine.effectiveRules(for: m.id, round: round.number, facts: f, at: current)
-            for n in 0..<73 {
+            for n in 0..<days {
                 let date = ms.startDate.adding(n)
                 let captured = date.startInstant(in: m.tz).addingTimeInterval(12 * 3600)
                 for r in rules where !f.checkIns.contains(where: {
@@ -112,7 +114,7 @@ extension AppModel {
                 }
             }
             if m.id == meID {
-                target = ms.startDate.adding(73).startInstant(in: m.tz).addingTimeInterval(9 * 3600)
+                target = ms.startDate.adding(days).startInstant(in: m.tz).addingTimeInterval(9 * 3600)
             }
         }
         mock.replaceFacts(f)

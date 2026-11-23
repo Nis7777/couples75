@@ -50,7 +50,8 @@ extension AppModel {
                                 invitedName: draft.partnerName.trimmingCharacters(in: .whitespaces),
                                 invitedAvatar: draft.partnerAvatar, invitedFitness: draft.partnerFitness,
                                 invitedWakeTime: draft.partnerWakeTime)
-        let config = RoundConfigFact(id: .newID(), fromRound: 1, mode: draft.level.mode, betText: draft.betText,
+        // Round 1 is the couple's daily habits: no stakes, no end. Challenges (with optional bets) come later.
+        let config = RoundConfigFact(id: .newID(), fromRound: 1, mode: .maintenance, betText: "",
                                      rewardText: nil, createdBy: meID, createdAt: now)
         if draft.planRules.isEmpty { draft.generatePlan() }
         // The one stored plan: exactly the rules shown on the plan review, for A and for B.
@@ -92,7 +93,7 @@ extension AppModel {
     /// Invite text for the share sheet (3.2).
     func inviteMessage() -> String {
         let link = invite?.shareURL?.absoluteString ?? ""
-        return "I just signed us up for 75 days. \(currentBet). You in? Download \(Brand.appName) and tap this link: \(link)"
+        return "I set up our daily habits on \(Brand.appName). Level up with me? Download it and tap this link: \(link)"
     }
 
     // MARK: - Person B (3.5)
@@ -275,8 +276,8 @@ extension AppModel {
         var note: String {
             switch self {
             case .beforeDay1: return "Starts the day after your partner approves. Until then your rule stays."
-            case .swapTomorrow: return "Your one swap this round. It starts the day after your partner approves."
-            case .nextRound(let n): return "You used this round's swap, so this applies from round \(n)."
+            case .swapTomorrow: return "Your one swap for now. It starts the day after your partner approves."
+            case .nextRound: return "You already used your swap, so this applies from the next challenge or habits stretch."
             }
         }
     }
@@ -466,7 +467,14 @@ extension AppModel {
         await save(records)
         presentedDay75 = nil
         SeenEvents.insert(["day75-\(round.number)", "roundend-\(round.number)"])
-        toast = "Maintenance mode starts tomorrow."
+        toast = "Your daily habits are back tomorrow."
+    }
+
+    /// After a challenge: make sure the daily habits come back. New challenges already wrote the habits round
+    /// after them; rounds from before (or a plain 75) get one now with everyone's current rules.
+    func returnToHabits(after round: RoundState) async {
+        guard !facts.roundConfigs.contains(where: { $0.fromRound == round.number + 1 }) else { return }
+        await startMaintenance(after: round, keepRuleIDs: [])
     }
 
     /// "Start round 2" after Day 75: new wake time and level; both members' rules follow the new level.

@@ -8,9 +8,12 @@ struct HookView: View {
     var body: some View {
         OnboardingPage(step: 1, back: nil) {
             VStack(spacing: 0) {
-                TitleText(Brand.tagline, size: 30)
+                TitleText(Brand.tagline, size: 32)
                     .padding(.horizontal, 12)
-                    .padding(.top, 40)
+                    .padding(.top, 36)
+                BodyText(Brand.pitch, size: 17)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
                 GeometryReader { geo in
                     ZStack(alignment: .bottom) {
                         PeachBlob()
@@ -20,7 +23,7 @@ struct HookView: View {
                             .padding(.bottom, geo.size.height * 0.02)
                         CoupleScene(left: SceneCharacter(characterID: "w1", name: "Maya"),
                                     right: SceneCharacter(characterID: "m1", name: "Joao"),
-                                    crop: 0.6, overlap: 0.04)
+                                    crop: 0.6, overlap: 0.04, alive: true)
                             .frame(width: geo.size.width + Metrics.side * 2)
                             .accessibilityLabel("A couple standing together")
                     }

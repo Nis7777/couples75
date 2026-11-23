@@ -22,9 +22,9 @@ struct AcceptTweakView: View {
                         .padding(.top, 10)
                         .accessibilityHidden(true)
                     TitleText("Your plan", size: 30)
-                    BodyText("Set from your fitness level. You can swap one rule and change the bet.", size: 15)
+                    BodyText("Set from your fitness level. You can swap one habit.", size: 15)
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Your daily rules")
+                        Text("Your daily habits")
                             .font(.app(18, .bold))
                             .foregroundStyle(Color.sage)
                         ForEach(rules) { r in
@@ -48,10 +48,13 @@ struct AcceptTweakView: View {
                     .padding(18)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .card()
-                    BetBox(bet: jd.changeBet && !jd.betText.isEmpty ? jd.betText : model.currentBet)
+                    // Daily habits have no bet; one still set on an older plan can be changed.
+                    if !model.currentBet.isEmpty {
+                        BetBox(bet: jd.changeBet && !jd.betText.isEmpty ? jd.betText : model.currentBet)
+                    }
                     HStack(spacing: 10) {
-                        SecondaryButton(jd.swappedPosition == nil ? "Swap a rule" : "Change swap") { showSwap = true }
-                        SecondaryButton("Change the bet") { showBet = true }
+                        SecondaryButton(jd.swappedPosition == nil ? "Swap a habit" : "Change swap") { showSwap = true }
+                        if !model.currentBet.isEmpty { SecondaryButton("Change the bet") { showBet = true } }
                     }
                     if changed {
                         Text("\(model.nameA) gets \(Int(Brand.tweakAutoAcceptHours)) hours to accept your changes. No answer means your version is used.")

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Step 14 (11): "{A} & {B}'s 75-day plan": a peach panel with the gold Day 1 → 75 ring behind the
+/// Step 14 (11): "{A} & {B}'s daily habits": a peach panel with the gold ring behind the
 /// couple, the rules card in two coloured columns, the saves card with three gold squares.
 struct PlanRevealView: View {
     @Environment(AppModel.self) private var model
@@ -22,11 +22,12 @@ struct PlanRevealView: View {
         OnboardingPage(step: d.stepNumber, back: back) {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 12) {
-                    TitleText("\(d.myName) & \(d.partnerName)'s 75-day plan", size: 28)
+                    TitleText("\(d.myName) & \(d.partnerName)'s daily habits", size: 28)
                         .padding(.top, 10)
                         .padding(.bottom, 4)
                     RingHero(left: SceneCharacter(avatar: d.avatar, name: d.myName), right: model.sceneBBuilt,
-                             progress: 0.62, centerTitle: "Day 1", centerSubtitle: "→ 75", panelRadius: 0, inset: 20)
+                             progress: 0.62, centerTitle: "Day 1", centerSubtitle: "tomorrow", panelRadius: 0, inset: 20,
+                             alive: true)
                         .frame(height: 310)
                         .padding(.horizontal, -Metrics.side)
                     if d.tooManyRules > 0 {
@@ -54,12 +55,12 @@ struct PlanRevealView: View {
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    SavesCard(mode: d.level.mode)
+                    NoStakesCard()
                 }
                 .padding(.bottom, 28)
             }
         } actions: {
-            PrimaryButton("Set the stakes", isEnabled: d.tooManyRules == 0 && !d.planRules.isEmpty) { next() }
+            PrimaryButton("Looks good", isEnabled: d.tooManyRules == 0 && !d.planRules.isEmpty) { next() }
         }
         .onAppear { if model.draft.planRules.isEmpty { model.draft.generatePlan() } }
         .sheet(item: $changing) { row in
@@ -162,7 +163,7 @@ struct PlanRulesCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Daily rules")
+            Text("Daily habits")
                 .font(.app(20, .bold))
                 .foregroundStyle(Color.textPrimary)
             HStack {
@@ -280,6 +281,29 @@ struct RulesColumnsCard: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// Plan review: daily habits are relaxed; challenges bring the pressure.
+struct NoStakesCard: View {
+    var body: some View {
+        HStack(spacing: 14) {
+            CustomIcon(asset: "icon_challenge", symbol: "trophy.fill", size: 40, color: .gold)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("No stakes on habits")
+                    .font(.app(18, .bold))
+                    .foregroundStyle(Color.textPrimary)
+                Text("Miss a day and nothing ends. Want pressure? Start a challenge together, like The 75, with a bet.")
+                    .font(.app(14))
+                    .foregroundStyle(Color.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 14)
+        .peachBox(radius: 18)
         .accessibilityElement(children: .combine)
     }
 }

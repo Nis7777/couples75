@@ -19,6 +19,7 @@ struct MainView: View {
             Group {
                 switch model.tab {
                 case .today: TodayTab()
+                case .challenges: ChallengesScreen()
                 case .proof: ProofScreen()
                 case .progress: ProgressScreen()
                 case .profile: ProfileView()
@@ -50,6 +51,9 @@ struct MainView: View {
         }
         .fullScreenCover(item: $model.presentedDay75) { round in
             Day75View(round: round)
+        }
+        .fullScreenCover(item: $model.presentedRankUp) { rank in
+            RankUpView(rank: rank)
         }
         .fullScreenCover(isPresented: .constant(mustRenew && model.presentedDay75 == nil)) {
             PaywallView(variant: .renew, onClose: nil) { Task { await model.refresh() } }
