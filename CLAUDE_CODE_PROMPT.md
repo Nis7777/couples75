@@ -41,7 +41,7 @@ badges, the flame, goal chips, the app icon) with its asset name; each falls bac
 
 ---
 
-You are building a native iOS app, ready for the App Store, in **Swift + SwiftUI**. It is **Pact**: a couple does a 75-day challenge together. Each partner has 4 to 6 daily rules, proves them to the other with live photos or an evening honour tap, and the couple shares 3 "saves" that cover missed days. Whoever misses more owes a real-life bet (for example "Loser plans the date"). **One subscription covers both partners** (39,99 € / $39.99 a year with a 3-day free trial, or 7,99 € / $7.99 a month): the person who starts pays, then invites their partner, who joins free. iPhone only. Work autonomously. Make reasonable decisions without asking me, and stop only if something needs my Apple Developer account. **There is no backend server**: the two phones share data through Apple's **CloudKit** (iCloud), and every game result is computed on the phone from shared facts (section 6).
+You are building a native iOS app, ready for the App Store, in **Swift + SwiftUI**. It is **Pact**: a couple does a 75-day challenge together. Each partner has 4 to 6 daily rules, proves them to the other with live photos or an evening honour tap, and the couple shares 3 "saves" that cover missed days. Whoever misses more owes a real-life bet (for example "Loser plans the date"). **One subscription covers both partners** ($39.99 a year with a 3-day free trial, or $7.99 a month; US base prices): the person who starts pays, then invites their partner, who joins free. iPhone only. Work autonomously. Make reasonable decisions without asking me, and stop only if something needs my Apple Developer account. **There is no backend server**: the two phones share data through Apple's **CloudKit** (iCloud), and every game result is computed on the phone from shared facts (section 6).
 
 **Visual reference:** the folder `reference/` holds 32 mockups (`01_hook.jpg` … `30_partner_iphone.jpg`, plus `overview.jpg`). Use them for **colours, layout, illustration style, spacing and mood**. They are AI-generated at 720×1280 (9:16), so some look squashed or cropped. Build every screen properly for real iPhone sizes (iPhone SE up to Pro Max) and never copy their proportions pixel for pixel. **The mockups contain outdated copy and rules. This prompt is the source of truth. Wherever a mockup and this prompt disagree, this prompt wins.** Ignore `reference/README.txt` where it conflicts with this prompt. Section 4 lists every screen with the exact corrections.
 
@@ -58,9 +58,9 @@ TERMS_URL            = "https://example.com/terms"
 PRIVACY_URL          = "https://example.com/privacy"
 CLOUDKIT_CONTAINER   = "iCloud.com.tomasbeja.pact"
 CHECKIN_UPLOAD_WINDOW_H = 6                     // a check-in must reach iCloud within 6 h of being taken
-IAP_YEARLY           = "com.tomasbeja.pact.yearly"    // 39,99 € / $39.99 a year, 3-day free trial (covers both partners)
+IAP_YEARLY           = "com.tomasbeja.pact.yearly"    // $39.99 a year, 3-day free trial (covers both partners)
 IAP_YEARLY7          = "com.tomasbeja.pact.yearly7"   // same price, 7-day free trial (offered only on the exit sheet)
-IAP_MONTHLY          = "com.tomasbeja.pact.monthly"   // 7,99 € / $7.99 a month, no trial
+IAP_MONTHLY          = "com.tomasbeja.pact.monthly"   // $7.99 a month, no trial
 SAVES_PER_ROUND      = 3
 ROUND_LENGTH_DAYS    = 75
 MAX_PAUSE_DAYS       = 3
@@ -84,8 +84,8 @@ In **DEBUG builds only**, the Simulator, the launch argument `-mock`, the unit t
   - Both share the App Group `APP_GROUP`. The app writes a small `WidgetSnapshot` JSON there; the widget only reads it.
 - Capabilities on `App`: iCloud with **CloudKit** (container `CLOUDKIT_CONTAINER`), Push Notifications, App Groups, Background Modes (remote notifications, background fetch), **HealthKit** (read only), Live Activities (`NSSupportsLiveActivities`). Add `CKSharingSupported = YES` to Info.plist so iCloud share links open the app. No Sign in with Apple: the user's iCloud account is their identity.
 - **No third-party packages at all.** Apple frameworks only: SwiftUI, CloudKit, StoreKit (StoreKit 2), AVFoundation, WidgetKit, UserNotifications, BackgroundTasks, HealthKit, ActivityKit, AppIntents, WatchConnectivity.
-- **English only.** No translations and no other languages anywhere. (The StoreKit test storefront is only there so prices show in euros.)
-- Add a **StoreKit Configuration file** `Products.storekit` with the three subscriptions in one subscription group "Pact" (storefront Portugal, EUR): yearly 39,99 € with a 3-day free-trial introductory offer, yearly7 39,99 € with a 7-day free trial, monthly 7,99 € with no introductory offer. Set it on the Run scheme so purchases work in the Simulator.
+- **English only.** No translations and no other languages anywhere.
+- Add a **StoreKit Configuration file** `Products.storekit` with the three subscriptions in one subscription group "Pact" (storefront United States, USD): yearly $39.99 with a 3-day free-trial introductory offer, yearly7 $39.99 with a 7-day free trial, monthly $7.99 with no introductory offer. Set it on the Run scheme so purchases work in the Simulator.
 - Art: every PNG from `ArtSource/` is an image set in `Shared/Assets.xcassets` (shared by the app and the widget) named after the file; `AppIcon.png` (1024×1024, no alpha) is the single-size App Icon. Avatar recolouring layers (section 1.3) live in `ArtSource/masks/`, with the stand and bust poses in `Shared/Assets.xcassets` and the other poses in `App/Masks.xcassets`.
 - Font: bundle **Outfit** (OFL, google/fonts `ofl/outfit`) as static weights in `Shared/Fonts/` and register them with `UIAppFonts` in both Info.plists.
 - Write a `README.md` with: build-and-run steps, how to set up the CloudKit container and deploy the schema to Production in the CloudKit Console, how to create the three subscriptions (and their free-trial offers) in App Store Connect, how to test sharing between two Apple IDs on two devices, and how to use Mock mode.
@@ -184,7 +184,7 @@ The mockups always show the same two people, "Maya" and "Joao". In the real app 
 - A declined request doesn't use up the round's pause.
 
 ### 2.6 Subscription (one for the couple, StoreKit 2, no RevenueCat)
-- **One subscription covers both partners.** Products: yearly 39,99 € / $39.99 with a 3-day free trial (preselected); yearly7, the same price with a 7-day free trial, offered only on the exit sheet; monthly 7,99 € / $7.99 with no trial. Prices and trial lengths always come from StoreKit, never hard-coded. Show the trial only when the user is eligible for the introductory offer.
+- **One subscription covers both partners.** Products: yearly $39.99 with a 3-day free trial (preselected); yearly7, the same price with a 7-day free trial, offered only on the exit sheet; monthly $7.99 with no trial. Prices and trial lengths always come from StoreKit, never hard-coded. Show the trial only when the user is eligible for the introductory offer.
 - **Only A sees a paywall** (3.3). B joins free: never show B a paywall or any per-person price. Never write "each", "per person" or "{B} joins with their own subscription" anywhere.
 - Use StoreKit 2: `Product.products(for:)`, `purchase()`, `Transaction.currentEntitlements` on launch and `Transaction.updates` while running, `AppStore.sync()` for Restore. Set `appAccountToken` on purchases to the member's UUID.
 - After every entitlement change (and on every launch), the app writes `subscribedUntil` (the transaction's `expirationDate`) and `subscriptionProduct` to the member's own `Member` record and merges the period into `subscriptionPeriods`, so both phones know. (Self-reported is fine for v1.)

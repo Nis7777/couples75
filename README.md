@@ -104,11 +104,11 @@ One subscription covers both partners: only the person who starts (A) pays; the 
 
 1. Create the app with bundle ID `com.tomasbeja.pact`.
 2. Subscriptions → create the group **Pact** with three auto-renewable subscriptions:
-   - `com.tomasbeja.pact.yearly`: 1 year, 39,99 € (Portugal base; let Apple fill other storefronts, e.g. $39.99),
+   - `com.tomasbeja.pact.yearly`: 1 year, $39.99 (United States base price; let Apple fill the other storefronts),
      introductory offer **free trial, 3 days**. Preselected on the paywall.
-   - `com.tomasbeja.pact.yearly7`: 1 year, 39,99 €, introductory offer **free trial, 1 week**. Only offered on
+   - `com.tomasbeja.pact.yearly7`: 1 year, $39.99, introductory offer **free trial, 1 week**. Only offered on
      the paywall's exit sheet ("Get a 7-day free trial instead").
-   - `com.tomasbeja.pact.monthly`: 1 month, 7,99 €, no introductory offer.
+   - `com.tomasbeja.pact.monthly`: 1 month, $7.99, no introductory offer.
 3. Add a display name and description to each, a review screenshot of the paywall, and submit them with the
    first app version.
 4. The app sends `appAccountToken` = the member's UUID and writes `subscribedUntil` / `subscriptionProduct` to the

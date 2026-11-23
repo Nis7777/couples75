@@ -29,7 +29,7 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
 - [ ] Help us help more couples: 3 cards marked PLACEHOLDER (DEBUG only; Release hides placeholders), the rating
       prompt appears once.
 - [ ] Notifications: three toggles on; Continue shows the iOS prompt (not if all are off). No second ask after the invite.
-- [ ] Paywall: yearly preselected as "€3.33/mo, billed €39.99 yearly after 3 free days" with "SAVE 58%",
+- [ ] Paywall: yearly preselected as "$3.33/mo, billed $39.99 yearly after 3 free days" with "SAVE 58%",
       monthly "€7.99/mo". × goes back to "Your next 90 days".
 - [ ] After paying and the invite, Today shows exactly the habits from "Your next 90 days" (including edits).
 - [ ] Profile: Partner checked in / Daily reminder / Weekly recap switches match what you chose.

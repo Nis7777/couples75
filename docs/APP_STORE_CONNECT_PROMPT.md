@@ -73,14 +73,14 @@ Create a subscription group: Reference Name `Pact`, then group localization Engl
 
 Create three auto-renewable subscriptions in that group:
 
-| Reference Name | Product ID | Duration | Price (base country Portugal) | Display Name | Description |
+| Reference Name | Product ID | Duration | Price (base country United States) | Display Name | Description |
 |---|---|---|---|---|---|
-| Pact Yearly | `com.tomasbeja.pact.yearly` | 1 Year | 39,99 € | `Pact Yearly` | `Pact for both of you, billed yearly` |
-| Pact Yearly 7-day trial | `com.tomasbeja.pact.yearly7` | 1 Year | 39,99 € | `Pact Yearly` | `Pact for both of you, 7-day free trial` |
-| Pact Monthly | `com.tomasbeja.pact.monthly` | 1 Month | 7,99 € | `Pact Monthly` | `Pact for both of you, billed monthly` |
+| Pact Yearly | `com.tomasbeja.pact.yearly` | 1 Year | $39.99 | `Pact Yearly` | `Pact for both of you, billed yearly` |
+| Pact Yearly 7-day trial | `com.tomasbeja.pact.yearly7` | 1 Year | $39.99 | `Pact Yearly` | `Pact for both of you, 7-day free trial` |
+| Pact Monthly | `com.tomasbeja.pact.monthly` | 1 Month | $7.99 | `Pact Monthly` | `Pact for both of you, billed monthly` |
 
-- For prices: set **Portugal** as the base country, pick the 39,99 € / 7,99 € price points, and let Apple calculate
-  all other countries.
+- For prices: set **United States** as the base country, pick the $39.99 / $7.99 price points, and let Apple
+  calculate all other countries automatically.
 - Introductory offers: **Pact Yearly** → Free Trial, **3 days**, all countries, starting now, no end date.
   **Pact Yearly 7-day trial** → Free Trial, **1 week**, same settings. **Pact Monthly** → none.
 - Subscription ranking inside the group: Pact Yearly first, Pact Yearly 7-day trial second, Pact Monthly last.

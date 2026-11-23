@@ -344,7 +344,7 @@ struct PaywallView: View {
     private func planCard(yearly: Bool) -> some View {
         let selected = yearlySelected == yearly
         let trial = purchases.trialDays(purchases.yearly)
-        // "€3.33/mo" big, then "billed €39.99 yearly" (after the free days, when there's a trial).
+        // "$3.33/mo" big, then "billed $39.99 yearly" (after the free days, when there's a trial).
         let yearlyLine: String = {
             let price = purchases.yearlyPrice ?? "…"
             if let trial { return "billed \(price) yearly after \(trial) free days · for both of you" }

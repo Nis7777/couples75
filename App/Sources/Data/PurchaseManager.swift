@@ -35,8 +35,8 @@ final class PurchaseManager {
     var yearlyPrice: String? { yearly?.displayPrice }
     var monthlyPrice: String? { monthly?.displayPrice }
 
-    /// Yearly price ÷ 52, localized ("0,77 €").
-    /// The yearly price as a per-month price ("€3.33"), for "€3.33/mo, billed €39.99 yearly".
+    /// Yearly price ÷ 52, localized ("$0.77").
+    /// The yearly price as a per-month price ("$3.33"), for "$3.33/mo, billed $39.99 yearly".
     var yearlyPerMonth: String? {
         guard let y = yearly else { return nil }
         return (y.price / 12).formatted(y.priceFormatStyle)
