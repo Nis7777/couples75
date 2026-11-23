@@ -81,6 +81,11 @@ Create three auto-renewable subscriptions in that group:
 
 - For prices: set **United States** as the base country, pick the $39.99 / $7.99 price points, and let Apple
   calculate all other countries automatically.
+  Then open the full price list for each subscription and check the **euro countries** (Portugal, Spain, France,
+  Germany, Italy, Netherlands, Ireland and the rest of the eurozone) and the **United Kingdom**. If Apple's automatic
+  price isn't round, set it manually for those countries to **39,99 €** (yearly) and **7,99 €** (monthly) for the
+  eurozone, and **£39.99** and **£7.99** for the UK. Leave every other country on Apple's automatic price. Tell me
+  which countries you changed.
 - Introductory offers: **Pact Yearly** → Free Trial, **3 days**, all countries, starting now, no end date.
   **Pact Yearly 7-day trial** → Free Trial, **1 week**, same settings. **Pact Monthly** → none.
 - Subscription ranking inside the group: Pact Yearly first, Pact Yearly 7-day trial second, Pact Monthly last.
