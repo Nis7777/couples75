@@ -45,16 +45,23 @@ struct NotificationChoices: View {
             VStack(spacing: 14) {
                 IconBadge(systemName: "bell.badge.fill", color: .coral, size: 110)
                     .padding(.top, 18)
-                TitleText("Know when your partner checks in", size: 30)
+                TitleText("Which notifications do you want?", size: 30)
+                Text("Turn off anything you don't want. You can change these any time in Profile.")
+                    .font(.app(15))
+                    .foregroundStyle(Color.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 8)
                 VStack(spacing: 10) {
-                    toggle("Partner checked in", "When \(partnerName.isEmpty ? "your partner" : partnerName) finishes a habit",
+                    toggle("When \(partnerLabel(partnerName)) checks in",
+                           "A ping each time \(partnerLabel(partnerName)) finishes a habit, so you can cheer them on",
                            icon: "person.2.fill", isOn: $partner)
                     VStack(spacing: 0) {
-                        toggle("Daily reminder", "Your habits for the day", icon: "sun.max.fill", isOn: $daily,
-                               carded: false)
+                        toggle("Morning reminder", "Today's habits, at the time below", icon: "sun.max.fill",
+                               isOn: $daily, carded: false)
                         if daily {
                             HStack {
-                                Text("Time")
+                                Text("Remind me at")
                                     .font(.app(15, .medium))
                                     .foregroundStyle(Color.textSecondary)
                                 Spacer()
@@ -71,12 +78,18 @@ struct NotificationChoices: View {
                         }
                     }
                     .card(radius: 18, shadow: false)
-                    toggle("Weekly recap", "Monday morning, your week together", icon: "calendar", isOn: $recap)
+                    toggle("Weekly recap", "Every Monday: how your week went, together", icon: "calendar", isOn: $recap)
                 }
                 .animation(.open(0.25), value: daily)
                 Spacer(minLength: 0)
             }
         } actions: {
+            if partner || daily || recap {
+                Text("Next, your iPhone asks you to allow notifications. Tap Allow.")
+                    .font(.app(13))
+                    .foregroundStyle(Color.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
             PrimaryButton("Continue", isLoading: working) {
                 Task {
                     working = true
@@ -94,6 +107,8 @@ struct NotificationChoices: View {
             }
         }
     }
+
+    private func partnerLabel(_ name: String) -> String { name.isEmpty ? "your partner" : name }
 
     private func toggle(_ title: String, _ detail: String, icon: String, isOn: Binding<Bool>,
                         carded: Bool = true) -> some View {

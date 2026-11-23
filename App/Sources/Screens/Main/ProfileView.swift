@@ -83,8 +83,8 @@ struct ProfileView: View {
                     .frame(minHeight: 58)
                     .card(radius: 16, shadow: false)
                     .onChange(of: eveningOn) { _, on in Task { await model.setEveningWarning(on) } }
-                    notifToggle("Partner checked in", isOn: $partnerNotifsOn) { Prefs.partnerCheckInNotifsOn = $0 }
-                    notifToggle("Daily reminder (wake-up time)", isOn: $dailyOn) { Prefs.dailyReminderOn = $0 }
+                    notifToggle("When \(model.partnerName) checks in", isOn: $partnerNotifsOn) { Prefs.partnerCheckInNotifsOn = $0 }
+                    notifToggle("Morning reminder", isOn: $dailyOn) { Prefs.dailyReminderOn = $0 }
                     notifToggle("Weekly recap", isOn: $recapOn) { Prefs.weeklyRecapOn = $0 }
                     if notificationsDenied {
                         // The user said no to the iOS prompt: offer a way back in Settings.
