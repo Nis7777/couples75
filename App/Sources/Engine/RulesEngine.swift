@@ -184,8 +184,14 @@ enum RulesEngine {
 
         let couplePlan = SubscriptionTimeline(members: facts.members)
         result.coupleActive = couplePlan.active(at: now)
+        // Ties (same end date) go to A, then the smaller id, so both phones agree whatever order the facts are in.
         result.payerID = facts.members.filter { $0.subscribedUntil != nil }
-            .max { ($0.subscribedUntil ?? .distantPast) < ($1.subscribedUntil ?? .distantPast) }?.id
+            .max { l, r in
+                let lEnd = l.subscribedUntil ?? .distantPast, rEnd = r.subscribedUntil ?? .distantPast
+                if lEnd != rEnd { return lEnd < rEnd }
+                if (l.role == .a) != (r.role == .a) { return r.role == .a }
+                return l.id > r.id
+            }?.id
 
         if let leaver = facts.members.first(where: { $0.leftAt != nil }) {
             result.phase = .partnerLeft(leaver.id)
@@ -230,7 +236,8 @@ enum RulesEngine {
             case .abandoned:
                 nextInstant = timeline.nextBothActive(from: ended)
             case .completed:
-                if let cfg = facts.roundConfigs.first(where: { $0.fromRound == roundNumber + 1 }) {
+                if let cfg = facts.roundConfigs.filter({ $0.fromRound == roundNumber + 1 })
+                    .min(by: { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }) {
                     nextInstant = max(cfg.createdAt, ended)
                 }
             default:
@@ -291,7 +298,8 @@ enum RulesEngine {
         guard let from = mine.map({ $0.fromRound }).max() else { return [] }
         var byPosition: [Int: RuleFact] = [:]
         for r in mine where r.fromRound == from {
-            if let existing = byPosition[r.position], existing.createdAt >= r.createdAt { continue }
+            if let existing = byPosition[r.position],
+               (existing.createdAt, existing.id) >= (r.createdAt, r.id) { continue }
             byPosition[r.position] = r
         }
         for t in facts.tweaks.sorted(by: { $0.createdAt < $1.createdAt }) where t.proposedBy == memberID {
@@ -325,7 +333,7 @@ enum RulesEngine {
     static func proposalStatus(_ p: RuleProposalFact, facts: Facts, at: Date) -> PauseStatus {
         guard let answer = facts.ruleAnswers
             .filter({ $0.proposalID == p.id && $0.answeredAt <= at })
-            .min(by: { $0.answeredAt < $1.answeredAt }) else { return .pending }
+            .min(by: { ($0.answeredAt, $0.id) < ($1.answeredAt, $1.id) }) else { return .pending }
         return answer.accepted ? .accepted : .declined
     }
 
@@ -341,7 +349,7 @@ enum RulesEngine {
             .compactMap { p -> (RuleProposalFact, Date)? in
                 guard let a = facts.ruleAnswers
                     .filter({ $0.proposalID == p.id && $0.answeredAt <= at })
-                    .min(by: { $0.answeredAt < $1.answeredAt }), a.accepted else { return nil }
+                    .min(by: { ($0.answeredAt, $0.id) < ($1.answeredAt, $1.id) }), a.accepted else { return nil }
                 return (p, a.answeredAt)
             }
             .sorted { ($0.1, $0.0.createdAt) < ($1.1, $1.0.createdAt) }
@@ -375,7 +383,7 @@ enum RulesEngine {
     static func config(for round: Int, facts: Facts) -> RoundConfigFact? {
         facts.roundConfigs
             .filter { $0.fromRound <= round }
-            .max { ($0.fromRound, $0.createdAt) < ($1.fromRound, $1.createdAt) }
+            .max { ($0.fromRound, $0.createdAt, $0.id) < ($1.fromRound, $1.createdAt, $1.id) }
     }
 
     /// The bet for a round: the config's bet, overridden by a non-declined tweak made after that config.
@@ -398,7 +406,7 @@ enum RulesEngine {
         let deadline = p.createdAt.addingTimeInterval(Brand.pauseAutoAcceptHours * 3600)
         if let answer = facts.pauseAnswers
             .filter({ $0.pauseID == p.id && $0.answeredAt < deadline && $0.answeredAt <= at })
-            .min(by: { $0.answeredAt < $1.answeredAt }) {
+            .min(by: { ($0.answeredAt, $0.id) < ($1.answeredAt, $1.id) }) {
             return answer.accepted ? .accepted : .declined
         }
         return at >= deadline ? .accepted : .pending
@@ -417,7 +425,7 @@ enum RulesEngine {
         var status: PauseStatus = at >= deadline ? .accepted : .pending
         if let answer = facts.tweakAnswers
             .filter({ $0.tweakID == t.id && $0.answeredAt < deadline && $0.answeredAt <= at })
-            .min(by: { $0.answeredAt < $1.answeredAt }) {
+            .min(by: { ($0.answeredAt, $0.id) < ($1.answeredAt, $1.id) }) {
             status = answer.accepted ? .accepted : .declined
         }
         return TweakInfo(tweak: t, status: status, autoAcceptAt: deadline)
@@ -464,7 +472,7 @@ enum RulesEngine {
         let savesAllowed = cfg?.saves ?? (mode == .standard ? Brand.savesPerRound : 0)
         let length = mode.isMaintenance ? mode.length : (cfg?.length ?? mode.length)
         // Maintenance ends when a new round is set up (its config is the stop signal).
-        let stopAt = mode.isMaintenance ? facts.roundConfigs.first(where: { $0.fromRound == number + 1 })?.createdAt : nil
+        let stopAt = mode.isMaintenance ? facts.roundConfigs.filter({ $0.fromRound == number + 1 }).map(\.createdAt).min() : nil
         // A challenge ends early when someone gives up (a later habits config with `quitBy`).
         let quit = mode.isMaintenance ? nil : facts.roundConfigs
             .filter { $0.fromRound == number + 1 && $0.quitBy != nil && $0.createdAt > (cfg?.createdAt ?? .distantPast) }
@@ -690,12 +698,15 @@ enum RulesEngine {
         return rules.map { rule in
             let candidates = mine.filter { $0.ruleID == rule.id }
             if warmup {
-                let c = candidates.max { $0.capturedAt < $1.capturedAt }
+                let c = candidates.max { ($0.capturedAt, $0.id) < ($1.capturedAt, $1.id) }
                 return ChecklistItem(rule: rule, checkIn: c, state: c == nil ? .open : .done)
             }
             let best = candidates
                 .map { ($0, checkState($0, now: now)) }
-                .max { rank($0.1) < rank($1.1) }
+                .max { l, r in
+                    // Same state: the latest check-in (then the id) wins, independent of the facts' order.
+                    rank(l.1) != rank(r.1) ? rank(l.1) < rank(r.1) : (l.0.capturedAt, l.0.id) < (r.0.capturedAt, r.0.id)
+                }
             return ChecklistItem(rule: rule, checkIn: best?.0, state: best?.1 ?? .open)
         }
     }

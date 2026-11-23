@@ -7,7 +7,7 @@ final class OnboardingCopyTests: XCTestCase {
     func testMirrorEchoesGoalsAndPicksThreeWins() {
         XCTAssertEqual(MirrorCopy.goalsLine([.fitness, .phoneTime], partner: "Sara"),
                        "You picked Gym and Phone time for you and Sara.")
-        XCTAssertEqual(MirrorCopy.tinyWins([.phoneTime]).first, "Phones out of the bedroom tonight")
+        XCTAssertEqual(MirrorCopy.tinyWins([.phoneTime]).first, "No phones in bed tonight")
         XCTAssertEqual(MirrorCopy.tinyWins([.phoneTime]).count, 3)
         XCTAssertEqual(MirrorCopy.tinyWins(Goal.allCases).count, 3)
         XCTAssertNotNil(MirrorCopy.togetherLine("3+ yrs"))
@@ -43,10 +43,17 @@ final class OnboardingCopyTests: XCTestCase {
         d.addRow(idea)
         XCTAssertEqual(d.planRules.count, before + 1)
         XCTAssertEqual(d.planRules.last?.a.libraryKey, "skincare")
-        // The added habit is what gets stored as a rule for both of us.
+        // The added habit is stored as my rule. The partner picks their own habits (nobody's are chosen for
+        // them), so they get none from my plan.
         let facts = d.makeRuleFacts(memberA: "a", now: Date())
         XCTAssertTrue(facts.rules.contains { $0.memberID == "a" && $0.libraryKey == "skincare" })
-        XCTAssertTrue(facts.rules.contains { $0.memberID == PendingPartner.id && $0.libraryKey == "skincare" })
+        XCTAssertFalse(facts.rules.contains { $0.memberID == PendingPartner.id })
+        // If they answered on my phone, their habits come from their own goals.
+        var withPartner = d
+        withPartner.partnerGoals = [.money]
+        withPartner.generatePartnerPlan()
+        let both = withPartner.makeRuleFacts(memberA: "a", now: Date())
+        XCTAssertTrue(both.rules.contains { $0.memberID == PendingPartner.id })
         // Never more than 6.
         while d.canAddRow { d.addRow(RuleIdea(title: "Extra \(d.planRules.count)", type: .honour, libraryKey: nil, photoHint: nil)) }
         XCTAssertEqual(d.planRules.count, Brand.maxRules)
