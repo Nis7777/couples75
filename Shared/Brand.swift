@@ -10,7 +10,7 @@ enum Brand {
     static let bundleID = "com.tomasbeja.pact"
     static let appGroup = "group.com.tomasbeja.pact"
     static let urlScheme = "pactapp"
-    static let supportEmail = "pactapp.support@gmail.com"
+    static let supportEmail = "pact.couples.app@gmail.com"
     /// Hosted with GitHub Pages from `docs/` (repo Nis7777/pact). See docs/APPLE_SETUP.md, step 0.
     static let websiteURL = URL(string: "https://nis7777.github.io/pact/")!
     static let termsURL = URL(string: "https://nis7777.github.io/pact/terms.html")!
