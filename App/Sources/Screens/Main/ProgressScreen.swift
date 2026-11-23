@@ -223,7 +223,7 @@ struct ProgressScreen: View {
                 .font(.app(20, .semibold))
                 .foregroundStyle(Color.textPrimary)
             if photos.isEmpty {
-                EmptyStateCard(text: "No proof photos yet. Snap your first check-in today.", height: 120)
+                EmptyStateCard(text: "No proof photos yet. Snap your first check-in today.", height: 120, art: "empty_proof")
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
@@ -375,14 +375,19 @@ struct FinishedChallengesCard: View {
 
     var body: some View {
         let done = model.finishedChallenges
-        if !done.isEmpty {
+        if done.isEmpty {
+            Button { model.tab = .challenges } label: {
+                EmptyStateCard(text: "No challenges finished yet. Pick one and finish it together ›", height: 130,
+                               art: "empty_challenges")
+            }
+            .buttonStyle(PressableStyle())
+        } else {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Challenges finished").font(.app(20, .semibold)).foregroundStyle(Color.textPrimary)
                 ForEach(done) { r in
                     let c = Challenges.challenge(r.challengeID)
                     HStack(spacing: 12) {
-                        CustomIcon(asset: c?.asset ?? "challenge_the75", symbol: c?.icon ?? "flame.fill", size: 38)
-                            .background(Circle().fill(Color.peach))
+                        CustomIcon(asset: c?.asset ?? "challenge_the75", symbol: c?.icon ?? "flame.fill", size: 38, circled: true)
                         VStack(alignment: .leading, spacing: 1) {
                             Text(c?.title ?? "The 75").font(.app(16, .semibold)).foregroundStyle(Color.textPrimary)
                             Text("\(r.length) days · \(r.endedAt?.formatted(date: .abbreviated, time: .omitted) ?? "")")

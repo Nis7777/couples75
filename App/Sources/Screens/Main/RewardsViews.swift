@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Progress → "Badges": earned ones in colour, the rest greyed out with what unlocks them.
 struct BadgesCard: View {
@@ -15,6 +16,16 @@ struct BadgesCard: View {
                 Text("\(badges.filter(\.earned).count) of \(badges.count)")
                     .font(.app(13, .semibold))
                     .foregroundStyle(Color.textSecondary)
+            }
+            if !badges.contains(where: \.earned), UIImage(named: "empty_badges") != nil {
+                Image("empty_badges").resizable().scaledToFit()
+                    .frame(height: 110)
+                    .frame(maxWidth: .infinity)
+                    .accessibilityHidden(true)
+                Text("Your first badge is one check-in away.")
+                    .font(.app(14, .medium))
+                    .foregroundStyle(Color.textSecondary)
+                    .frame(maxWidth: .infinity)
             }
             LazyVGrid(columns: columns, spacing: 12) {
                 ForEach(badges) { b in

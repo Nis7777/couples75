@@ -257,12 +257,20 @@ struct EmptyStateCard: View {
     @Environment(AppModel.self) private var model
     var text: String
     var height: CGFloat = 150
+    /// An illustration (docs/IMAGE_PROMPTS.md, section 8) instead of the two avatars, when it's in the assets.
+    var art: String? = nil
 
     var body: some View {
         VStack(spacing: 12) {
-            CoupleScene(left: model.sceneA, right: model.sceneBBuilt, crop: 0.56, overlap: -0.04)
-                .frame(height: height)
-                .accessibilityHidden(true)
+            Group {
+                if let art, UIImage(named: art) != nil {
+                    Image(art).resizable().scaledToFit()
+                } else {
+                    CoupleScene(left: model.sceneA, right: model.sceneBBuilt, crop: 0.56, overlap: -0.04)
+                }
+            }
+            .frame(height: height)
+            .accessibilityHidden(true)
             Text(text)
                 .font(.app(17, .semibold))
                 .foregroundStyle(Color.textPrimary)

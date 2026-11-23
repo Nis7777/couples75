@@ -41,8 +41,7 @@ struct Day75View: View {
                             .padding(.bottom, 4)
                         BadgeReveal(size: 120) {
                             if let c = challenge {
-                                CustomIcon(asset: c.asset, symbol: c.icon, size: 120)
-                                    .background(Circle().fill(Color.peach))
+                                CustomIcon(asset: c.asset, symbol: c.icon, size: 120, circled: true)
                             } else {
                                 RankBadge(rank: model.xp.rank, size: 120)
                             }

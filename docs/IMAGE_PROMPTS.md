@@ -3,10 +3,13 @@
 Every image below has a slot in the app already. Until a PNG is in the asset catalogue, the app shows an SF Symbol,
 so you can add them one at a time.
 
+**Status:** all 52 are in. The icons, badges and illustrations live in `App/Art.xcassets` (resized for their screen
+size); the app icon and the splash logo are in `Shared/Assets.xcassets`. To replace one, overwrite its PNG.
+
 ## How to add one
 
 1. Generate it with the prompt. Ask for a **transparent background, 1024 × 1024 PNG**.
-2. In Xcode, drag the PNG into `Shared/Assets.xcassets`.
+2. In Xcode, drag the PNG into `App/Art.xcassets`.
 3. Rename the image set to the exact **asset name** in the table, for example `rank_flame`.
 4. Run the app. Nothing else to change: `CustomIcon` / `RankBadge` / the tab bar pick it up by name.
 
@@ -125,7 +128,7 @@ Also update `LaunchLogo` (the splash) with the same flames on a transparent back
 
 ## 8. Optional: empty states (3 images)
 
-Wide 3:2 PNGs, transparent background. Not wired yet; tell Claude when they're in and they'll replace the busts.
+Wide 3:2 PNGs, transparent background. Used on Proof, Progress ("No challenges finished yet") and an empty Badges card.
 
 | Asset name | Prompt |
 |---|---|

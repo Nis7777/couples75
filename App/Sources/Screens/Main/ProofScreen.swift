@@ -103,7 +103,7 @@ struct ProofScreen: View {
     }
 
     private func emptyState(text: String) -> some View {
-        EmptyStateCard(text: text, height: 180)
+        EmptyStateCard(text: text, height: 180, art: "empty_proof")
     }
 
     // MARK: Mine

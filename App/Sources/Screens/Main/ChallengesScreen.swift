@@ -57,8 +57,7 @@ struct ChallengesScreen: View {
             let day = model.myToday?.dayNumber ?? 0
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 12) {
-                    CustomIcon(asset: c.asset, symbol: c.icon, size: 46)
-                        .background(Circle().fill(Color.peach))
+                    CustomIcon(asset: c.asset, symbol: c.icon, size: 46, circled: true)
                     VStack(alignment: .leading, spacing: 2) {
                         SmallLabel(text: "In progress")
                         Text(c.title).font(.app(20, .bold)).foregroundStyle(Color.textPrimary)
@@ -79,8 +78,7 @@ struct ChallengesScreen: View {
             .card(radius: 20)
         } else if let c = model.upcomingChallenge {
             HStack(spacing: 12) {
-                CustomIcon(asset: c.asset, symbol: c.icon, size: 46)
-                    .background(Circle().fill(Color.peach))
+                CustomIcon(asset: c.asset, symbol: c.icon, size: 46, circled: true)
                 VStack(alignment: .leading, spacing: 2) {
                     SmallLabel(text: "Starts tomorrow")
                     Text(c.title).font(.app(18, .bold)).foregroundStyle(Color.textPrimary)
@@ -195,8 +193,7 @@ struct ChallengeTile: View {
         } label: {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    CustomIcon(asset: challenge.asset, symbol: challenge.icon, size: 40)
-                        .background(Circle().fill(Color.peach))
+                    CustomIcon(asset: challenge.asset, symbol: challenge.icon, size: 40, circled: true)
                     Spacer()
                     if done > 0 {
                         Image(systemName: "checkmark.seal.fill")
@@ -253,8 +250,7 @@ struct ChallengeDetailSheet: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack(alignment: .center, spacing: 14) {
-                        CustomIcon(asset: challenge.asset, symbol: challenge.icon, size: 64)
-                            .background(Circle().fill(Color.peach))
+                        CustomIcon(asset: challenge.asset, symbol: challenge.icon, size: 64, circled: true)
                         VStack(alignment: .leading, spacing: 3) {
                             if let area = challenge.area { SmallLabel(text: area.title) } else { SmallLabel(text: "Signature") }
                             Text(challenge.title).font(.app(26, .bold)).foregroundStyle(Color.textPrimary)

@@ -29,15 +29,21 @@ struct CustomIcon: View {
     var symbol: String
     var size: CGFloat
     var color: Color = .coral
+    /// The symbol fallback sits on a peach circle (the custom art draws its own circle).
+    var circled = false
 
     var body: some View {
         if UIImage(named: asset) != nil {
-            Image(asset).resizable().scaledToFit().frame(width: size, height: size)
+            // The art has ~12% padding of its own: scale it up a little so it fills the same space as a symbol.
+            Image(asset).resizable().scaledToFit()
+                .scaleEffect(circled ? 1.18 : 1.1)
+                .frame(width: size, height: size)
         } else {
             Image(systemName: symbol)
-                .font(.system(size: size * 0.62, weight: .semibold))
+                .font(.system(size: size * (circled ? 0.5 : 0.62), weight: .semibold))
                 .foregroundStyle(color)
                 .frame(width: size, height: size)
+                .background(Circle().fill(circled ? Color.peach : Color.clear))
         }
     }
 }
