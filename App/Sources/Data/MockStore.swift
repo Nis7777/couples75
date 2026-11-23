@@ -133,18 +133,6 @@ final class MockStore: Store {
     func registerForChanges() async {}
 }
 
-enum InviteCodes {
-    static let alphabet = Array("ABCDEFGHJKLMNPQRSTUVWXYZ23456789")
-
-    static func generate() -> String {
-        String((0..<6).map { _ in alphabet.randomElement() ?? "A" })
-    }
-
-    static func normalize(_ s: String) -> String {
-        String(s.uppercased().filter { alphabet.contains($0) }.prefix(6))
-    }
-}
-
 /// Seed data for Mock mode.
 enum MockData {
     static let simulatedA = "mock-member-a"
