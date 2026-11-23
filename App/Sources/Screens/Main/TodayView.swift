@@ -186,6 +186,13 @@ struct TodayView: View {
                                 : "\(model.payerName)'s subscription ended. Your days stop counting until it's renewed. Either of you can subscribe.",
                                kind: .info)
         }
+        if model.deviceStorageLow {
+            return TodayBanner(id: "devicefull", icon: "externaldrive.badge.exclamationmark",
+                               text: "Your iPhone is almost full · photos may not save",
+                               title: "Your iPhone is almost full",
+                               detail: "\(Brand.appName) keeps your check-in photos on your iPhone. With so little space left, a photo might not save. Free up some space in Settings → General → iPhone Storage.",
+                               kind: .info)
+        }
         if model.myToday?.items.contains(where: { $0.state == .notSent }) == true {
             return TodayBanner(id: "notsent", icon: "icloud.and.arrow.up", text: "Not sent yet · connect to the internet",
                                title: "Not sent yet",

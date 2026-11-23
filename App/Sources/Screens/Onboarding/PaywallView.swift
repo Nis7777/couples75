@@ -84,11 +84,11 @@ struct PaywallView: View {
             ExitSheet(monthlyPrice: purchases.monthlyPrice ?? "…",
                       tryMonthly: {
                           showExit = false
-                          Task { await buy(purchases.monthly) }
+                          Task { await buy(.monthly) }
                       },
                       sevenDayTrial: {
                           showExit = false
-                          Task { await buy(purchases.yearly7) }
+                          Task { await buy(.yearly7) }
                       },
                       keepYearly: {
                           showExit = false
@@ -250,7 +250,7 @@ struct PaywallView: View {
             BottomActions {
                 PrimaryButton(primaryTitle, isEnabled: selectedProduct != nil,
                               isLoading: working || purchases.isPurchasing) {
-                    Task { await buy(selectedProduct) }
+                    Task { await buy(.selected) }
                 }
                 if case .onboarding = variant {
                     // An invited partner who started here by mistake: join free with the code instead of paying.
@@ -409,21 +409,41 @@ struct PaywallView: View {
 
     private var selectedProduct: Product? { yearlySelected ? purchases.yearly : purchases.monthly }
 
+    /// Which plan a button buys: the selected one, or the exit sheet's monthly / 7-day trial.
+    private enum Plan { case selected, monthly, yearly7 }
+
+    private func product(for plan: Plan) -> Product? {
+        switch plan {
+        case .selected: return selectedProduct
+        case .monthly: return purchases.monthly
+        case .yearly7: return purchases.yearly7
+        }
+    }
+
     private var primaryTitle: String {
         if yearlySelected && hasTrial { return "Start my free trial" }
         return "Subscribe"
     }
 
-    private func buy(_ product: Product?) async {
+    private func buy(_ plan: Plan) async {
         if isOnboarding && model.hasActiveSubscription {
             onPurchased()
             return
         }
-        guard let product else { return }
         working = true
         defer { working = false }
+        var item = product(for: plan)
+        if item == nil {
+            // Prices hadn't loaded (bad connection): try once more, then say what's wrong.
+            await purchases.loadProducts()
+            item = product(for: plan)
+        }
+        guard let item else {
+            model.errorMessage = "Couldn't reach the App Store. Check your internet connection and try again."
+            return
+        }
         do {
-            if try await purchases.purchase(product, memberID: model.meID) {
+            if try await purchases.purchase(item, memberID: model.meID) {
                 Haptics.success()
                 onPurchased()
             }

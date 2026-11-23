@@ -135,3 +135,10 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
 - [ ] Reactions, notes and nudges arrive both ways.
 - [ ] Delete Pact on one phone and reinstall it: the couple, habits and streak come back (old photos don't).
 - [ ] Profile → Delete my data on one phone: the other phone shows that their partner left.
+- [ ] Paywall × → exit offer: "Try monthly" and "7-day free trial" buy that plan; "Back to the plan" returns to
+      "Your next 90 days" with everything kept. In airplane mode, a plan button says it couldn't reach the App Store.
+- [ ] Close the app right after paying and reopen it: it continues to the invite, without charging again.
+- [ ] The invite picture (Send invite) shows the 6-letter code big. "Copy invite code" copies the code and link.
+- [ ] iPhone almost full (under 200 MB free): Today shows "Your iPhone is almost full · photos may not save".
+      Completely full: a photo check-in shows "Couldn't check in · Your iPhone is full…" on the camera.
+- [ ] Each of you uses your own Apple ID (two phones on the same Apple ID would look like the same person).

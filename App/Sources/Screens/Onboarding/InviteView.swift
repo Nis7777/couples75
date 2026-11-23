@@ -134,9 +134,10 @@ struct InviteCodeCard: View {
                 }
             } else {
                 HStack(spacing: 10) {
-                    ProgressView().tint(.coral)
+                    if model.makingInvite { ProgressView().tint(.coral) }
                     Button(model.makingInvite ? "Making your code…" : "Get a code") { Task { await model.ensureInvite() } }
                         .font(.app(15, .semibold))
+                        .disabled(model.makingInvite)
                 }
                 .frame(height: 44)
             }
@@ -195,7 +196,7 @@ struct InviteShareButton: View {
         let bRules = model.memberB.map { model.rules(for: $0.id) } ?? model.draftRulesForB
         let view = InviteCardView(inviter: model.sceneA, partner: model.sceneBBuilt, partnerName: model.nameB,
                                   inviterRules: aRules.map { $0.title }, partnerRules: bRules.map { $0.title },
-                                  bet: model.currentBet)
+                                  bet: model.currentBet, code: model.invite?.code)
         let renderer = ImageRenderer(content: view)
         renderer.scale = 3
         card = renderer.uiImage
@@ -211,6 +212,8 @@ struct InviteCardView: View {
     var inviterRules: [String]
     var partnerRules: [String]
     var bet: String
+    /// The invite code, big, so the picture alone is enough to join (some apps drop the message text).
+    var code: String? = nil
 
     var body: some View {
         VStack(spacing: 12) {
@@ -223,7 +226,7 @@ struct InviteCardView: View {
                 .foregroundStyle(Color.textPrimary)
                 .multilineTextAlignment(.center)
             CoupleScene(left: inviter, right: partner, crop: 0.6, overlap: 0)
-                .frame(height: 150)
+                .frame(height: code == nil ? 150 : 112)
                 .background(PeachPanelFill(radius: 18))
             HStack(alignment: .top, spacing: 12) {
                 column(inviter.name, inviterRules, .coral)
@@ -234,6 +237,17 @@ struct InviteCardView: View {
             HStack(spacing: 8) {
                 Image(systemName: bet.isEmpty ? "sparkles" : "trophy.fill").foregroundStyle(Color.gold)
                 Text(bet.isEmpty ? Brand.tagline : bet).font(.app(14, .bold)).foregroundStyle(Color.textPrimary)
+            }
+            if let code {
+                VStack(spacing: 2) {
+                    Text("Your code")
+                        .font(.app(12, .semibold))
+                        .foregroundStyle(Color.textSecondary)
+                    Text(code)
+                        .font(.app(30, .heavy))
+                        .tracking(6)
+                        .foregroundStyle(Color.textPrimary)
+                }
             }
             Text("Free for you: \(inviter.name)'s subscription covers you both.")
                 .font(.app(13, .semibold))

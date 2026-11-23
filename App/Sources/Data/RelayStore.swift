@@ -59,7 +59,9 @@ final class RelayStore: Store {
 
     func cachedFacts() -> Facts { state.facts }
 
-    private func persist() { LocalCache.write(state, to: Self.fileName) }
+    /// False when the iPhone is full (the data is still in memory, and in the cloud once sent).
+    @discardableResult
+    private func persist() -> Bool { LocalCache.write(state, to: Self.fileName) }
 
     // MARK: - Backup of the couple's key (survives reinstalls)
 
@@ -203,17 +205,25 @@ final class RelayStore: Store {
     }
 
     func save(_ records: [FactRecord]) async throws -> Facts {
+        // Photos first: if the iPhone is full, say so instead of sending a check-in without its photo.
         for r in records {
-            if case .checkIn(_, let photo) = r, let photo { LocalCache.savePhoto(photo, checkInID: r.id) }
-            if case .progressShare(_, let photo) = r, let photo { LocalCache.savePhoto(photo, checkInID: r.id) }
+            if case .checkIn(_, let photo) = r, let photo, !LocalCache.savePhoto(photo, checkInID: r.id) {
+                throw StoreError.deviceFull
+            }
+            if case .progressShare(_, let photo) = r, let photo, !LocalCache.savePhoto(photo, checkInID: r.id) {
+                throw StoreError.deviceFull
+            }
+        }
+        for r in records {
             state.facts.apply(r)
             enqueue("\(RelayCodec.typeName(r))|\(r.id)")
         }
-        persist()
+        let saved = persist()
         do {
             try await flush()
         } catch let e as StoreError {
-            if case .network = e { return state.facts }   // queued; retried on the next sync
+            // Offline and the iPhone is full: it's neither sent nor safely saved, so say so.
+            if case .network = e { if saved { return state.facts } else { throw StoreError.deviceFull } }
             throw e
         }
         return state.facts

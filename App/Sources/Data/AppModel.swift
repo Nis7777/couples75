@@ -220,6 +220,14 @@ final class AppModel {
     var curtain = false
     /// The error from the last failed save (e.g. iCloud full).
     var lastSaveError: StoreError?
+    /// Less than 200 MB free on this iPhone: photos might not save (Today shows a heads-up).
+    private(set) var deviceStorageLow = false
+
+    func checkDeviceStorage() {
+        let low = (LocalCache.freeSpace ?? .max) < 200_000_000
+        if low != deviceStorageLow { deviceStorageLow = low }
+    }
+
     /// Why setting up the couple after paying failed (the paywall's Try again screen).
     var lastSetupError: StoreError?
     /// An invite is being made right now (no second attempt in parallel).
@@ -371,6 +379,7 @@ final class AppModel {
         }
         purchases.start()
         isBootstrapped = true
+        checkDeviceStorage()
         recompute()
         await refresh()
         startTimer()
@@ -417,6 +426,7 @@ final class AppModel {
             Task { @MainActor in
                 guard let self else { return }
                 self.clockTick = Date()
+                self.checkDeviceStorage()
                 self.recompute()
                 if Date().timeIntervalSince(self.lastFetch) > 300 { await self.refresh() }
             }

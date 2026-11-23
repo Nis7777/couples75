@@ -28,11 +28,12 @@ enum LocalCache {
         return try? decoder.decode(T.self, from: data)
     }
 
-    static func write<T: Encodable>(_ value: T, to name: String) {
+    /// Returns false when it couldn't be written (usually: the iPhone is full).
+    @discardableResult
+    static func write<T: Encodable>(_ value: T, to name: String) -> Bool {
         let url = directory.appendingPathComponent(name)
-        if let data = try? encoder.encode(value) {
-            try? data.write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
-        }
+        guard let data = try? encoder.encode(value) else { return false }
+        return (try? data.write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])) != nil
     }
 
     static func delete(_ name: String) {
@@ -43,8 +44,17 @@ enum LocalCache {
         photosDirectory.appendingPathComponent("\(checkInID).jpg")
     }
 
-    static func savePhoto(_ data: Data, checkInID: String) {
-        try? data.write(to: photoURL(checkInID), options: .atomic)
+    /// Returns false when it couldn't be saved (usually: the iPhone is full).
+    @discardableResult
+    static func savePhoto(_ data: Data, checkInID: String) -> Bool {
+        (try? data.write(to: photoURL(checkInID), options: .atomic)) != nil
+    }
+
+    /// Free space for things the user cares about (nil if unknown).
+    static var freeSpace: Int64? {
+        let values = try? URL(fileURLWithPath: NSHomeDirectory())
+            .resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
+        return values?.volumeAvailableCapacityForImportantUsage
     }
 
     static func photo(_ checkInID: String) -> Data? {

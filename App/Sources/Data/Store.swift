@@ -18,6 +18,8 @@ enum StoreError: LocalizedError, Equatable {
     case coupleFull
     case notAuthenticated
     case participantNeedsVerification
+    /// The iPhone has no space left to save it.
+    case deviceFull
     case network
     case noCouple
     case other(String)
@@ -27,6 +29,8 @@ enum StoreError: LocalizedError, Equatable {
         case .codeNotFound: return "We couldn't find that code. Check the 6 letters and try again."
         case .coupleFull: return "This couple is already full."
         case .notAuthenticated: return "You're signed out of iCloud. Turn on iCloud in Settings to keep syncing."
+        case .deviceFull:
+            return "Your iPhone is full, so this couldn't be saved. Free up some space (Settings → General → iPhone Storage) and try again."
         case .participantNeedsVerification:
             return "iCloud needs to verify your account before you can join. Open the link in Messages or Mail and try again."
         case .network: return "You're offline. We'll send it as soon as you're connected."

@@ -14,6 +14,8 @@ struct CheckInCameraView: View {
     @State private var captured: UIImage?
     @State private var sending = false
     @State private var showNoPhoto = false
+    /// Why sending failed, shown on the camera (the app-wide alert can't appear over a full-screen camera).
+    @State private var sendError: String?
 
     /// No usable camera (Simulator, or access denied).
     private var cameraMissing: Bool { AppEnvironment.isSimulator || !camera.isAvailable }
@@ -79,6 +81,11 @@ struct CheckInCameraView: View {
             await camera.start()
         }
         .onDisappear { camera.stop() }
+        .alert("Couldn't check in", isPresented: Binding(get: { sendError != nil }, set: { if !$0 { sendError = nil } })) {
+            Button("OK", role: .cancel) { sendError = nil }
+        } message: {
+            Text(sendError ?? "")
+        }
         .sheet(isPresented: $showNoPhoto, onDismiss: {
             if model.myToday?.items.first(where: { $0.rule.id == rule.id })?.isChecked == true { dismiss() }
         }) {
@@ -195,12 +202,20 @@ struct CheckInCameraView: View {
     }
 
     private func send() async {
-        guard let captured, let data = ImageTools.prepareCheckInPhoto(captured, stamp: stamp) else { return }
+        guard let captured, let data = ImageTools.prepareCheckInPhoto(captured, stamp: stamp) else {
+            sendError = "Couldn't prepare the photo. Take it again."
+            return
+        }
         sending = true
         let ok = await model.checkIn(rule: rule, photo: data)
         sending = false
-        // iCloud full: the check-in is kept on the phone and retried, so `ok` is true and Today explains it.
-        if ok { dismiss() }
+        // Offline: the check-in is kept on the phone and sent later, so `ok` is true.
+        if ok {
+            dismiss()
+        } else {
+            sendError = model.errorMessage ?? "Something went wrong. Try again."
+            model.errorMessage = nil
+        }
     }
 }
 
