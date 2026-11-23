@@ -5,7 +5,9 @@ struct OnboardingDraft: Codable, Equatable {
     enum Step: String, Codable, CaseIterable {
         case hook, character, names, partnerIPhone, togetherNow, handOff, partnerAvatar, partnerFitness, partnerWake,
              handBack, together, longDistance, goals, personal, fitness, wakeUp, quit, mirror, level, building, planReveal,
-             stakes  // no longer shown: daily habits have no stakes (bets come with challenges)
+             stakes,  // no longer shown: daily habits have no stakes (bets come with challenges)
+             // Between the plan review and the paywall: sign, score, the 90-day plan + FAQ, reviews, notifications.
+             signPact, coupleScore, ninetyDays, socialProof, notifySetup
         // Without a step counter (the paywall has its own pages: outcome, trial, plans):
         case paywall, invite, notifications, android
     }
@@ -52,7 +54,8 @@ struct OnboardingDraft: Codable, Equatable {
     /// Steps that show "Step X of N" (paywall, invite, notifications and Android are outside the count).
     static let countedSteps: [Step] = [.hook, .character, .names, .partnerIPhone, .togetherNow,
                                        .together, .longDistance, .goals, .personal,
-                                       .fitness, .wakeUp, .quit, .mirror, .level, .building, .planReveal]
+                                       .fitness, .wakeUp, .quit, .mirror, .level, .building, .planReveal,
+                                       .signPact, .coupleScore, .ninetyDays, .socialProof, .notifySetup]
 
     /// The counted steps. Branch-only steps (handing the phone to the partner and B's answers there,
     /// the Android waitlist) never count and show no counter, so the total never jumps mid-flow.
@@ -112,6 +115,26 @@ struct OnboardingDraft: Codable, Equatable {
         let id = planRules[index].id
         planRules.remove(at: index)
         ruleChanges.removeAll { $0.rowID == id }
+    }
+
+    /// "+ Add a habit" on the 90-day plan: a new row for both partners (each at their own intensity), up to 6.
+    var canAddRow: Bool { planRules.count < Brand.maxRules }
+
+    mutating func addRow(_ idea: RuleIdea) {
+        guard canAddRow else { return }
+        var row = PlanRuleRow(id: .newID(), reason: "You added this", a: idea, b: idea)
+        if let key = idea.libraryKey {
+            row.a = RuleIdea.library(key, intensity: myIntensity) ?? idea
+            row.b = RuleIdea.library(key, intensity: partnerIntensity) ?? idea
+        }
+        planRules.append(row)
+    }
+
+    /// Why a row can't be removed (nil when it can).
+    func removeProblem(_ index: Int) -> String? {
+        if planRules.count <= Brand.minRules { return "Keep at least \(Brand.minRules) habits each." }
+        if !canRemove(index) { return "Keep at least \(Brand.minPhotoRules) photo habits each." }
+        return nil
     }
 
     /// "Swap" while trimming: replaces the row for both partners directly (each at their own intensity).

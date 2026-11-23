@@ -304,10 +304,11 @@ struct PaywallView: View {
     private func planCard(yearly: Bool) -> some View {
         let selected = yearlySelected == yearly
         let trial = purchases.trialDays(purchases.yearly)
+        // "€3.33/mo" big, then "billed €39.99 yearly" (after the free days, when there's a trial).
         let yearlyLine: String = {
             let price = purchases.yearlyPrice ?? "…"
-            if let trial { return "\(price)/year after \(trial) free days" }
-            return "\(price)/year"
+            if let trial { return "billed \(price) yearly after \(trial) free days" }
+            return "billed \(price) yearly"
         }()
         return Button {
             Haptics.tap()
@@ -318,16 +319,19 @@ struct PaywallView: View {
                     .font(.app(26, .bold))
                     .foregroundStyle(Color.textPrimary)
                 if yearly {
-                    if let weekly = purchases.weeklyPrice {
-                        Pill(text: "BEST VALUE · \(weekly)/week", fill: .gold, size: 15)
-                            .frame(maxWidth: .infinity)
-                    }
-                    Text(yearlyLine)
-                        .font(.app(17, .semibold))
+                    Pill(text: purchases.yearlySavingsPercent.map { "BEST VALUE · SAVE \($0)%" } ?? "BEST VALUE",
+                         fill: .gold, size: 15)
+                        .frame(maxWidth: .infinity)
+                    Text("\(purchases.yearlyPerMonth ?? "…")/mo")
+                        .font(.app(26, .bold))
                         .foregroundStyle(Color.textPrimary)
                         .frame(maxWidth: .infinity)
+                    Text(yearlyLine)
+                        .font(.app(15, .medium))
+                        .foregroundStyle(Color.textSecondary)
+                        .frame(maxWidth: .infinity)
                 } else {
-                    Text("\(purchases.monthlyPrice ?? "…")/month")
+                    Text("\(purchases.monthlyPrice ?? "…")/mo")
                         .font(.app(20, .bold))
                         .foregroundStyle(Color.textPrimary)
                 }

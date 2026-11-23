@@ -78,13 +78,14 @@ struct DraftRuleSwapSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
     var index: Int
+    var title = "Swap a rule"
     @State private var who = 0
 
     var body: some View {
         let d = model.draft
         let row = d.planRows.first { $0.index == index }
         RuleChangeSheet(
-            title: "Swap a rule",
+            title: title,
             currentTitle: row?.left,
             who: $who,
             suggestions: d.suggestions(intensity: d.myIntensity, extra: d.personalIdeas),

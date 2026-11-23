@@ -68,13 +68,20 @@ struct OnboardingFlow: View {
             // The plan is generated ONCE here and stored in the draft (one source of truth).
             BuildingPlanView(next: { go(.planReveal) })
                 .onAppear { model.draft.generatePlan() }
-        case .planReveal: PlanRevealView(next: { go(.paywall) }, back: { go(.level, forward: false) })
-        // Old drafts saved on the stakes step go straight on to the paywall.
-        case .stakes: PaywallAView(onClose: { go(.planReveal, forward: false) }, onDone: { go(.invite) })
+        case .planReveal: PlanRevealView(next: { go(.signPact) }, back: { go(.level, forward: false) })
+        // Between the plan review and the paywall.
+        case .signPact: SignPactView(next: { go(.coupleScore) }, back: back)
+        case .coupleScore: CoupleScoreView(next: { go(.ninetyDays) }, back: back)
+        case .ninetyDays: NinetyDayPlanView(next: { go(.socialProof) }, back: back)
+        case .socialProof: SocialProofView(next: { go(.notifySetup) }, back: back)
+        case .notifySetup: NotificationSetupView(next: { go(.paywall) }, back: back)
+        // Old drafts saved on the removed stakes step continue at the sign step.
+        case .stakes: SignPactView(next: { go(.coupleScore) }, back: { go(.planReveal, forward: false) })
         // × on any paywall page opens the exit sheet; closing the paywall goes back to the plan, never into the app.
-        case .paywall: PaywallAView(onClose: { go(.planReveal, forward: false) }, onDone: { go(.invite) })
-        case .invite: InviteView(next: { go(.notifications) })
-        case .notifications: NotificationPrimingView(next: { model.finishOnboarding() })
+        case .paywall: PaywallAView(onClose: { go(.ninetyDays, forward: false) }, onDone: { go(.invite) })
+        // Notifications are asked before the paywall now; the invite is the last step.
+        case .invite: InviteView(next: { model.finishOnboarding() })
+        case .notifications: InviteView(next: { model.finishOnboarding() })
         case .android: AndroidWaitlistView(done: { go(.hook, forward: false) }, back: { go(.partnerIPhone, forward: false) })
         }
     }

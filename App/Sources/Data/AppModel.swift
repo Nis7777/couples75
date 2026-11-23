@@ -113,6 +113,25 @@ enum Prefs {
     static let healthProofKey = "healthProofOn"
     static let liveActivityKey = "liveActivityOn"
 
+    /// Notification choices (onboarding "Know when your partner checks in", and Profile). All on by default.
+    static let partnerCheckInNotifsKey = "notifyPartnerCheckIns"
+    static let dailyReminderKey = "notifyDailyReminder"
+    static let weeklyRecapKey = "notifyWeeklyRecap"
+
+    static var partnerCheckInNotifsOn: Bool {
+        get { UserDefaults.standard.object(forKey: partnerCheckInNotifsKey) as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: partnerCheckInNotifsKey) }
+    }
+    /// The daily reminder at the wake-up time.
+    static var dailyReminderOn: Bool {
+        get { UserDefaults.standard.object(forKey: dailyReminderKey) as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: dailyReminderKey) }
+    }
+    static var weeklyRecapOn: Bool {
+        get { UserDefaults.standard.object(forKey: weeklyRecapKey) as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: weeklyRecapKey) }
+    }
+
     /// The evening Lock Screen progress (Live Activity). On by default.
     static var liveActivityOn: Bool {
         get { UserDefaults.standard.object(forKey: liveActivityKey) as? Bool ?? true }
@@ -138,7 +157,8 @@ enum Prefs {
 
     static func wipe() {
         for k in [eveningWarningKey, onboardingDoneKey, seenCodeEntryKey, draftKey, joinDraftKey, invitePaidAtKey,
-                  shareProgressKey, healthProofKey, liveActivityKey] {
+                  shareProgressKey, healthProofKey, liveActivityKey, partnerCheckInNotifsKey, dailyReminderKey,
+                  weeklyRecapKey] {
             UserDefaults.standard.removeObject(forKey: k)
         }
     }

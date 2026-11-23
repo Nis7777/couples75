@@ -16,6 +16,9 @@ struct ProfileView: View {
     @State private var healthOn = Prefs.healthProofOn
     @State private var liveOn = Prefs.liveActivityOn
     @State private var eveningOn = Prefs.eveningWarningOn
+    @State private var partnerNotifsOn = Prefs.partnerCheckInNotifsOn
+    @State private var dailyOn = Prefs.dailyReminderOn
+    @State private var recapOn = Prefs.weeklyRecapOn
     @State private var notificationsDenied = false
 
     private var round: RoundState? { model.currentRound }
@@ -78,6 +81,9 @@ struct ProfileView: View {
                     .frame(minHeight: 58)
                     .card(radius: 16, shadow: false)
                     .onChange(of: eveningOn) { _, on in Task { await model.setEveningWarning(on) } }
+                    notifToggle("Partner checked in", isOn: $partnerNotifsOn) { Prefs.partnerCheckInNotifsOn = $0 }
+                    notifToggle("Daily reminder (wake-up time)", isOn: $dailyOn) { Prefs.dailyReminderOn = $0 }
+                    notifToggle("Weekly recap", isOn: $recapOn) { Prefs.weeklyRecapOn = $0 }
                     if notificationsDenied {
                         // The user said no to the iOS prompt: offer a way back in Settings.
                         Button {
@@ -212,6 +218,23 @@ struct ProfileView: View {
     /// Settings rows as separate white cards.
     private func section<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
         VStack(spacing: 10) { content() }
+    }
+
+    /// A notification switch: saves the choice and reschedules the reminders.
+    private func notifToggle(_ title: String, isOn: Binding<Bool>, save: @escaping (Bool) -> Void) -> some View {
+        Toggle(isOn: isOn) {
+            Text(title)
+                .font(.app(17, .medium))
+                .foregroundStyle(Color.textPrimary)
+        }
+        .tint(.coral)
+        .padding(.horizontal, 18)
+        .frame(minHeight: 58)
+        .card(radius: 16, shadow: false)
+        .onChange(of: isOn.wrappedValue) { _, on in
+            save(on)
+            Task { await NotificationManager.shared.reschedule(model: model) }
+        }
     }
 
     private func row(_ title: String, value: String? = nil, chevron: Bool = false) -> some View {

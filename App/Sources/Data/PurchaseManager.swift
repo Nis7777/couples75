@@ -36,6 +36,20 @@ final class PurchaseManager {
     var monthlyPrice: String? { monthly?.displayPrice }
 
     /// Yearly price ÷ 52, localized ("0,77 €").
+    /// The yearly price as a per-month price ("€3.33"), for "€3.33/mo, billed €39.99 yearly".
+    var yearlyPerMonth: String? {
+        guard let y = yearly else { return nil }
+        return (y.price / 12).formatted(y.priceFormatStyle)
+    }
+
+    /// How much cheaper yearly is than 12 months of monthly, in whole percent (58 for 39.99 vs 7.99).
+    var yearlySavingsPercent: Int? {
+        guard let y = yearly, let m = monthly, m.price > 0 else { return nil }
+        let ratio = NSDecimalNumber(decimal: y.price / (m.price * 12)).doubleValue
+        let pct = Int(((1 - ratio) * 100).rounded(.down))
+        return pct > 0 ? pct : nil
+    }
+
     var weeklyPrice: String? {
         guard let y = yearly else { return nil }
         return (y.price / 52).formatted(y.priceFormatStyle)

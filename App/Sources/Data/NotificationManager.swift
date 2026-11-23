@@ -79,8 +79,8 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         let today = model.myToday
         let ruleCount = today?.items.count ?? 4
 
-        // Wake-up reminder: today (if still ahead) and tomorrow.
-        for offset in 0...1 {
+        // Wake-up reminder ("Daily reminder"): today (if still ahead) and tomorrow.
+        for offset in 0...1 where Prefs.dailyReminderOn {
             guard let day = cal.date(byAdding: .day, value: offset, to: now) else { continue }
             let fire = ClockTime.date(from: me.wakeTime, on: day)
             guard fire > now else { continue }
@@ -129,7 +129,7 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         }
 
         // Weekly recap: Monday 09:00 local.
-        if model.partner?.joinedAt != nil {
+        if model.partner?.joinedAt != nil, Prefs.weeklyRecapOn {
             var comps = DateComponents()
             comps.weekday = 2
             comps.hour = 9
@@ -185,7 +185,8 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         func ruleTitle(_ id: String) -> String { newFacts.rules.first { $0.id == id }?.title ?? "a rule" }
 
         let oldCheckIns = Set(oldFacts.checkIns.map { $0.id })
-        for c in newFacts.checkIns where !oldCheckIns.contains(c.id) && c.memberID == partner.id {
+        for c in newFacts.checkIns where Prefs.partnerCheckInNotifsOn && !oldCheckIns.contains(c.id)
+            && c.memberID == partner.id {
             post("\(name) finished \(ruleTitle(c.ruleID)). React?", route: "checkin:\(c.id)")
         }
 

@@ -92,6 +92,34 @@ enum RuleLibrary {
 
     static func rule(_ key: String) -> LibraryRule? { all.first { $0.key == key } }
 
+    /// An SF Symbol for a habit row (custom habits: camera or hand, by type).
+    static func icon(for key: String?, type: RuleType) -> String {
+        switch key ?? "" {
+        case "workout": return "dumbbell.fill"
+        case "water": return "drop.fill"
+        case "reading": return "book.fill"
+        case "coldShower": return "shower.fill"
+        case "steps": return "figure.walk"
+        case "noSugar": return "birthday.cake"
+        case "noAlcohol": return "wineglass"
+        case "noPhoneInBed", "noSocialNight", "lessSocial": return "iphone.slash"
+        case "noJunk": return "takeoutbag.and.cup.and.straw"
+        case "bedtime", "sleep23": return "moon.zzz.fill"
+        case "noTakeaway", "noSpend": return "creditcard.fill"
+        case "saveMoney": return "banknote.fill"
+        case "language": return "character.bubble"
+        case "meditate": return "brain.head.profile"
+        case "instrument": return "music.note"
+        case "cookAtHome", "protein": return "fork.knife"
+        case "journal": return "pencil.line"
+        case "stretch", "posture": return "figure.cooldown"
+        case "study", "skill": return "graduationcap.fill"
+        case "skincare": return "sparkles"
+        case "progressPic": return "camera.fill"
+        default: return type == .photo ? "camera.fill" : "hand.raised.fill"
+        }
+    }
+
     static func photoPrompt(for libraryKey: String) -> String {
         rule(libraryKey)?.photoPrompt ?? "Snap something that proves it. Never your body."
     }
