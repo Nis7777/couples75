@@ -71,8 +71,9 @@ struct CoupleBusts: View {
                     .frame(height: h * 0.9)
                     .zIndex(1)
                 if let right {
+                    // Same height as the left bust: the two of you are always the same size.
                     CharacterView(avatar: right.avatar, pose: .bust)
-                        .frame(height: h)
+                        .frame(height: h * 0.9)
                 } else {
                     // Same canvas and silhouette as an avatar bust, so it sits exactly where the partner will.
                     Image("partner_outline_bust")
