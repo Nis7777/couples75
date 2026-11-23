@@ -290,11 +290,11 @@ struct BustCircle: View {
                     .frame(width: size * 0.86)
                     .offset(y: size * 0.12)
             } else {
-                Image("partner_outline")
+                Image("partner_outline_bust")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: size * 0.74)
-                    .offset(y: size * 0.48)
+                    .frame(width: size * 0.86)
+                    .offset(y: size * 0.12)
             }
         }
         .frame(width: size, height: size)

@@ -44,11 +44,9 @@ struct SplashView: View {
                                 CharacterView(avatar: partner, pose: .bust)
                                     .frame(height: 150)
                             } else {
-                                Image("partner_outline")
+                                Image("partner_outline_bust")
                                     .resizable().scaledToFit()
-                                    .frame(height: 240, alignment: .top)
-                                    .frame(height: 150, alignment: .top)
-                                    .clipped()
+                                    .frame(height: 150)
                             }
                         }
                         .offset(x: avatarsIn ? 0 : offscreen)

@@ -29,15 +29,7 @@ struct NamesView: View {
                     }
                     nameCard(label: "Partner", text: $model.draft.partnerName, field: .partner,
                              hint: "Picks their character later") {
-                        ZStack {
-                            Circle().fill(Color.white)
-                            Image("partner_outline")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 70)
-                                .offset(y: 46)
-                        }
-                        .frame(width: 96, height: 96)
+                        BustCircle(avatar: nil, size: 96, fill: Color.white)
                         .clipShape(Circle())
                         .overlay(Circle().stroke(Color.textSecondary.opacity(0.55),
                                                  style: StrokeStyle(lineWidth: 1.5, dash: [5, 4])))
