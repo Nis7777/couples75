@@ -41,26 +41,26 @@ badges, the flame, goal chips, the app icon) with its asset name; each falls bac
 
 ---
 
-You are building a native iOS app, ready for the App Store, in **Swift + SwiftUI**. It is **Couples 75**: a couple does a 75-day challenge together. Each partner has 4 to 6 daily rules, proves them to the other with live photos or an evening honour tap, and the couple shares 3 "saves" that cover missed days. Whoever misses more owes a real-life bet (for example "Loser plans the date"). **One subscription covers both partners** (39,99 € / $39.99 a year with a 3-day free trial, or 7,99 € / $7.99 a month): the person who starts pays, then invites their partner, who joins free. iPhone only. Work autonomously. Make reasonable decisions without asking me, and stop only if something needs my Apple Developer account. **There is no backend server**: the two phones share data through Apple's **CloudKit** (iCloud), and every game result is computed on the phone from shared facts (section 6).
+You are building a native iOS app, ready for the App Store, in **Swift + SwiftUI**. It is **Pact**: a couple does a 75-day challenge together. Each partner has 4 to 6 daily rules, proves them to the other with live photos or an evening honour tap, and the couple shares 3 "saves" that cover missed days. Whoever misses more owes a real-life bet (for example "Loser plans the date"). **One subscription covers both partners** (39,99 € / $39.99 a year with a 3-day free trial, or 7,99 € / $7.99 a month): the person who starts pays, then invites their partner, who joins free. iPhone only. Work autonomously. Make reasonable decisions without asking me, and stop only if something needs my Apple Developer account. **There is no backend server**: the two phones share data through Apple's **CloudKit** (iCloud), and every game result is computed on the phone from shared facts (section 6).
 
 **Visual reference:** the folder `reference/` holds 32 mockups (`01_hook.jpg` … `30_partner_iphone.jpg`, plus `overview.jpg`). Use them for **colours, layout, illustration style, spacing and mood**. They are AI-generated at 720×1280 (9:16), so some look squashed or cropped. Build every screen properly for real iPhone sizes (iPhone SE up to Pro Max) and never copy their proportions pixel for pixel. **The mockups contain outdated copy and rules. This prompt is the source of truth. Wherever a mockup and this prompt disagree, this prompt wins.** Ignore `reference/README.txt` where it conflicts with this prompt. Section 4 lists every screen with the exact corrections.
 
 ## CONFIG (keep these in one `Brand.swift` file and use them everywhere)
 
 ```
-APP_NAME             = "Pact"                  // working name (was "Couples 75"); never "75 Hard"
+APP_NAME             = "Pact"                  // formerly "Couples 75"; never "75 Hard"
 TAGLINE              = "Level up as a couple."
-BUNDLE_ID            = "com.dinismagina.couples75"
-APP_GROUP            = "group.com.dinismagina.couples75"
-URL_SCHEME           = "couples75"
+BUNDLE_ID            = "com.dinismagina.pact"
+APP_GROUP            = "group.com.dinismagina.pact"
+URL_SCHEME           = "pactapp"
 SUPPORT_EMAIL        = "nismagina@gmail.com"
 TERMS_URL            = "https://example.com/terms"
 PRIVACY_URL          = "https://example.com/privacy"
-CLOUDKIT_CONTAINER   = "iCloud.com.dinismagina.couples75"
+CLOUDKIT_CONTAINER   = "iCloud.com.dinismagina.pact"
 CHECKIN_UPLOAD_WINDOW_H = 6                     // a check-in must reach iCloud within 6 h of being taken
-IAP_YEARLY           = "com.dinismagina.couples75.yearly"    // 39,99 € / $39.99 a year, 3-day free trial (covers both partners)
-IAP_YEARLY7          = "com.dinismagina.couples75.yearly7"   // same price, 7-day free trial (offered only on the exit sheet)
-IAP_MONTHLY          = "com.dinismagina.couples75.monthly"   // 7,99 € / $7.99 a month, no trial
+IAP_YEARLY           = "com.dinismagina.pact.yearly"    // 39,99 € / $39.99 a year, 3-day free trial (covers both partners)
+IAP_YEARLY7          = "com.dinismagina.pact.yearly7"   // same price, 7-day free trial (offered only on the exit sheet)
+IAP_MONTHLY          = "com.dinismagina.pact.monthly"   // 7,99 € / $7.99 a month, no trial
 SAVES_PER_ROUND      = 3
 ROUND_LENGTH_DAYS    = 75
 MAX_PAUSE_DAYS       = 3
@@ -75,17 +75,17 @@ In **DEBUG builds only**, the Simulator, the launch argument `-mock`, the unit t
 
 ## 0. Project setup (do this first)
 
-- Commit a complete `Couples75.xcodeproj` (objectVersion 77, `PBXFileSystemSynchronizedRootGroup` folders, so every file in `App/`, `Shared/`, `Widgets/` and `Tests/` is included automatically) with a shared scheme **Couples75** that uses `Config/Products.storekit` on Run. No XcodeGen or scripts are needed to open and run it.
+- Commit a complete `Pact.xcodeproj` (objectVersion 77, `PBXFileSystemSynchronizedRootGroup` folders, so every file in `App/`, `Shared/`, `Widgets/` and `Tests/` is included automatically) with a shared scheme **Pact** that uses `Config/Products.storekit` on Run. No XcodeGen or scripts are needed to open and run it.
 - Targets:
-  1. `Couples75`: the main SwiftUI app.
+  1. `Pact`: the main SwiftUI app.
   2. `Widgets`: a WidgetKit extension (home, interactive and Lock Screen widgets plus the Live Activity, section 4.10).
-  3. `Couples75Tests`: XCTest unit tests.
-  4. `Couples75Watch`: a watchOS 10 app (section 4.15), embedded in the iPhone app. Sources in `Watch/`; the payload type shared with the iPhone lives in `WatchShared/` (compiled into both).
+  3. `PactTests`: XCTest unit tests.
+  4. `PactWatch`: a watchOS 10 app (section 4.15), embedded in the iPhone app. Sources in `Watch/`; the payload type shared with the iPhone lives in `WatchShared/` (compiled into both).
   - Both share the App Group `APP_GROUP`. The app writes a small `WidgetSnapshot` JSON there; the widget only reads it.
 - Capabilities on `App`: iCloud with **CloudKit** (container `CLOUDKIT_CONTAINER`), Push Notifications, App Groups, Background Modes (remote notifications, background fetch), **HealthKit** (read only), Live Activities (`NSSupportsLiveActivities`). Add `CKSharingSupported = YES` to Info.plist so iCloud share links open the app. No Sign in with Apple: the user's iCloud account is their identity.
 - **No third-party packages at all.** Apple frameworks only: SwiftUI, CloudKit, StoreKit (StoreKit 2), AVFoundation, WidgetKit, UserNotifications, BackgroundTasks, HealthKit, ActivityKit, AppIntents, WatchConnectivity.
 - **English only.** No translations and no other languages anywhere. (The StoreKit test storefront is only there so prices show in euros.)
-- Add a **StoreKit Configuration file** `Products.storekit` with the three subscriptions in one subscription group "Couples 75" (storefront Portugal, EUR): yearly 39,99 € with a 3-day free-trial introductory offer, yearly7 39,99 € with a 7-day free trial, monthly 7,99 € with no introductory offer. Set it on the Run scheme so purchases work in the Simulator.
+- Add a **StoreKit Configuration file** `Products.storekit` with the three subscriptions in one subscription group "Pact" (storefront Portugal, EUR): yearly 39,99 € with a 3-day free-trial introductory offer, yearly7 39,99 € with a 7-day free trial, monthly 7,99 € with no introductory offer. Set it on the Run scheme so purchases work in the Simulator.
 - Art: every PNG from `ArtSource/` is an image set in `Shared/Assets.xcassets` (shared by the app and the widget) named after the file; `AppIcon.png` (1024×1024, no alpha) is the single-size App Icon. Avatar recolouring layers (section 1.3) live in `ArtSource/masks/`, with the stand and bust poses in `Shared/Assets.xcassets` and the other poses in `App/Masks.xcassets`.
 - Font: bundle **Outfit** (OFL, google/fonts `ofl/outfit`) as static weights in `Shared/Fonts/` and register them with `UIAppFonts` in both Info.plists.
 - Write a `README.md` with: build-and-run steps, how to set up the CloudKit container and deploy the schema to Production in the CloudKit Console, how to create the three subscriptions (and their free-trial offers) in App Store Connect, how to test sharing between two Apple IDs on two devices, and how to use Mock mode.
@@ -141,14 +141,14 @@ The mockups always show the same two people, "Maya" and "Joao". In the real app 
 - A **couple** has exactly 2 members: A (creator) and B (joined by invite). One subscription (whoever bought it) covers both.
 - A **round** is one 75-day attempt. Fields: `mode` (`standard` with `SAVES_PER_ROUND` saves, or `hard` with 0 saves), `status` (`waiting`, `active`, `completed`, `failed`, `abandoned`), per-member start date, per-member miss count, saves used, the bet, pause used (bool).
 - Each member has **4 to 6 rules** for the round. Each rule has a `type`: `photo` (proved by an in-app live photo) or `honour` (proved by an evening tap "I stuck to it today"). Every member has at least 2 photo rules. Intensity can differ per member (Maya "45 min workout", Joao "20 min walk").
-- Rule titles use the short format **"Name: amount"** so they fit on Today (they may wrap to 2 lines, never cut off). Rule library (seed it; use these titles exactly), Gentle / Couples 75 / Hard:
+- Rule titles use the short format **"Name: amount"** so they fit on Today (they may wrap to 2 lines, never cut off). Rule library (seed it; use these titles exactly), Gentle / Pact / Hard:
   - Workout (photo): "Walk: 20 min" / "Workout: 45 min" / "Workout: 2 × 45 min"
   - Water (photo): "Water: 2L" / "Water: 3L" / "Water: 4L"
   - Reading (photo): "Read: 5 pages" / "Read: 10 pages" / "Read: 20 pages"
   - Cold shower (photo): "Cold shower" (all levels)
   - Steps (photo): "Steps: 6k" / "Steps: 8k" / "Steps: 10k"
   - No sugar, No alcohol, No phone in bed, No junk food, Bed by 23:30, No takeaway spending (all honour)
-  - Personal rules (Gentle **10 min**, Couples 75 **15 min**, Hard mode **30 min**, set by the level): Learn a language "Language: 10/15/30 min" (photo); Meditate "Meditate: 10/15/30 min" (honour); Practise an instrument "Instrument: …" (photo); Journal "Journal: …" (photo); Stretch "Stretch: …" (photo); Study "Study: …" (photo); Less social media "Social media: max 1h / 45 min / 30 min" (photo, Screen Time); Cook at home "Cook one meal" (photo). Read more = Reading, Save money = No takeaway spending.
+  - Personal rules (Gentle **10 min**, Pact **15 min**, Hard mode **30 min**, set by the level): Learn a language "Language: 10/15/30 min" (photo); Meditate "Meditate: 10/15/30 min" (honour); Practise an instrument "Instrument: …" (photo); Journal "Journal: …" (photo); Stretch "Stretch: …" (photo); Study "Study: …" (photo); Less social media "Social media: max 1h / 45 min / 30 min" (photo, Screen Time); Cook at home "Cook one meal" (photo). Read more = Reading, Save money = No takeaway spending.
   - **Typed personal goals** ("Something else?") become rules too: a clean, short, capitalised name plus the level's minutes, e.g. "Learn to speak chinese" → **"Learn Chinese: 15 min"** (photo rule). The name comes from Apple's on-device Foundation Models when available (iOS 26+), otherwise keyword rules (languages → "Learn {Language}", instruments → "Practise {instrument}") and capitalisation. **Never put other apps' brand names in a rule title** (strip Duolingo, Instagram, TikTok, …).
 - The plan follows the quiz: each goal adds one rule (Fitness → workout, Discipline → reading, Sleep → bed by 23:30, Diet → no junk food (or no sugar), Phone time → no phone in bed, Money → no takeaway spending), then every personal goal (chips and typed), then photo fillers (reading, water, steps, cold shower, workout last) until there are at least 4 rules with at least 2 photo rules. If there are more than 6, the plan review asks the user to trim (3.1). The reason shows under each rule: "Because you picked {goal}" (fillers: "To round out your plan"). Each member's fitness level sets that member's intensity for the quiz goals; B's rules use Gentle unless B answered on A's phone.
 - **One source of truth:** the plan is generated **once** (on the Building step) and stored as rows (A's and B's version of each rule). The plan review shows the stored rows; "Set the stakes" writes exactly those as A's rules and B's draft rules; when B joins, B's rules are an **exact copy** of the stored draft rules (never regenerated). Today, the invite card, the widgets and the RulesEngine all read the stored rules. A unit test fails if the plan review and the stored/engine rules ever differ.
@@ -228,7 +228,7 @@ The mockups always show the same two people, "Maya" and "Joao". In the real app 
 11. **When do you usually wake up?**: a time wheel, default **07:30**.
 12. **How often do you start something together and quit?** (07): slider Rarely / Sometimes / Usually / Always.
 13. **Mirror moment** (08): keep exactly: "Most couples quit before it gets hard. Not because they're weak. Because no one's watching."
-14. **How hard should it be?** (09): both characters in the stretch pose above the title, then "Gentle" ("Lighter daily rules · 3 saves"), "Couples 75" ("Most popular", preselected; "The full plan · 3 shared saves") and "Hard mode" ("The full plan · no saves, one miss restarts"). Gentle lowers each member's rule intensity one step; Hard mode raises it one step and has no saves. Never show "75 Soft" or "75 Hard".
+14. **How hard should it be?** (09): both characters in the stretch pose above the title, then "Gentle" ("Lighter daily rules · 3 saves"), "Pact" ("Most popular", preselected; "The full plan · 3 shared saves") and "Hard mode" ("The full plan · no saves, one miss restarts"). Gentle lowers each member's rule intensity one step; Hard mode raises it one step and has no saves. Never show "75 Soft" or "75 Hard".
 15. **Building your plan** (10): animated checklist, ~3 seconds, auto-advances.
 16. **Plan reveal** (11): "{A} & {B}'s 75-day plan", the ring scene with both avatars (B's as built on A's phone, else `partner_outline`), the Daily rules card with a row per rule (A in coral, B in sage), "Because you picked {goal}" under each row, and a **"Change"** button per row. **More than 6 rules:** a coral note "Up to 6 rules each. Swap or remove {n} more to continue." and **"Swap" / "Remove"** on each row (Swap replaces the row for both; Remove is disabled when it would leave fewer than 4 rules or fewer than 2 photo rules); "Set the stakes" stays disabled until there are 6. Change opens a sheet with "Suggested for you", "From the list" and "Write your own", and a picker for whose rule it is; changed rows show a brown "Pending" pill and the note "Changed rules are pending until {B} approves. The original rule stays until then." The saves card reads "3 saves" / "Shared. Each one covers a missed day." (Hard mode: "No saves" / "One miss restarts the round"). If B hasn't answered for themselves, label B's column "Draft: {B} can adjust when they join". Button **"Set the stakes ›"**.
 17. **Set the stakes** (12): "Set the stakes", subtitle "{B} accepts this when they join." Loser plans the date / Loser cooks dinner for a week / Loser plans the trip / Custom (max 40 characters). Then "Hold to sign" / "We finish this together" and the fingerprint button (hold 1.5 s with a filling coral ring and a success haptic).
@@ -236,13 +236,13 @@ Then without a step counter:
 18. **Paywall** (13a–13d, section 3.3).
 19. **Invite partner** (14, section 3.2).
 20. **Notifications priming** (section 5).
-Before step 1, check `CKContainer.accountStatus()`. If there's no iCloud account, show "Turn on iCloud to use Couples 75" (Settings → [your name] → iCloud) with a "Check again" button. There is no separate sign-up.
+Before step 1, check `CKContainer.accountStatus()`. If there's no iCloud account, show "Turn on iCloud to use Pact" (Settings → [your name] → iCloud) with a "Check again" button. There is no separate sign-up.
 
 ### 3.2 Invite (iCloud share link + 6-letter code)
-- After paying, A's phone creates the couple: a custom record zone `Couple-{uuid}` in A's private database, a root `Couple` record, and a `CKShare` of that zone with `publicPermission = .readWrite` (so anyone with the link can join) and the title "{A}'s Couples 75". As soon as B has joined, A's phone sets `publicPermission = .none` so nobody else can join with the old link.
+- After paying, A's phone creates the couple: a custom record zone `Couple-{uuid}` in A's private database, a root `Couple` record, and a `CKShare` of that zone with `publicPermission = .readWrite` (so anyone with the link can join) and the title "{A}'s Pact". As soon as B has joined, A's phone sets `publicPermission = .none` so nobody else can join with the old link.
 - A's phone also writes an `InviteCode` record to the **public** database: `code` (6 characters from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`), `shareURL`, `inviterName`, `createdAt`. Delete it once B joins.
 - Screen 14: "Send {B} their invite", both avatars (B's as built on A's phone, else `partner_outline`), the line "Free for {B}: your subscription covers you both.", "Send invite ›", and under the button "Or share code {CODE}" (tap to copy the code and the link).
-- "Send invite" renders a **shareable invite card image** (both avatars, "{A} invited you to Couples 75", the 4 rules of each partner, the bet, and "Free for you: {A}'s subscription covers you both.") and opens the share sheet (`ShareLink`) with that image and the text: "I just signed us up for 75 days. {bet}. You in? Download Couples 75 and tap this link: {shareURL}".
+- "Send invite" renders a **shareable invite card image** (both avatars, "{A} invited you to Pact", the 4 rules of each partner, the bet, and "Free for you: {A}'s subscription covers you both.") and opens the share sheet (`ShareLink`) with that image and the text: "I just signed us up for 75 days. {bet}. You in? Download Pact and tap this link: {shareURL}".
 - B joins either by tapping the iCloud link (the app receives it in `windowScene(_:userDidAcceptCloudKitShareWith:)`) or by typing the code (fetch the `InviteCode` from the public database, then `CKFetchShareMetadataOperation` + `CKAcceptSharesOperation` on its `shareURL`). Both paths end in the same place. If the app wasn't installed when B tapped the link, iOS sends B to the App Store; after installing, B either taps the link again or types the code, and the first screen says so.
 - Only one partner can join. If a second person tries, show "This couple is already full."
 
@@ -256,7 +256,7 @@ Four pages with page dots; the × is on every page:
 - Lapsed couple: the payer gets the same plans page as a non-dismissible "Renew to keep your run"; the partner gets "Keep your run going: take over the subscription".
 
 ### 3.4 Android waitlist (new, style of 30)
-Title "Couples 75 is iPhone-only for now", body "Leave your email and we'll tell you when Android is ready.", email field, "Notify me ›" (saves a `Waitlist` record in the CloudKit public database), then "Thanks! We'll be in touch." and a "Done" button that returns to the hook. No paywall ever.
+Title "Pact is iPhone-only for now", body "Leave your email and we'll tell you when Android is ready.", email field, "Notify me ›" (saves a `Waitlist` record in the CloudKit public database), then "Thanks! We'll be in touch." and a "Done" button that returns to the hook. No paywall ever.
 
 ### 3.5 Person B joining (free: A's subscription covers both)
 1. **Taps the link or enters the code** → **"{A} invited you"** (25): "You're in", A's bust, a card "{A} picked this plan for you both" with both partners' rules, "3 saves, shared", the bet box, and "Free for you: {A}'s subscription covers you both." "See the plan ›".
@@ -307,10 +307,10 @@ Shown to both members the next time they open the app after a miss. Characters `
 Title "Progress", "{A} & {B}", then the **Transformation** section (4.13) at the top, both avatars (busts) above the grid (B's as built on A's phone before B joins), a 75-day grid that is never empty (a small gold star "Warm-up done" marks the warm-up day; until Day 1 the line under the grid reads "Day 0 done. 75 to go."), (gold = both complete, half gold = one complete + one save, coral outline = today, grey = paused, empty = future), "Day {n} of 75", a horizontal strip of both partners' recent photos (tap → full-screen viewer with the stamp and reactions), "Best streak", "Rounds", and the bet row. Photos are visible only to the couple. The grid legend ("Both done", "One + save", "Today") uses 13 pt dots with 13 pt labels in `textPrimary`.
 
 ### 4.7 Day 75 (19)
-Confetti, "Day 75", "We finished Couples 75" (fix the name), "{A} & {B}", the cheer + trophy scene. A recap card: saves used, final score, best streak, most sus moments, and who owes the bet (or "Nobody owes anything"). Buttons: "Share our card ›" (renders a 1080×1920 image without photos and opens the share sheet), "Start round 2" (reruns steps 9 and 13 of the quiz, offers Hard mode).
+Confetti, "Day 75", "We finished Pact" (fix the name), "{A} & {B}", the cheer + trophy scene. A recap card: saves used, final score, best streak, most sus moments, and who owes the bet (or "Nobody owes anything"). Buttons: "Share our card ›" (renders a 1080×1920 image without photos and opens the share sheet), "Start round 2" (reruns steps 9 and 13 of the quiz, offers Hard mode).
 
 ### 4.8 Profile (18)
-Your character, your name, "Partner linked" pill (sage; make sure it isn't cut off). Rows: **Mode** (Couples 75 · 3 saves / Hard mode), **Saves left** ("{x} of 3"), **Wake-up reminder** (time), **Evening warning** (21:00, on/off), **Partner** ({name}), **Evening progress on Lock Screen** (toggle, 4.10), **Use Apple Health as proof** (toggle, 4.17), **Share progress pics with partner** (toggle, **off by default**, section 4.13), **Our rules** (both partners' rules, pending changes, **per-rule reminder times** ("Add time", e.g. "Meditate at 07:00"; skipped once the rule is done), and "Request a change", section 2.7), **Subscription** ("Active · {plan} (free trial), renews {date} · covers you both", or "Covered by {payer}'s subscription", or "Not active") → Manage, **Restore purchases**, and when notifications were denied, **"Reminders are off · Turn on in Settings"** (opens the app's Settings page), **Terms**, **Privacy**, **Contact support**. Then quiet text buttons: **"Leave couple"** and **"Delete my data"** (section 6.5). Remove "Missed-day rule: Restart".
+Your character, your name, "Partner linked" pill (sage; make sure it isn't cut off). Rows: **Mode** (Pact · 3 saves / Hard mode), **Saves left** ("{x} of 3"), **Wake-up reminder** (time), **Evening warning** (21:00, on/off), **Partner** ({name}), **Evening progress on Lock Screen** (toggle, 4.10), **Use Apple Health as proof** (toggle, 4.17), **Share progress pics with partner** (toggle, **off by default**, section 4.13), **Our rules** (both partners' rules, pending changes, **per-rule reminder times** ("Add time", e.g. "Meditate at 07:00"; skipped once the rule is done), and "Request a change", section 2.7), **Subscription** ("Active · {plan} (free trial), renews {date} · covers you both", or "Covered by {payer}'s subscription", or "Not active") → Manage, **Restore purchases**, and when notifications were denied, **"Reminders are off · Turn on in Settings"** (opens the app's Settings page), **Terms**, **Privacy**, **Contact support**. Then quiet text buttons: **"Leave couple"** and **"Delete my data"** (section 6.5). Remove "Missed-day rule: Restart".
 
 ### 4.9 Pause request (29)
 - Requester side (new): from Today's "…" menu → "Life happens": pick 1–3 days, start Today/Tomorrow, reason field ("Travelling", "Sick", or custom), "Send request ›". Disabled with an explanation if the round's pause is already used.
@@ -319,7 +319,7 @@ Your character, your name, "Partner linked" pill (sage; make sure it isn't cut o
 ### 4.10 Widgets (20) and Live Activity
 - Small: the ring with both characters' busts and "Day {n}/75".
 - Medium: the two characters, "Day {n}/75", "{A} ✓ · {B} …" (✓ when complete, … when not) and the streak flame.
-- **"My rules today"** (medium/large, interactive): my rules with check circles. Honour rules tick off from the Home Screen **from 18:00** (an App Intent that conforms to `LiveActivityIntent`, so it runs in the app's process and saves a real check-in; if the app can't take it right then, the tap is queued in the App Group with its time and saved on the next launch/refresh). Photo rules open that rule's camera (`couples75://rule/{id}`). The partner's progress in the corner.
+- **"My rules today"** (medium/large, interactive): my rules with check circles. Honour rules tick off from the Home Screen **from 18:00** (an App Intent that conforms to `LiveActivityIntent`, so it runs in the app's process and saves a real check-in; if the app can't take it right then, the tap is queued in the App Group with its time and saved on the next launch/refresh). Photo rules open that rule's camera (`pactapp://rule/{id}`). The partner's progress in the corner.
 - **Lock Screen**: circular day gauge, rectangular ("Day 14/75 · 2 rules left · Joao is done") and inline.
 - **Live Activity** (evening): from 17:00, while I still have rules left, both partners' progress on the Lock Screen and in the Dynamic Island. Started/updated by the app (no push server), ends when I'm done (after 30 min) or at midnight. Profile toggle "Evening progress on Lock Screen" (on by default).
 - Never show photos in widgets. Update the snapshot after every check-in, settlement and app launch, then call `WidgetCenter.shared.reloadAllTimelines()`.
@@ -354,7 +354,7 @@ Your character, your name, "Partner linked" pill (sage; make sure it isn't cut o
 ### 4.13 Daily progress photos and Transformation
 - **Progress pic** (Today card, optional): the camera opens with the **Day 1 progress photo as a ghost overlay at ~30% opacity** (toggle "Ghost on/off") so the pose lines up. One photo per person per local day; retaking replaces it. Not a rule check-in.
 - **Private by default**: stored on the phone (Application Support, not the App Group the widget reads) and in the user's **own private CloudKit database** (zone `ProgressPhotos`), never in the couple's shared zone. Profile → **"Share progress pics with partner"** (off by default): when turned on, copies go to the shared zone as `ProgressShare` records so the partner can see them; when turned off, those copies are deleted from the shared zone. Leave couple deletes the shared copies; Delete my data deletes everything, including the private zone.
-- **Transformation** (top of Progress): a **before/after slider** (Day 1 vs the latest photo, drag handle in the middle), a horizontal **timeline** of all progress photos (tap → full screen), **"Play"** (timelapse, ~0.15 s per photo) and **"Save / Share"**, which exports a vertical 9:16 video (1080×1920, H.264, `AVAssetWriter`) with the day label and a small "Couples 75" watermark and opens the share sheet. The partner's progress photos appear in their own row only if they share them. Empty state: "No progress photos yet. Take your first one today."
+- **Transformation** (top of Progress): a **before/after slider** (Day 1 vs the latest photo, drag handle in the middle), a horizontal **timeline** of all progress photos (tap → full screen), **"Play"** (timelapse, ~0.15 s per photo) and **"Save / Share"**, which exports a vertical 9:16 video (1080×1920, H.264, `AVAssetWriter`) with the day label and a small "Pact" watermark and opens the share sheet. The partner's progress photos appear in their own row only if they share them. Empty state: "No progress photos yet. Take your first one today."
 - **Milestones**: on Day 25, 50 and 75 (once each per round, if the user has progress photos), a celebration screen shows Day 1 and today side by side: only the user's own photos, plus the partner's if they share.
 
 ### 4.14 Launch screen and opening animation
@@ -429,8 +429,8 @@ In DEBUG builds without a camera (the Simulator) the shutter makes a generated s
 - Paywall shows the price, the renewal period, the trial length and what happens when it ends, "Cancel anytime", Terms, Privacy and Restore. Prices are always localized from StoreKit. No invented ratings or reviews.
 - "Delete my data" and "Leave couple" (6.5), report and block (4.3, 6.5). The app has no sign-up, so Apple's account-deletion rule doesn't apply, but keep "Delete my data" anyway.
 - Privacy: photos are personal data under GDPR. They are stored in the couple owner's iCloud and shared only with the partner; the developer never sees them. Note in the README which data is collected (name, character, time zone, photos, check-ins) for the App Privacy labels.
-- Never use "75 Hard" anywhere in the UI, metadata or code strings. Add to Profile → About: "Couples 75 is not affiliated with 44Seven Media or the 75 HARD program."
-- Camera usage string: "Couples 75 uses the camera to take live proof photos for your partner." Photo library (add only) usage string, for saving the timelapse: "Couples 75 saves your progress timelapse video to your photo library when you ask it to." App Store description: see `docs/APP_STORE_SUBMISSION.md` ("4 to 6 daily rules each", private progress photos and the timelapse). Notifications priming as in 5.
+- Never use "75 Hard" anywhere in the UI, metadata or code strings. Add to Profile → About: "Pact is not affiliated with 44Seven Media or the 75 HARD program."
+- Camera usage string: "Pact uses the camera to take live proof photos for your partner." Photo library (add only) usage string, for saving the timelapse: "Pact saves your progress timelapse video to your photo library when you ask it to." App Store description: see `docs/APP_STORE_SUBMISSION.md` ("4 to 6 daily rules each", private progress photos and the timelapse). Notifications priming as in 5.
 
 ## 9. Build order (finish and test each stage before the next)
 
@@ -448,5 +448,5 @@ In DEBUG builds without a camera (the Simulator) the shutter makes a generated s
 - iPhone only, portrait only, iOS 17+. Works on iPhone SE (small) through Pro Max with nothing cropped, nothing hidden behind buttons or the tab bar and no text cut off: scale illustrations to the available space. Keep SwiftUI previews of every screen at iPhone SE and Pro Max sizes (`App/Sources/Previews/ScreenPreviews.swift`).
 - MVVM with `@Observable`, one file per screen, no third-party packages.
 - VoiceOver labels on every control; the ring and the grid read their values.
-- Must **build with zero errors and warnings**. Run `xcodebuild -scheme Couples75 -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build`, fix everything, then run all XCTest tests and fix failures.
+- Must **build with zero errors and warnings**. Run `xcodebuild -scheme Pact -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build`, fix everything, then run all XCTest tests and fix failures.
 - When you finish, give me a checklist of what I still have to do by hand: Apple Developer (bundle ID, App Group, iCloud container, Push Notifications), CloudKit Console (deploy the schema to Production), App Store Connect (the three subscriptions, free-trial offers, prices, privacy labels), testing the invite on two real iPhones with two different Apple IDs, and the character PNGs I need to generate.

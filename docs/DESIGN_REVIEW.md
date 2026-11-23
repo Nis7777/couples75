@@ -1,7 +1,7 @@
 # Design review: mockups in `reference/` vs the SwiftUI screens
 
 Each mockup was opened next to its view and every visual difference was fixed. Copy and rules follow
-`CLAUDE_CODE_PROMPT.md` (name "Couples 75", no stars/rating, no trial, no "Prove it", saves, 3,99 € per person).
+`CLAUDE_CODE_PROMPT.md` (name "Pact", no stars/rating, no trial, no "Prove it", saves, 3,99 € per person).
 
 ## Everywhere
 | Mockup | Before | Now |
@@ -27,7 +27,7 @@ Each mockup was opened next to its view and every visual difference was fixed. C
 | 06 Goals | small chips | 2-column grid of big rounded cards, selected coral with white check and text |
 | 07 Quit | system slider | slider in a card: beige track with ticks, coral thumb, coral label above |
 | 08 Mirror | no panel | full-width peach panel, couple cut at the hips, bold line below |
-| 09 Level | plain cards | "How hard should it be?", stretching couple above, Gentle / Couples 75 (gold pill) / Hard mode |
+| 09 Level | plain cards | "How hard should it be?", stretching couple above, Gentle / Pact (gold pill) / Hard mode |
 | 10 Building | small figures | big full-body stretching couple, card with sage checks and a gold spinner |
 | 11 Plan reveal | ring and figures overlapping edges | peach panel, gold ring centred behind both figures with 20 pt margins, two-colour rules card, peach saves card with three gold squares, scrolling above the pinned button |
 | 12 Stakes | big cards | compact cards; fingerprint inside concentric peach/white/coral rings |

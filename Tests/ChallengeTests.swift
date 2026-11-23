@@ -1,5 +1,5 @@
 import XCTest
-@testable import Couples75
+@testable import Pact
 
 /// Couple maxing: daily habits (round 1, no end), a challenge on top, back to habits afterwards.
 /// The couple joined on 2026-01-01 10:00 UTC, so habits Day 1 is 2026-01-02.

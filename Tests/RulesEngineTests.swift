@@ -1,5 +1,5 @@
 import XCTest
-@testable import Couples75
+@testable import Pact
 
 /// Builds facts for a couple that joined on 2026-01-01 10:00 UTC, so Day 1 is 2026-01-02.
 private struct Fixture {

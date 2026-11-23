@@ -1,5 +1,5 @@
 import XCTest
-@testable import Couples75
+@testable import Pact
 
 /// The pre-paywall screens: mirror copy, the couple score projection and editing the week-1 plan.
 final class OnboardingCopyTests: XCTestCase {

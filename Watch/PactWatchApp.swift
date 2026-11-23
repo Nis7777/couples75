@@ -3,7 +3,7 @@ import WatchConnectivity
 import WatchKit
 
 @main
-struct Couples75WatchApp: App {
+struct PactWatchApp: App {
     @StateObject private var store = WatchStore()
 
     var body: some Scene {

@@ -607,7 +607,7 @@ extension AppModel {
 
     // MARK: - URLs and deep links
 
-    /// couples75://join?code=K7M2QP
+    /// pactapp://join?code=K7M2QP
     func handle(url: URL) {
         guard url.scheme == Brand.urlScheme else { return }
         let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
@@ -618,7 +618,7 @@ extension AppModel {
         } else if url.host == "today" {
             deepLink = .today
         } else if url.host == "rule" {
-            // From the widget: couples75://rule/{ruleID} opens that rule's camera or honour sheet.
+            // From the widget: pactapp://rule/{ruleID} opens that rule's camera or honour sheet.
             deepLink = .today
             openRuleID = url.pathComponents.last { $0 != "/" }
         }

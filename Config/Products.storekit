@@ -36,7 +36,7 @@
               "locale": "en_US"
             }
           ],
-          "productID": "com.dinismagina.couples75.yearly",
+          "productID": "com.dinismagina.pact.yearly",
           "recurringSubscriptionPeriod": "P1Y",
           "referenceName": "Yearly",
           "subscriptionGroupID": "C75GROUP",
@@ -63,7 +63,7 @@
               "locale": "en_US"
             }
           ],
-          "productID": "com.dinismagina.couples75.yearly7",
+          "productID": "com.dinismagina.pact.yearly7",
           "recurringSubscriptionPeriod": "P1Y",
           "referenceName": "Yearly (7-day trial)",
           "subscriptionGroupID": "C75GROUP",
@@ -85,7 +85,7 @@
               "locale": "en_US"
             }
           ],
-          "productID": "com.dinismagina.couples75.monthly",
+          "productID": "com.dinismagina.pact.monthly",
           "recurringSubscriptionPeriod": "P1M",
           "referenceName": "Monthly",
           "subscriptionGroupID": "C75GROUP",

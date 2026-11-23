@@ -1,5 +1,5 @@
 import XCTest
-@testable import Couples75
+@testable import Pact
 
 /// One source of truth for rules: the plan review, the stored rules, B's copy when joining and the
 /// RulesEngine (Today, invite card, widgets) must always show the same rules for both partners.
@@ -18,7 +18,7 @@ final class PlanConsistencyTests: XCTestCase {
         d.fitness = .veryActive          // A: Hard intensity on Pact
         d.partnerFitness = nil           // B: Gentle until B answers
         d.partnerGoals = [.sleep, .money] // B picked their own goals on A's phone
-        d.level = .couples75
+        d.level = .steady
         d.generatePlan()
         return d
     }

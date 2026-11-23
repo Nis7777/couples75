@@ -260,13 +260,13 @@ enum Goal: String, Codable, CaseIterable, Identifiable {
 
 /// The level picked in onboarding (step 12): shown as "Gentle", "Steady", "Hard mode".
 enum Level: String, Codable, CaseIterable, Identifiable {
-    case gentle, couples75, hard
+    case gentle, steady, hard
     var id: String { rawValue }
 
     var title: String {
         switch self {
         case .gentle: return "Gentle"
-        case .couples75: return "Steady"
+        case .steady: return "Steady"
         case .hard: return "Hard mode"
         }
     }
@@ -279,18 +279,18 @@ enum Level: String, Codable, CaseIterable, Identifiable {
         let i = order.firstIndex(of: intensity) ?? 1
         switch self {
         case .gentle: return order[max(0, i - 1)]
-        case .couples75: return intensity
+        case .steady: return intensity
         case .hard: return order[min(2, i + 1)]
         }
     }
 
-    init(mode: RoundMode) { self = mode == .hard ? .hard : .couples75 }
+    init(mode: RoundMode) { self = mode == .hard ? .hard : .steady }
 
     /// Personal and typed goals: Gentle 10 min, Steady 15 min, Hard mode 30 min.
     var personalIntensity: Intensity {
         switch self {
         case .gentle: return .gentle
-        case .couples75: return .standard
+        case .steady: return .standard
         case .hard: return .hard
         }
     }
@@ -298,7 +298,7 @@ enum Level: String, Codable, CaseIterable, Identifiable {
     var personalMinutes: Int {
         switch self {
         case .gentle: return 10
-        case .couples75: return 15
+        case .steady: return 15
         case .hard: return 30
         }
     }

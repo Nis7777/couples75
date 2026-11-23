@@ -7,7 +7,7 @@ enum LocalCache {
         let fm = FileManager.default
         let base = fm.containerURL(forSecurityApplicationGroupIdentifier: Brand.appGroup)
             ?? fm.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        let dir = base.appendingPathComponent("Couples75", isDirectory: true)
+        let dir = base.appendingPathComponent("Pact", isDirectory: true)
         if !fm.fileExists(atPath: dir.path) {
             try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
         }

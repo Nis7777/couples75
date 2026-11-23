@@ -16,9 +16,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "C75000000000000000000040"
-               BuildableName = "Couples75.app"
-               BlueprintName = "Couples75"
-               ReferencedContainer = "container:Couples75.xcodeproj">
+               BuildableName = "Pact.app"
+               BlueprintName = "Pact"
+               ReferencedContainer = "container:Pact.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -36,9 +36,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "C75000000000000000000042"
-               BuildableName = "Couples75Tests.xctest"
-               BlueprintName = "Couples75Tests"
-               ReferencedContainer = "container:Couples75.xcodeproj">
+               BuildableName = "PactTests.xctest"
+               BlueprintName = "PactTests"
+               ReferencedContainer = "container:Pact.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -58,9 +58,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C75000000000000000000040"
-            BuildableName = "Couples75.app"
-            BlueprintName = "Couples75"
-            ReferencedContainer = "container:Couples75.xcodeproj">
+            BuildableName = "Pact.app"
+            BlueprintName = "Pact"
+            ReferencedContainer = "container:Pact.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
@@ -84,9 +84,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C75000000000000000000040"
-            BuildableName = "Couples75.app"
-            BlueprintName = "Couples75"
-            ReferencedContainer = "container:Couples75.xcodeproj">
+            BuildableName = "Pact.app"
+            BlueprintName = "Pact"
+            ReferencedContainer = "container:Pact.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

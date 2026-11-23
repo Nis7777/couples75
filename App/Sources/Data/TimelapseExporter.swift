@@ -51,7 +51,7 @@ enum TimelapseExporter {
     }
 
     private static func write(_ frames: [CGImage]) throws -> URL {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("Couples75-timelapse.mp4")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("Pact-timelapse.mp4")
         try? FileManager.default.removeItem(at: url)
         let writer = try AVAssetWriter(outputURL: url, fileType: .mp4)
         let input = AVAssetWriterInput(mediaType: .video, outputSettings: [

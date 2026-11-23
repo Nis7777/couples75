@@ -1,5 +1,5 @@
 import XCTest
-@testable import Couples75
+@testable import Pact
 
 final class HealthMetricTests: XCTestCase {
     private func rule(_ key: String, _ title: String) -> RuleFact {

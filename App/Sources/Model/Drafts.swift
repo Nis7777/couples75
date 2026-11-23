@@ -46,7 +46,7 @@ struct OnboardingDraft: Codable, Equatable {
     var fitness: FitnessLevel?
     var wakeTime = "07:30"
     var quitFrequency: Double = 1
-    var level: Level = .couples75
+    var level: Level = .steady
     var bet: BetOption = .date
     var customBet = ""
 
@@ -245,7 +245,7 @@ struct JoinDraft: Codable, Equatable {
 
     /// B's habits from B's goals, at B's fitness level (4–6, at least 2 photo habits, like A's).
     mutating func generatePlan() {
-        plan = PlanGenerator.rows(goals: goals ?? [], personal: [], custom: [], level: .couples75,
+        plan = PlanGenerator.rows(goals: goals ?? [], personal: [], custom: [], level: .steady,
                                   intensityA: myIntensity, intensityB: myIntensity).map(\.a)
     }
 

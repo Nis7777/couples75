@@ -164,7 +164,7 @@ private let noop: () -> Void = {}
 #Preview("08 Mirror", traits: .sizeThatFitsLayout) { screen { MirrorView(next: noop, back: noop) } }
 #Preview("09 Level", traits: .sizeThatFitsLayout) {
     screen {
-        LevelPickerView(level: .constant(.couples75), left: SceneCharacter(characterID: "w1", name: "Maya"), right: nil,
+        LevelPickerView(level: .constant(.steady), left: SceneCharacter(characterID: "w1", name: "Maya"), right: nil,
                         step: 12, back: noop, next: noop)
     }
 }

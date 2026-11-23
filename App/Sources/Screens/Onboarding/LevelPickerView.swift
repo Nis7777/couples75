@@ -33,9 +33,9 @@ struct LevelPickerView: View {
                                isSelected: level == .gentle, minHeight: 72) {
                         pick(.gentle)
                     }
-                    OptionCard(title: Level.couples75.title, subtitle: "A real push · 15 min goals",
-                               isSelected: level == .couples75, minHeight: 72) {
-                        pick(.couples75)
+                    OptionCard(title: Level.steady.title, subtitle: "A real push · 15 min goals",
+                               isSelected: level == .steady, minHeight: 72) {
+                        pick(.steady)
                     } trailing: {
                         Pill(text: "Most popular", fill: .gold, size: 13)
                     }

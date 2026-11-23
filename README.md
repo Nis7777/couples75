@@ -15,8 +15,8 @@ the two phones share facts through CloudKit and each computes everything with th
 
 ## Build and run
 
-1. Open `Couples75.xcodeproj` in Xcode 16 or later.
-2. Pick the **Couples75** scheme and an iPhone Simulator (e.g. iPhone 16 Pro).
+1. Open `Pact.xcodeproj` in Xcode 16 or later.
+2. Pick the **Pact** scheme and an iPhone Simulator (e.g. iPhone 16 Pro).
 3. Press Run.
 
 In the Simulator the app always starts in **Mock mode** (see below), so everything works without iCloud.
@@ -26,7 +26,7 @@ App Store Connect setup.
 Tests: Product → Test (⌘U), or
 
 ```bash
-xcodebuild -project Couples75.xcodeproj -scheme Couples75 -destination 'platform=iOS Simulator,name=iPhone 16 Pro' test
+xcodebuild -project Pact.xcodeproj -scheme Pact -destination 'platform=iOS Simulator,name=iPhone 16 Pro' test
 ```
 
 ### Project layout
@@ -68,12 +68,12 @@ In the Simulator there's no camera: the shutter generates a sample photo with th
 
 ## CloudKit setup
 
-1. Apple Developer → Identifiers: create the App ID `com.dinismagina.couples75` with **iCloud (CloudKit)**,
-   **Push Notifications** and **App Groups**; create the widget App ID `com.dinismagina.couples75.widgets` with
+1. Apple Developer → Identifiers: create the App ID `com.dinismagina.pact` with **iCloud (CloudKit)**,
+   **Push Notifications** and **App Groups**; create the widget App ID `com.dinismagina.pact.widgets` with
    **App Groups**.
-2. Create the iCloud container `iCloud.com.dinismagina.couples75` and the App Group
-   `group.com.dinismagina.couples75`, and enable them on both App IDs (the container only on the app).
-3. In Xcode, select your team on the Couples75 and Widgets targets (Signing & Capabilities). The device
+2. Create the iCloud container `iCloud.com.dinismagina.pact` and the App Group
+   `group.com.dinismagina.pact`, and enable them on both App IDs (the container only on the app).
+3. In Xcode, select your team on the Pact and Widgets targets (Signing & Capabilities). The device
    entitlements are in `Config/App.entitlements` and `Config/Widgets.entitlements` (Simulator builds use none).
 4. Run once on a device signed into iCloud (Development environment). CloudKit creates the record types the
    first time the app saves them. To create all of them, go through: A onboarding and pay, B joins with the code,
@@ -100,13 +100,13 @@ returning to the foreground, every few minutes while open, and in a background r
 
 One subscription covers both partners: only the person who starts (A) pays; the partner joins free.
 
-1. Create the app with bundle ID `com.dinismagina.couples75`.
-2. Subscriptions → create the group **Couples 75** with three auto-renewable subscriptions:
-   - `com.dinismagina.couples75.yearly`: 1 year, 39,99 € (Portugal base; let Apple fill other storefronts, e.g. $39.99),
+1. Create the app with bundle ID `com.dinismagina.pact`.
+2. Subscriptions → create the group **Pact** with three auto-renewable subscriptions:
+   - `com.dinismagina.pact.yearly`: 1 year, 39,99 € (Portugal base; let Apple fill other storefronts, e.g. $39.99),
      introductory offer **free trial, 3 days**. Preselected on the paywall.
-   - `com.dinismagina.couples75.yearly7`: 1 year, 39,99 €, introductory offer **free trial, 1 week**. Only offered on
+   - `com.dinismagina.pact.yearly7`: 1 year, 39,99 €, introductory offer **free trial, 1 week**. Only offered on
      the paywall's exit sheet ("Get a 7-day free trial instead").
-   - `com.dinismagina.couples75.monthly`: 1 month, 7,99 €, no introductory offer.
+   - `com.dinismagina.pact.monthly`: 1 month, 7,99 €, no introductory offer.
 3. Add a display name and description to each, a review screenshot of the paywall, and submit them with the
    first app version.
 4. The app sends `appAccountToken` = the member's UUID and writes `subscribedUntil` / `subscriptionProduct` to the
@@ -115,7 +115,7 @@ One subscription covers both partners: only the person who starts (A) pays; the 
 
 ## Apple Watch, HealthKit, Live Activities
 
-- The project has a watchOS target (`Couples75Watch`) embedded in the iPhone app. If Xcode says the watchOS
+- The project has a watchOS target (`PactWatch`) embedded in the iPhone app. If Xcode says the watchOS
   platform isn't installed, click **Get** (Xcode → Settings → Components → watchOS) once; then Run works as before.
 - Enable **HealthKit** for the App ID (read only) in the Apple Developer portal; the entitlement is in
   `Config/App.entitlements`.
