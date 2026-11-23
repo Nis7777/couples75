@@ -11,6 +11,7 @@ the two phones share facts through CloudKit and each computes everything with th
 - `docs/IMAGE_PROMPTS.md`: prompts for the custom icons, rank badges and app icon, and where each PNG goes
 - `docs/TEST_CHECKLIST.md`: what to tap through in the Simulator
 - `docs/APPLE_SETUP.md`: identifiers, App Store Connect, subscriptions, iCloud and TestFlight, step by step
+- `docs/APP_STORE_CONNECT_PROMPT.md`: a ready-to-paste prompt that sets up the App Store Connect record
 - `reference/`: design mockups (visual direction only)
 - `ArtSource/`: the original character art (already imported into `Shared/Assets.xcassets`)
 
