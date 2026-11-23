@@ -29,7 +29,20 @@ Rules:
 ## Step 2. Create the data layout in iCloud and deploy it to Production
 
 TestFlight and the App Store use the **Production** iCloud database. It only accepts data whose record types and
-fields were created in Development and then deployed.
+fields were created in Development and then deployed. An **empty Development schema is expected**: the app has
+never run against real iCloud (the Simulator always uses Mock mode). The container ID is correct.
+
+**Fastest: import the schema file.** The repo has the whole layout in `docs/pact.ckdb`.
+1. In CloudKit Console (signed in), open the account menu → **Manage Tokens** (CloudKit Management Tokens) → **+**,
+   name it `cktool`, create it, and copy the token.
+2. In Terminal, run `xcrun cktool save-token --type management` and paste the token when it asks.
+3. From the repo folder, run:
+   `xcrun cktool import-schema --team-id MS2AB6H9ZG --container-id iCloud.com.tomasbeja.pact --environment development --file docs/pact.ckdb`
+   Never run `reset-schema`, and never use `--environment production`.
+4. In the Console (Development → Record Types) check that all 19 record types below are there, with their fields.
+   Then go to step 3 below (the security roles are already in the file: just check them) and step 4 (deploy).
+
+If the import fails, give me the exact error, then create the record types by hand instead:
 
 1. Go to icloud.developer.apple.com → CloudKit Console → container `iCloud.com.tomasbeja.pact` → **Schema** →
    **Record Types**, in the **Development** environment.
