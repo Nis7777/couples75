@@ -10,7 +10,7 @@ Daily habits and challenges you do together. One streak, one rank, both of you. 
 ## Description
 Pact is couple maxing: the two of you level up together, every day.
 
-Pick what you want to work on, in three areas: Body (gym, diet, sleep), Looks (skin, glow-up, posture) and Mind & money (reading, skills, saving, phone time). Each of you gets 4 to 6 daily habits at your own level. Check them off with a photo taken in the app (recommended) or a quick tap. Your partner cheers you on, or calls it sus.
+Pick what you want to work on, in three areas: Body (gym, diet, sleep), Looks (skin, glow-up, posture) and Mind & money (reading, skills, saving, phone time). Each of you gets 4 to 6 daily habits at your own level. Check them off with a photo taken in the app (recommended) or a quick tap. Your partner cheers you on, approves it, or asks a question.
 
 You share everything: one streak, one XP total and one rank, from Spark to Legend. Habits have no stakes, so a bad day never ends anything.
 
