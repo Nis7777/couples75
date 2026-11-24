@@ -140,7 +140,9 @@ enum Challenges {
     /// that looks a challenge up by id (finish screen, milestones, share card) shows it like the built-in ones.
     /// Its rules are stored as the couple's rules for that round.
     static let customPrefix = "custom|"
+    /// Quick picks on the length card; any length in `customDayRange` can be set with − / +.
     static let customLengths = [7, 14, 21, 30, 60, 75]
+    static let customDayRange = 3...100
     static let customMaxRules = 3
 
     static func custom(title: String, days: Int, saves: Int, ideas: [RuleIdea]) -> Challenge {
