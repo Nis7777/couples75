@@ -248,8 +248,10 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             post("\(b.name) joined! Day 1 starts tomorrow.", route: "today")
         }
 
-        if !oldState.lapsedMembers.contains(partner.id), newState.lapsedMembers.contains(partner.id),
-           partner.joinedAt != nil {
+        // Only when the COUPLE's subscription actually ends and the partner was the one paying. (Not when the
+        // partner merely has no subscription of their own: the invited partner never pays, the payer covers both.)
+        if oldState.coupleActive, !newState.coupleActive, partner.joinedAt != nil,
+           (oldState.payerID ?? newState.payerID) == partner.id {
             post("\(name)'s subscription ended. Your run is paused until they renew.", route: "today")
         }
 
