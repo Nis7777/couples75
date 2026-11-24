@@ -15,7 +15,7 @@ Do the steps in order. Values to copy are in `code`.
 | iCloud container | `iCloud.com.tomasbeja.pact` |
 | Subscription group | `Pact` |
 | Yearly (7-day free trial) | `com.tomasbeja.pact.yearly7` |
-| Yearly offer (38% off, 7-day free trial) | `com.tomasbeja.pact.yearlyoffer` |
+| Yearly offer (38% off, no free trial) | `com.tomasbeja.pact.yearlyoffer` |
 | Monthly | `com.tomasbeja.pact.monthly` |
 | URL scheme | `pactapp` |
 | Background task | `com.tomasbeja.pact.refresh` (already in Info.plist) |
@@ -93,7 +93,7 @@ Your app → Monetization → **Subscriptions** → create the group **Pact**, t
 |---|---|---|---|---|
 | Pact Yearly 7-day trial | `com.tomasbeja.pact.yearly7` | 1 year | $39.99 (United States base) | Free trial, 1 week |
 | Pact Monthly | `com.tomasbeja.pact.monthly` | 1 month | $12.99 | none |
-| Pact Yearly Offer | `com.tomasbeja.pact.yearlyoffer` | 1 year | $24.99 | Free trial, 1 week |
+| Pact Yearly Offer | `com.tomasbeja.pact.yearlyoffer` | 1 year | $24.99 | none |
 
 For each: a display name and description (e.g. "Pact for both of you, billed yearly"), and a review screenshot of
 the paywall. Put the yearly plans above the monthly in the group's ranking. They're submitted with the first

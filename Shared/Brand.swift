@@ -22,7 +22,7 @@ enum Brand {
     /// One subscription covers both partners. Prices always come from StoreKit.
     static let iapYearly7 = "com.tomasbeja.pact.yearly7"    // $39.99 a year, 7-day free trial: the paywall's yearly plan
     static let iapMonthly = "com.tomasbeja.pact.monthly"    // $12.99 a month (US base price), no trial
-    /// The paywall's exit offer: 38% off yearly, $24.99 a year (about $1.04 per person a month), 7-day free trial.
+    /// The paywall's exit offer: 38% off yearly, $24.99 a year (about $1.04 per person a month), no free trial.
     static let iapYearlyOffer = "com.tomasbeja.pact.yearlyoffer"
     static let allProducts = [iapYearly7, iapMonthly, iapYearlyOffer]
     static let savesPerRound = 3

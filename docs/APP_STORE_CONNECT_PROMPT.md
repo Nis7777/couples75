@@ -89,8 +89,7 @@ delete it if App Store Connect allows, otherwise just don't add it to the app ve
   eurozone, and **£39.99** and **£12.99** for the UK (the offer: **24,99 €** and **£24.99**). Leave every other country on Apple's automatic price. Tell me
   which countries you changed.
 - Introductory offers: **Pact Yearly 7-day trial** → Free Trial, **1 week**, all countries, starting now, no end
-  date (it's the paywall's yearly plan). **Pact Yearly Offer** → Free Trial, **1 week**, same settings.
-  **Pact Monthly** → none.
+  date (it's the paywall's yearly plan). **Pact Yearly Offer** and **Pact Monthly** → none (no free trial).
 - Subscription ranking inside the group: Pact Yearly 7-day trial at the top, Pact Yearly Offer on the same level or
   right below, Pact Monthly last. (Levels only decide when a switch between plans takes
   effect; the app doesn't depend on them.)

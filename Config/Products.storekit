@@ -72,12 +72,7 @@
           "familyShareable": false,
           "groupNumber": 1,
           "internalID": "C75YEAROFFER",
-          "introductoryOffer": {
-            "internalID": "C75YEAROFFERTRIAL",
-            "numberOfPeriods": 1,
-            "paymentMode": "free",
-            "subscriptionPeriod": "P1W"
-          },
+          "introductoryOffer": null,
           "localizations": [
             {
               "description": "Pact for both of you, billed yearly (one-time offer).",

@@ -34,7 +34,7 @@ couples,habits,glow up,self improvement,challenge,partner,accountability,streak,
 ## Subscriptions
 - Yearly, $39.99 (7-day free trial) — covers both partners
 - Monthly, $12.99 (yearly saves 74%)
-- Yearly offer, $24.99 (7-day free trial), shown once when closing the paywall
+- Yearly offer, $24.99 (no free trial), shown once when closing the paywall
 
 ## App Privacy labels
 Data linked to the user, not used for tracking: name, character, time zone, check-in photos, check-ins,

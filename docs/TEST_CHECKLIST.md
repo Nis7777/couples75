@@ -168,5 +168,5 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
 - [ ] Paywall Yearly card: "7-day free trial first"; no separate trial page: under the plans "Free for 7 days. We'll remind you 1 day
       before your trial ends…" (Yearly selected only); the reminder notification comes the day before. Simulator:
       if no trial shows, reset test purchases (Debug → StoreKit → Manage Transactions → delete all).
-- [ ] Paywall × → the offer every time in test builds (once in the App Store build): "Start my 7-day free trial",
-      "7 days free, then $24.99/year".
+- [ ] Paywall × → the offer every time in test builds (once in the App Store build): "Claim my discount",
+      "Billed $24.99 today, then $24.99/year. No free trial with this offer."

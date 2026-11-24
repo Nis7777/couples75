@@ -108,7 +108,7 @@ One subscription covers both partners: only the person who starts (A) pays; the 
    - `com.tomasbeja.pact.yearly7`: 1 year, $39.99 (United States base price; let Apple fill the other
      storefronts), introductory offer **free trial, 1 week**. The paywall's yearly plan, preselected.
    - `com.tomasbeja.pact.monthly`: 1 month, $12.99, no introductory offer.
-   - `com.tomasbeja.pact.yearlyoffer`: 1 year, $24.99, introductory offer **free trial, 1 week**. The paywall's
+   - `com.tomasbeja.pact.yearlyoffer`: 1 year, $24.99, **no free trial**. The paywall's
      one-time exit offer (38% off).
 3. Add a display name and description to each, a review screenshot of the paywall, and submit them with the
    first app version.
