@@ -255,9 +255,13 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate {
             isAvailable = false
             return
         }
-        configure()
-        let session = self.session
-        queue.async { session.startRunning() }
+        // Everything that touches the session runs on its own serial queue, in order. (Configuring on one thread
+        // while it starts or stops on another makes AVFoundation throw: it crashed on some phones.)
+        let session = self.session, output = self.output, position = self.position
+        queue.async {
+            Self.configure(session, output: output, position: position)
+            if !session.isRunning { session.startRunning() }
+        }
     }
 
     func stop() {
@@ -265,9 +269,11 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate {
         queue.async { if session.isRunning { session.stopRunning() } }
     }
 
-    private func configure() {
+    private static func configure(_ session: AVCaptureSession, output: AVCapturePhotoOutput,
+                                  position: AVCaptureDevice.Position) {
         session.beginConfiguration()
-        session.sessionPreset = .photo
+        defer { session.commitConfiguration() }
+        if session.canSetSessionPreset(.photo) { session.sessionPreset = .photo }
         for input in session.inputs { session.removeInput(input) }
         if let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position),
            let input = try? AVCaptureDeviceInput(device: device), session.canAddInput(input) {
@@ -276,32 +282,42 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate {
         if !session.outputs.contains(output), session.canAddOutput(output) {
             session.addOutput(output)
         }
-        session.commitConfiguration()
     }
 
     func flip() {
         position = position == .back ? .front : .back
-        configure()
+        let session = self.session, output = self.output, position = self.position
+        queue.async { Self.configure(session, output: output, position: position) }
     }
 
     func capture() async -> UIImage? {
-        if let connection = output.connection(with: .video) {
-            // The app is portrait-only: rotate the captured photo upright.
-            if connection.isVideoRotationAngleSupported(90) { connection.videoRotationAngle = 90 }
-            // Front camera: the preview is mirrored, so save the photo mirrored too (what you saw is what's sent).
-            if connection.isVideoMirroringSupported {
-                connection.automaticallyAdjustsVideoMirroring = false
-                connection.isVideoMirrored = position == .front
-            }
-        }
+        let output = self.output, front = position == .front
         return await withCheckedContinuation { (c: CheckedContinuation<UIImage?, Never>) in
             continuation = c
-            output.capturePhoto(with: AVCapturePhotoSettings(), delegate: self)
+            queue.async { [self] in
+                guard let connection = output.connection(with: .video), connection.isEnabled, connection.isActive else {
+                    DispatchQueue.main.async { self.finish(nil) }
+                    return
+                }
+                // The app is portrait-only: rotate the captured photo upright.
+                if connection.isVideoRotationAngleSupported(90) { connection.videoRotationAngle = 90 }
+                // Front camera: the preview is mirrored, so save the photo mirrored too (what you saw is what's sent).
+                if connection.isVideoMirroringSupported {
+                    connection.automaticallyAdjustsVideoMirroring = false
+                    connection.isVideoMirrored = front
+                }
+                output.capturePhoto(with: AVCapturePhotoSettings(), delegate: self)
+            }
         }
     }
 
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         let image = photo.fileDataRepresentation().flatMap { UIImage(data: $0) }
+        DispatchQueue.main.async { self.finish(image) }
+    }
+
+    /// Hands the photo back once (on the main thread).
+    private func finish(_ image: UIImage?) {
         continuation?.resume(returning: image)
         continuation = nil
     }

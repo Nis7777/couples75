@@ -392,6 +392,10 @@ struct LiveActivityView: View {
 /// The couple's Pact Card on the Home Screen: logo, rank and streak, both busts and both signatures.
 /// Medium is the card itself; small is the logo, the two of you and the streak.
 struct PactCardWidget: Widget {
+    /// A plain String, not an interpolated literal: WidgetKit reads an interpolated literal as a localized key and
+    /// crashed resolving it ("ResolvedWidgetBundleHost.allDescriptors").
+    private static let displayName: String = Brand.appName + " Card"
+
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "PactCard", provider: SnapshotProvider()) { entry in
             PactCardWidgetView(entry: entry)
@@ -401,7 +405,7 @@ struct PactCardWidget: Widget {
                 }
                 .widgetURL(URL(string: "\(Brand.urlScheme)://today"))
         }
-        .configurationDisplayName("\(Brand.appName) Card")
+        .configurationDisplayName(Self.displayName)
         .description("Your couple card: signed by both of you, with your rank and streak.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
