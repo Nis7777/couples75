@@ -36,8 +36,6 @@ struct CurrentChallengeSheet: View {
                         statsRow
                         if !isUpcoming {
                             DayProgressBar(day: day, total: length)
-                                .padding(16)
-                                .card(radius: 20, shadow: false)
                         }
                         if !isUpcoming, let r = round { missesCard(r) }
                         rulesCard
@@ -232,10 +230,7 @@ struct CurrentChallengeSheet: View {
     private func card<Content: View>(_ title: String, icon: String,
                                      @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(title, systemImage: icon)
-                .font(.app(15, .bold))
-                .foregroundStyle(Color.textPrimary)
-                .accessibilityAddTraits(.isHeader)
+            SectionTitle(title: title, icon: icon)
             content()
         }
         .padding(16)

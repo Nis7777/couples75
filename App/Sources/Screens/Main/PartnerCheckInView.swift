@@ -50,7 +50,10 @@ struct PartnerCheckInView: View {
                 .padding(.bottom, 20)
             }
             .scrollDismissesKeyboard(.interactively)
-            if !isMine { actionBar }
+            // The photo and reactions scroll under the actions, which sit on a soft fade (no hard edge).
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if !isMine { actionBar }
+            }
         }
         .screenBackground()
         .task {
@@ -267,9 +270,13 @@ struct PartnerCheckInView: View {
             .animation(.easeInOut(duration: 0.2), value: iApproved)
         }
         .padding(.horizontal, Metrics.side)
-        .padding(.top, 10)
+        .padding(.top, 22)
         .padding(.bottom, 8)
-        .background(Color.ivory.opacity(0.96).ignoresSafeArea(edges: .bottom))
+        .background {
+            LinearGradient(colors: [Color.ivory.opacity(0), Color.ivory.opacity(0.94), Color.ivory],
+                           startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea(edges: .bottom)
+        }
     }
 
     private func sendComment() {

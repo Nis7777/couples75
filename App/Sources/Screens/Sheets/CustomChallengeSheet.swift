@@ -1,5 +1,25 @@
 import SwiftUI
 
+/// A card's title: a small olive icon, then the title.
+struct SectionTitle: View {
+    var title: String
+    var icon: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.sage)
+                .frame(width: 18)
+                .accessibilityHidden(true)
+            Text(title)
+                .font(.app(15, .bold))
+                .foregroundStyle(Color.textPrimary)
+        }
+        .accessibilityAddTraits(.isHeader)
+    }
+}
+
 /// Challenges → "Create your own": a name, any length (3–100 days), shared saves and 1–3 rules, the same for both
 /// of you. "Continue" hands the challenge to the usual details sheet (optional bet, "Start tomorrow").
 struct CustomChallengeSheet: View {
@@ -283,11 +303,7 @@ struct CustomChallengeSheet: View {
     private func card<Content: View>(_ title: String, icon: String,
                                      @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(title, systemImage: icon)
-                .font(.app(15, .bold))
-                .foregroundStyle(Color.textPrimary)
-                .labelStyle(.titleAndIcon)
-                .accessibilityAddTraits(.isHeader)
+            SectionTitle(title: title, icon: icon)
             content()
         }
         .padding(16)

@@ -130,7 +130,7 @@ struct ProofScreen: View {
             Circle()
                 .fill(n > 0 ? Color.highlight : Color.sage)
                 .frame(width: 7, height: 7)
-            Text(n > 0 ? "\(n) to review" : "All caught up. Nothing to review right now.")
+            Text(n > 0 ? "\(n) to review" : "All caught up")
                 .font(.app(14, .medium))
                 .foregroundStyle(Color.textSecondary)
         }
