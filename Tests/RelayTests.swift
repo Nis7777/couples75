@@ -90,4 +90,13 @@ final class RelayTests: XCTestCase {
         RelayCodec.remove(type: "ProgressShare", id: "p1", from: &f)
         XCTAssertTrue(f.progressShares.isEmpty)
     }
+
+    /// The invite record is never named by the code itself, so a listing can't leak open codes.
+    func testInviteRecordNameHidesTheCode() {
+        let name = RelayCrypto.inviteRecordName(code: "K7M2QP")
+        XCTAssertFalse(name.contains("K7M2QP"))
+        XCTAssertEqual(name, RelayCrypto.inviteRecordName(code: "k7m2qp"))
+        XCTAssertNotEqual(name, RelayCrypto.inviteRecordName(code: "K7M2QR"))
+        XCTAssertTrue(name.hasPrefix("inv."))
+    }
 }

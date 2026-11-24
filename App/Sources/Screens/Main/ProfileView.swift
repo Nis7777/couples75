@@ -115,7 +115,7 @@ struct ProfileView: View {
                                 .foregroundStyle(Color.textPrimary)
                         }
                         .tint(.coral)
-                        Text("Steps, exercise, water and mindful minutes check off matching rules by themselves.")
+                        Text("Steps, exercise, water and mindful minutes check off matching habits by themselves. Your Health numbers stay on this iPhone: \(model.partnerName.isEmpty ? "your partner" : model.partnerName) only sees that it's done.")
                             .font(.app(13))
                             .foregroundStyle(Color.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)

@@ -85,7 +85,7 @@ struct NotificationChoices: View {
             }
         } actions: {
             if partner || daily || recap {
-                Text("Next, your iPhone asks you to allow notifications. Tap Allow.")
+                Text("Next, your iPhone asks whether \(Brand.appName) can send you notifications.")
                     .font(.app(13))
                     .foregroundStyle(Color.textSecondary)
                     .multilineTextAlignment(.center)

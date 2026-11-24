@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 3.4: "Pact is iPhone-only for now". No paywall ever.
+/// 3.4: "Pact is iPhone-only for now". No paywall ever. (Never name another phone platform here: guideline 2.3.10.)
 struct AndroidWaitlistView: View {
     @Environment(AppModel.self) private var model
     var done: () -> Void
@@ -23,7 +23,7 @@ struct AndroidWaitlistView: View {
                     TitleText("Thanks! We'll be in touch.")
                 } else {
                     TitleText("\(Brand.appName) is iPhone-only for now")
-                    BodyText("Leave your email and we'll tell you when Android is ready.")
+                    BodyText("Leave your email and we'll tell you when \(model.draft.partnerName.isEmpty ? "your partner" : model.draft.partnerName) can join.")
                     TextField("Email", text: $email)
                         .keyboardType(.emailAddress)
                         .textContentType(.emailAddress)

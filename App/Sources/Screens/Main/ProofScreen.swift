@@ -331,7 +331,7 @@ struct HonourProofCard: View {
                         .font(.app(16, .semibold))
                         .foregroundStyle(Color.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
-                    Text(checkIn.healthProof.map { "\($0) · \(checkIn.capturedAt.formatted(date: .omitted, time: .shortened))" }
+                    Text(checkIn.healthProof.map { _ in "\(HealthMetric.proofLine) · \(checkIn.capturedAt.formatted(date: .omitted, time: .shortened))" }
                          ?? checkIn.capturedAt.formatted(date: .omitted, time: .shortened))
                         .font(.app(13))
                         .foregroundStyle(Color.textSecondary)

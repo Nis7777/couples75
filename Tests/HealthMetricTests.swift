@@ -18,4 +18,10 @@ final class HealthMetricTests: XCTestCase {
         XCTAssertNil(HealthMetric.metric(for: rule("reading", "Read: 10 pages")))
         XCTAssertNil(HealthMetric.metric(for: rule(RuleFact.customKey, "Learn Chinese: 15 min")))
     }
+
+    /// The line synced to the partner carries no Health value (Guideline 5.1.3(ii)).
+    func testProofLineHasNoHealthValue() {
+        XCTAssertNil(HealthMetric.proofLine.rangeOfCharacter(from: .decimalDigits))
+        XCTAssertFalse(HealthMetric.proofLine.lowercased().contains("steps"))
+    }
 }

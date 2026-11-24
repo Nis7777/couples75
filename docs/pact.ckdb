@@ -325,7 +325,7 @@ DEFINE SCHEMA
         "___etag"       STRING,
         "___modTime"    TIMESTAMP,
         "___modifiedBy" REFERENCE,
-        "___recordID"   REFERENCE QUERYABLE,
+        "___recordID"   REFERENCE,
         "code" STRING,
         "shareURL" STRING,
         "inviterName" STRING,
@@ -334,7 +334,7 @@ DEFINE SCHEMA
         "sealedKey" BYTES,
         GRANT WRITE TO "_creator",
         GRANT CREATE TO "_icloud",
-        GRANT READ TO "_world"
+        GRANT READ TO "_icloud"
     );
 
     RECORD TYPE Waitlist (

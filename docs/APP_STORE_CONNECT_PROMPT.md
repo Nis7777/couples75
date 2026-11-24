@@ -106,7 +106,7 @@ two things reach the developer in readable form. Answer:
 - **Contact Info → Name**: used for **App Functionality**; linked to the user **Yes**; tracking **No**.
   (The inviter's first name is in the invite-code record while an invite is open.)
 - **Contact Info → Email Address**: used for **App Functionality**; linked to the user **Yes**; tracking **No**.
-  (Optional Android waitlist.)
+  (Optional waitlist for partners without an iPhone.)
 - Nothing else is collected (no health, photos, user content, identifiers, usage data, diagnostics or purchases by
   the developer). Tracking: **No**.
 - Publish the privacy answers.
@@ -120,7 +120,7 @@ two things reach the developer in readable form. Answer:
 ```
 Pact is couple maxing: the two of you level up together, every day.
 
-Pick what you want to work on, in three areas: Body (gym, diet, sleep), Looks (skin, glow-up, posture) and Mind & money (reading, skills, saving, phone time). Each of you gets 4 to 6 daily habits at your own level. Check them off with a live photo for your partner (recommended) or a quick tap. Your partner cheers you on, or calls it sus.
+Pick what you want to work on, in three areas: Body (gym, diet, sleep), Looks (skin, glow-up, posture) and Mind & money (reading, skills, saving, phone time). Each of you gets 4 to 6 daily habits at your own level. Check them off with a photo taken in the app (recommended) or a quick tap. Your partner cheers you on, or calls it sus.
 
 You share everything: one streak, one XP total and one rank, from Spark to Legend. Habits have no stakes, so a bad day never ends anything.
 
@@ -132,16 +132,14 @@ Take a daily progress pic if you like. Progress photos are private by default: t
 - Daily habits for body, looks, mind and money
 - Challenges with optional bets, and The 75
 - Shared streak, XP, ranks and badges
-- Live photo proof, reactions and love notes
+- Photo proof, reactions and love notes
 - Private progress photos with a before/after slider and timelapse
 - Widgets, Live Activity, Apple Watch and Apple Health. No account to create: it runs on iCloud
 
-Subscriptions: Pact Yearly and Pact Monthly renew automatically unless cancelled at least 24 hours before the end of the period. Manage or cancel in Settings > [your name] > Subscriptions. One subscription covers both partners.
+Subscriptions: every Pact plan (yearly, monthly and the yearly offer) renews automatically unless cancelled at least 24 hours before the end of the period. Manage or cancel in Settings > [your name] > Subscriptions. One subscription covers both partners.
 
 Terms of Use: https://nis7777.github.io/pact/terms.html
 Privacy Policy: https://nis7777.github.io/pact/privacy.html
-
-The 75 challenge in Pact is not affiliated with 44Seven Media or the 75 HARD program.
 ```
 
 - Keywords: `couples,habits,glow up,self improvement,challenge,partner,accountability,streak,goals,level up`
@@ -166,10 +164,12 @@ To review:
 1. Open Pact, tap "Let's start" and go through onboarding (any names; tap "No, I'll invite them").
 2. Subscribe on the paywall with a sandbox account (Yearly has a 7-day free trial). One subscription covers both partners. Closing the paywall with × shows a one-time 38% off yearly offer.
 3. The app shows a 6-letter invite code. On a second iPhone (another Apple ID, signed in to iCloud), open Pact, tap "My partner invited me" and enter the code. The partner joins free and picks their own habits.
-4. With one iPhone only: after subscribing, tap "Done for now", then "Or start a warm-up day" on the waiting screen to try check-ins (a live photo or a tap).
+4. With one iPhone only: after subscribing, tap "Done for now", then "Or start a warm-up day" on the waiting screen to try check-ins (a photo or a tap).
 5. Day 1 starts the day after the partner joins. On Today: check in; the partner sees it and approves photo check-ins in Proof. Challenges tab: start a challenge or "Create your own" (it starts the next day).
 
-The app has no servers of its own. Data lives on the two iPhones and passes between them through the app's CloudKit public database, end-to-end encrypted on the devices (AES-GCM, Apple CryptoKit) with a key only the couple has; it never uses the users' personal iCloud storage. Apple Health is optional and read-only (Profile > Use Apple Health as proof).
+The app has no servers of its own. Data lives on the two iPhones and passes between them through the app's CloudKit public database, end-to-end encrypted on the devices (AES-GCM, Apple CryptoKit) with a key only the couple has. The only thing in the user's own private iCloud is an optional backup of their private daily progress photos. Apple Health is optional and read-only (Profile > Use Apple Health as proof): readings stay on the device and are never stored in iCloud or sent to the partner, who only sees "Checked off automatically".
+
+Content (photos, comments, notes) is only ever shared between the two partners who linked with a code; there are no strangers, public feeds or discovery. Either partner can end it at any time with Profile > Leave couple or Delete my data, which removes the other person's access, and can report a problem from Profile > Contact support.
 
 Contact: pact.couples.app@gmail.com
 ```

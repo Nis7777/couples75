@@ -40,6 +40,8 @@ struct PaywallView: View {
     @State private var showExit = false
     @State private var showAllPlans = false
     @State private var working = false
+    /// The trial reminder is a local notification: only promise it when notifications are allowed.
+    @State private var canRemind = false
 
     private var purchases: PurchaseManager { model.purchases }
     private var isOnboarding: Bool {
@@ -98,6 +100,7 @@ struct PaywallView: View {
         }
         .sheet(isPresented: $showAllPlans) { AllPlansSheet() }
         .task {
+            canRemind = await NotificationManager.shared.authorizationStatus() == .authorized
             if purchases.yearly == nil { await purchases.loadProducts() }
         }
     }
@@ -188,7 +191,7 @@ struct PaywallView: View {
                                     .font(.system(size: 13, weight: .semibold))
                                     .foregroundStyle(Color.sage)
                                     .padding(.top, 2)
-                                Text("Free for \(days) days. We'll remind you 1 day before your trial ends, so you can cancel anytime before you're charged.")
+                                Text(trialLine(days: days))
                                     .font(.app(14, .medium))
                                     .foregroundStyle(Color.textPrimary)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -212,6 +215,11 @@ struct PaywallView: View {
                             Text("No second payment for \(partnerName.isEmpty ? "your partner" : partnerName).")
                                 .font(.app(15))
                                 .foregroundStyle(Color.textSecondary)
+                            // The renewal terms on the plans page itself (Guideline 3.1.2), not only in "View all plans".
+                            Text(renewalLine)
+                                .font(.app(12))
+                                .foregroundStyle(Color.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                         .multilineTextAlignment(.center)
                         .padding(.top, 4)
@@ -250,7 +258,7 @@ struct PaywallView: View {
     private var plansHeader: some View {
         switch variant {
         case .onboarding:
-            header(title: "Start leveling up together", subtitle: "No commitment. Cancel anytime.")
+            header(title: "Start leveling up together", subtitle: "Cancel anytime in Settings.")
         case .renew:
             header(title: "Renew to keep your run",
                    subtitle: "Your subscription ended, so your run is paused. Renew within \(Brand.lapseGraceDays) days or a running challenge ends with no bet.")
@@ -381,6 +389,21 @@ struct PaywallView: View {
     }
 
     private var selectedProduct: Product? { yearlySelected ? purchases.yearly : purchases.monthly }
+
+    /// "Free for 7 days, then $39.99/year." plus the reminder only when it can really be sent.
+    private func trialLine(days: Int) -> String {
+        let price = purchases.yearlyPrice.map { ", then \($0)/year" } ?? ""
+        let base = "Free for \(days) days\(price). Cancel anytime before the trial ends and you won't be charged."
+        return canRemind ? base + " We'll remind you 1 day before it ends." : base
+    }
+
+    /// "Auto-renews at $39.99/year until you cancel…" for the selected plan.
+    private var renewalLine: String {
+        let price = (yearlySelected ? purchases.yearlyPrice : purchases.monthlyPrice) ?? ""
+        let period = yearlySelected ? "year" : "month"
+        let charge = yearlySelected && hasTrial ? "Charged to your Apple ID when the free trial ends." : "Charged to your Apple ID when you confirm."
+        return "\(charge) Auto-renews at \(price)/\(period) until you cancel, at least 24 hours before the end of the period, in Settings → [your name] → Subscriptions."
+    }
 
     /// Which plan a button buys: the selected one, or the exit offer's discount.
     private enum Plan { case selected, offer }

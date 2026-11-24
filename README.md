@@ -81,7 +81,7 @@ In the Simulator there's no camera: the shutter generates a sample photo with th
 4. Run once on a device signed into iCloud (Development environment). CloudKit creates the record types the
    first time the app saves them. To create all of them, go through: A onboarding and pay, B joins with the code,
    a photo check-in, an honour tap, a reaction, a pause request + answer, a tweak + answer, "Paid" on a bet, and
-   the Android waitlist.
+   the waitlist (partner without an iPhone).
 5. CloudKit Console → your container → **Schema**: check the record types listed in
    `App/Sources/Data/CloudKitSchema.swift`:
    `Couple, Member, RoundConfig, Rule, RuleTweak, TweakAnswer, CheckIn, Reaction, PauseRequest, PauseAnswer,
@@ -142,11 +142,11 @@ Settings → App Store → Sandbox Account).
 
 ## Privacy (App Privacy labels)
 
-The developer never receives any data: everything lives in the users' own iCloud (the couple's photos are
-stored in the owner's iCloud and shared only with the partner). For the App Privacy questionnaire, the app
-stores: **name**, **character choice**, **time zone**, **photos** (check-in proof), **check-ins / reactions**
-(user content), and, for the Android waitlist only, an **email address** in the public database. Nothing is
-used for tracking. Photos are personal data under GDPR; "Leave couple" and "Delete my data" remove them.
+What the partners share passes through the app's CloudKit public database end-to-end encrypted with the couple's
+key, so the developer can't read it. Apple Health readings never leave the iPhone (the partner only sees
+"Checked off automatically"). The developer can only read the inviter's first name (open invites) and the optional
+waitlist email. The App Privacy answers are in `docs/APP_STORE_SUBMISSION.md` and match `App/PrivacyInfo.xcprivacy`.
+Photos are personal data under GDPR; "Leave couple" and "Delete my data" remove them.
 
 Pact's "The 75" challenge is not affiliated with 44Seven Media or the 75 HARD program.
 

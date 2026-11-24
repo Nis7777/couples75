@@ -314,6 +314,7 @@ struct ChallengeDetailSheet: View {
                     }
                     rules
                     proofRow
+                    safetyRow
                     stakes
                     if !model.canStartChallenge { blockedNote }
                 }
@@ -377,12 +378,25 @@ struct ChallengeDetailSheet: View {
             Image(systemName: challenge.proofRequired ? "camera.badge.ellipsis" : "camera")
                 .foregroundStyle(Color.coral)
             Text(challenge.proofRequired
-                 ? "Photo proof is required. Every photo rule needs a live photo, no honour taps."
+                 ? "Photo proof is required. Every photo rule needs a photo taken in the app, no honour taps."
                  : "Photo proof is optional but recommended. Your partner sees it and can cheer.")
                 .font(.app(14))
                 .foregroundStyle(Color.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    /// Guideline 1.4.1: demanding challenges (two workouts, 4 L of water) carry a short safety note.
+    private var safetyRow: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "heart.text.square")
+                .foregroundStyle(Color.coral)
+            Text("Not medical advice. Check with a doctor before a demanding challenge, especially with a health condition or during pregnancy. Spread water over the day, and stop if you feel pain or unwell: pausing is always fine.")
+                .font(.app(14))
+                .foregroundStyle(Color.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
     }
 
     private var stakes: some View {

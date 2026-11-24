@@ -10,7 +10,7 @@ Daily habits and challenges you do together. One streak, one rank, both of you. 
 ## Description
 Pact is couple maxing: the two of you level up together, every day.
 
-Pick what you want to work on, in three areas: Body (gym, diet, sleep), Looks (skin, glow-up, posture) and Mind & money (reading, skills, saving, phone time). Each of you gets 4 to 6 daily habits at your own level. Check them off with a live photo for your partner (recommended) or a quick tap. Your partner cheers you on, or calls it sus.
+Pick what you want to work on, in three areas: Body (gym, diet, sleep), Looks (skin, glow-up, posture) and Mind & money (reading, skills, saving, phone time). Each of you gets 4 to 6 daily habits at your own level. Check them off with a photo taken in the app (recommended) or a quick tap. Your partner cheers you on, or calls it sus.
 
 You share everything: one streak, one XP total and one rank, from Spark to Legend. Habits have no stakes, so a bad day never ends anything.
 
@@ -22,11 +22,9 @@ Take a daily progress pic if you like. Progress photos are private by default: t
 - Daily habits for body, looks, mind and money
 - Challenges with optional bets, and The 75
 - Shared streak, XP, ranks and badges
-- Live photo proof, reactions and love notes
+- Photo proof, reactions and love notes
 - Private progress photos with a before/after slider and timelapse
 - Widgets, Live Activity, Apple Watch and Apple Health. No account to create: it runs on iCloud
-
-The 75 challenge in Pact is not affiliated with 44Seven Media or the 75 HARD program.
 
 ## Keywords
 couples,habits,glow up,self improvement,challenge,partner,accountability,streak,goals,level up
@@ -37,8 +35,8 @@ couples,habits,glow up,self improvement,challenge,partner,accountability,streak,
 - Yearly offer, $24.99 (no free trial), shown once when closing the paywall
 
 ## App Privacy labels
-Data linked to the user, not used for tracking: name, character, time zone, check-in photos, check-ins,
-progress photos (stored in the user's own iCloud; shared with the partner only if they turn it on).
+Use the questionnaire answers below: only **Name** (open invite) and **Email Address** (optional waitlist) are
+collected, both for App Functionality, linked, not used for tracking. These match `App/PrivacyInfo.xcprivacy`.
 
 ## URLs
 - Privacy Policy: https://nis7777.github.io/pact/privacy.html
@@ -47,13 +45,36 @@ progress photos (stored in the user's own iCloud; shared with the partner only i
 - Marketing: https://nis7777.github.io/pact/
 
 ## App Privacy questionnaire (App Store Connect → App Privacy)
-Pact's data stays in the user's iCloud and never reaches the developer, except the optional Android waitlist email.
+Pact's data stays in the user's iCloud and never reaches the developer, except the optional waitlist email.
 Apple counts data as "collected" only when the developer (or a third party) can access it, so answer:
-- **Contact Info → Email Address**: collected (Android waitlist only); purpose App Functionality (to tell them
-  about Android); not used for tracking.
+- **Contact Info → Email Address**: collected (waitlist only); purpose App Functionality (to tell them
+  when Pact works for their partner); not used for tracking.
 - **Contact Info → Name**: collected (the inviter's first name sits in the public invite-code record while an invite
   is open); purpose App Functionality; not used for tracking.
 - For both, answer "linked to the user" **Yes** (the safe answer).
-- Everything else (name, photos, health, fitness, user content, identifiers, purchases): not collected by the
-  developer, because it is stored in the user's own iCloud with Apple and shared only with their partner.
+- Everything else (photos, health, fitness, user content, identifiers, purchases): not collected by the
+  developer. What the partners share passes through the app's CloudKit database end-to-end encrypted with a key
+  only the couple has, so the developer can't read it; progress photos are in the user's own private iCloud; Apple
+  Health readings never leave the iPhone.
 - Tracking: **No**.
+
+## Before you press Submit
+- **CloudKit → Production.** In the CloudKit Console, deploy the Development schema to Production. Check that
+  `PactItem` has `couple` QUERYABLE and `___modTime` QUERYABLE + SORTABLE (review builds use Production; without
+  them every sync fails).
+- **Lock down `InviteCode` in Production** (see `docs/pact.ckdb`): remove the QUERYABLE index on `recordName`, and
+  set the `_world` read permission to none (`_icloud` read only). Builds from now on name invite records by a hash
+  of the code and no longer write the `code` field. Open invites made by older builds still work.
+- The legacy record types in `docs/pact.ckdb` (Couple, Member, CheckIn…) aren't used by the app any more. If they
+  were never deployed to Production, don't deploy them. If they were, set their `_world` read permission to none.
+- **Privacy manifests** are in `App/`, `Widgets/` and `Watch/` (`PrivacyInfo.xcprivacy`). After archiving, Xcode →
+  Organizer → right-click the archive → Generate Privacy Report should list UserDefaults and Disk space.
+- **Push entitlement.** In the archive (Organizer → Show in Finder → app → entitlements), `aps-environment` should
+  read `production`. Xcode switches it from `development` when it signs for App Store distribution.
+- **Encryption.** `ITSAppUsesNonExemptEncryption` is `false`: the app only uses the encryption built into iOS
+  (CryptoKit AES-GCM, HTTPS). If App Store Connect asks, answer that the app uses encryption only through Apple's
+  operating system. If you distribute in France, Apple may still ask for the French declaration.
+- **iPad.** The app is iPhone-only, but reviewers sometimes run it on an iPad. Tap through onboarding, the paywall
+  and Today once in an iPad simulator.
+- The 75 disclaimer ("not affiliated with 44Seven Media…") lives in the Terms and in Profile → About. Keep it out
+  of the App Store description and keywords: naming another company's trademark in metadata can be flagged.

@@ -99,7 +99,7 @@ struct CheckInCameraView: View {
                 Text(rule.title)
                     .font(.app(24, .bold))
                     .foregroundStyle(.white)
-                Text("Live photo · not from your camera roll")
+                Text("Taken just now · not from your camera roll")
                     .font(.app(13, .medium))
                     .foregroundStyle(.white.opacity(0.85))
                 Text(RuleLibrary.photoPrompt(for: rule))
@@ -108,7 +108,7 @@ struct CheckInCameraView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 8)
-            Text("LIVE")
+            Text("NOW")
                 .font(.app(15, .bold))
                 .foregroundStyle(.white)
                 .padding(.leading, 16)

@@ -11,7 +11,9 @@ import CloudKit
 /// - Photos: once the partner's phone has a photo it writes a tiny receipt, and the author removes the photo from
 ///   the record. Photos older than 30 days are removed anyway. Both phones keep their own copy.
 /// - Sync: "what changed for our tag since last time?" (by modification date), plus a silent push subscription.
-/// - The invite: an `InviteCode` record named by the 6-letter code, holding the couple's key locked with the code.
+/// - The invite: an `InviteCode` record named by a hash of the 6-letter code (never the code itself), holding the
+///   couple's key locked with the code. Invites made by older builds were named by the plain code; those are still
+///   read and deleted.
 /// - The couple's tag and key are also kept in the iCloud key-value store (separate from iCloud storage), so a
 ///   reinstall or a new phone gets the couple back.
 @MainActor
@@ -375,8 +377,7 @@ final class RelayStore: Store {
         guard let secret = state.secret else { throw StoreError.noCouple }
         for _ in 0..<5 {
             let code = InviteCodes.generate()
-            let rec = CKRecord(recordType: Self.inviteType, recordID: CKRecord.ID(recordName: code))
-            rec["code"] = code as NSString
+            let rec = CKRecord(recordType: Self.inviteType, recordID: Self.inviteID(code))
             rec["couple"] = secret.tag as NSString
             rec["sealedKey"] = try RelayCrypto.wrapKey(secret, code: code) as NSData
             rec["inviterName"] = inviterName as NSString
@@ -393,11 +394,31 @@ final class RelayStore: Store {
         throw StoreError.other("Couldn't create an invite code. Try again.")
     }
 
+    /// The record ID of an invite (hashed), and the old plain-code ID used by earlier builds.
+    private static func inviteID(_ code: String) -> CKRecord.ID {
+        CKRecord.ID(recordName: RelayCrypto.inviteRecordName(code: code))
+    }
+    private static func legacyInviteID(_ code: String) -> CKRecord.ID { CKRecord.ID(recordName: code) }
+
+    private func deleteInvite(code: String) async {
+        _ = try? await db.modifyRecords(saving: [], deleting: [Self.inviteID(code), Self.legacyInviteID(code)],
+                                        savePolicy: .allKeys, atomically: false)
+    }
+
+    /// The invite record for a code: the hashed name first, then the old plain-code name.
+    private func inviteRecord(code: String) async throws -> CKRecord {
+        do {
+            return try await db.record(for: Self.inviteID(code))
+        } catch let ck as CKError where ck.code == .unknownItem {
+            return try await db.record(for: Self.legacyInviteID(code))
+        }
+    }
+
     func regenerateInvite(inviterName: String) async throws -> InviteInfo {
         guard state.secret != nil, state.isOwner else { throw StoreError.noCouple }
         do {
             if let old = state.invite?.code {
-                _ = try? await db.deleteRecord(withID: CKRecord.ID(recordName: old))
+                await deleteInvite(code: old)
             }
             let invite = try await makeInvite(inviterName: inviterName)
             state.invite = invite
@@ -429,7 +450,7 @@ final class RelayStore: Store {
 
     func closeInvite() async {
         guard state.isOwner, let code = state.invite?.code else { return }
-        _ = try? await db.deleteRecord(withID: CKRecord.ID(recordName: code))
+        await deleteInvite(code: code)
         state.invite = nil
         persist()
     }
@@ -440,7 +461,7 @@ final class RelayStore: Store {
         let clean = InviteCodes.normalize(code)
         guard clean.count == 6 else { throw StoreError.codeNotFound }
         do {
-            let rec = try await db.record(for: CKRecord.ID(recordName: clean))
+            let rec = try await inviteRecord(code: clean)
             guard rec["sealedKey"] is Data else { throw StoreError.codeNotFound }
             return InviteLookup(code: clean, inviterName: rec["inviterName"] as? String ?? "Your partner",
                                 shareURL: Self.joinLink(code: clean))
@@ -457,7 +478,7 @@ final class RelayStore: Store {
         let code = InviteCodes.normalize(lookup.code)
         guard code.count == 6 else { throw StoreError.codeNotFound }
         do {
-            let rec = try await db.record(for: CKRecord.ID(recordName: code))
+            let rec = try await inviteRecord(code: code)
             guard let tag = rec["couple"] as? String, let sealed = rec["sealedKey"] as? Data,
                   let secret = try? RelayCrypto.unwrapKey(sealed, code: code, tag: tag) else {
                 throw StoreError.codeNotFound
@@ -534,7 +555,7 @@ final class RelayStore: Store {
         guard let secret = state.secret else { wipeLocalData(); return }
         do {
             if state.isOwner, let code = state.invite?.code {
-                _ = try? await db.deleteRecord(withID: CKRecord.ID(recordName: code))
+                await deleteInvite(code: code)
             }
             let mine = try await myRecordIDs(secret)
             let leftName = RelayCodec.leftRecordName(member: member.id)

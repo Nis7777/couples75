@@ -51,6 +51,13 @@ enum RelayCrypto {
         return CoupleSecret(tag: tag, key: key)
     }
 
+    /// The invite record's name: a hash of the code, never the code itself, so a listing of the public database
+    /// can't reveal open codes (and with them the couple's key).
+    static func inviteRecordName(code: String) -> String {
+        let digest = SHA256.hash(data: Data("pact-invite-name-v2|\(code.uppercased())".utf8))
+        return "inv." + digest.map { String(format: "%02x", $0) }.joined()
+    }
+
     private static func inviteKey(code: String, tag: String) -> SymmetricKey {
         HKDF<SHA256>.deriveKey(inputKeyMaterial: SymmetricKey(data: Data(code.uppercased().utf8)),
                                salt: Data("pact-invite-v1".utf8), info: Data(tag.utf8), outputByteCount: 32)

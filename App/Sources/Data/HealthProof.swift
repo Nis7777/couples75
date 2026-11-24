@@ -33,16 +33,9 @@ enum HealthMetric: Equatable {
         }
     }
 
-    /// The proof line on the check-in: "Apple Health · 8,412 steps".
-    func proofText(_ value: Double) -> String {
-        let f = Self.fmt
-        switch self {
-        case .steps: return "Apple Health · \(f(value.rounded(.down))) steps"
-        case .exerciseMinutes: return "Apple Health · \(Int(value)) min exercise"
-        case .waterLiters: return "Apple Health · \(f((value * 10).rounded(.down) / 10)) L water"
-        case .mindfulMinutes: return "Apple Health · \(Int(value)) mindful min"
-        }
-    }
+    /// The proof line saved on the check-in and synced to the partner. It carries NO Health value: Apple Health
+    /// data must never be stored in iCloud (App Review Guideline 5.1.3(ii)), so the reading stays on this iPhone.
+    static let proofLine = "Checked off automatically"
 
     static func number(in title: String, before suffix: String) -> Double? {
         let pattern = "([0-9]+(?:[.,][0-9]+)?)\\s*" + NSRegularExpression.escapedPattern(for: suffix)
