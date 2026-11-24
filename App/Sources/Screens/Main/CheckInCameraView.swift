@@ -235,8 +235,11 @@ struct StampPill: View {
 }
 
 /// AVCaptureSession wrapper: back camera by default, flip, single photo capture.
+/// `@unchecked Sendable`: the session and output are only touched on `queue` (serial), and `position` and
+/// `continuation` only on the main thread (`finish` always hops to main), so sharing `self` with those closures
+/// is safe even though the compiler can't prove it.
 @Observable
-final class CameraController: NSObject, AVCapturePhotoCaptureDelegate {
+final class CameraController: NSObject, AVCapturePhotoCaptureDelegate, @unchecked Sendable {
     @ObservationIgnored let session = AVCaptureSession()
     @ObservationIgnored private let output = AVCapturePhotoOutput()
     @ObservationIgnored private var position: AVCaptureDevice.Position = .back
