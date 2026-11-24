@@ -22,7 +22,7 @@ final class PurchaseManager {
     private(set) var yearly: Product?
     private(set) var yearly7: Product?
     private(set) var monthly: Product?
-    /// The one-time exit offer (40% off yearly).
+    /// The one-time exit offer (38% off yearly, $24.99).
     private(set) var yearlyOffer: Product?
     private(set) var entitlement: Entitlement?
     private(set) var isLoadingProducts = false
