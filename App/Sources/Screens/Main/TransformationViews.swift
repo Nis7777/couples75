@@ -86,7 +86,12 @@ struct TransformationSection: View {
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .card()
-        .fullScreenCover(item: $viewing) { v in ProgressPhotoViewer(image: v.image, label: v.label) }
+        .fullScreenCover(item: $viewing) { v in
+            // My own photos can be deleted (the partner's shared ones can't).
+            ProgressPhotoViewer(image: v.image, label: v.label,
+                                onDelete: model.progress.photos.contains(where: { $0.id == v.id })
+                                    ? { Task { await model.deleteProgressPhoto(id: v.id) } } : nil)
+        }
         .fullScreenCover(item: $playing) { p in TimelapsePlayer(images: p.images, labels: p.labels) }
         .sheet(item: $exported) { v in ActivityView(items: [v.url]).ignoresSafeArea() }
         .task(id: model.partnerProgressShares.count) { await loadPartner() }
@@ -261,9 +266,13 @@ struct BeforeAfterSlider: View {
 
 /// Full-screen progress photo.
 struct ProgressPhotoViewer: View {
+    @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
     var image: UIImage
     var label: String
+    /// My own photo: a Delete button (with a confirmation).
+    var onDelete: (() -> Void)? = nil
+    @State private var confirmDelete = false
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -273,6 +282,16 @@ struct ProgressPhotoViewer: View {
             HStack {
                 Text(label).font(.app(18, .bold)).foregroundStyle(.white)
                 Spacer()
+                if onDelete != nil {
+                    Button { confirmDelete = true } label: {
+                        Image(systemName: "trash")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(Circle().fill(Color.white.opacity(0.18)))
+                    }
+                    .accessibilityLabel("Delete this progress pic")
+                }
                 Button { dismiss() } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 17, weight: .bold))
@@ -283,6 +302,17 @@ struct ProgressPhotoViewer: View {
                 .accessibilityLabel("Close")
             }
             .padding(16)
+        }
+        .confirmationDialog("Delete this progress pic?", isPresented: $confirmDelete, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
+                onDelete?()
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(model.shareProgressPhotos
+                 ? "It's deleted from this iPhone, your iCloud and \(model.partnerName)'s phone. This can't be undone."
+                 : "It's deleted from this iPhone and your iCloud. This can't be undone.")
         }
     }
 }

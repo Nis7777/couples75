@@ -28,6 +28,17 @@ extension AppModel {
         return facts.progressShares.filter { $0.memberID == p.id }.sorted { $0.capturedAt < $1.capturedAt }
     }
 
+    /// Deletes one of my progress photos: from this iPhone, my iCloud and (if shared) my partner's phone.
+    func deleteProgressPhoto(id: String) async {
+        await progress.delete(id)
+        if facts.progressShares.contains(where: { $0.id == id }) {
+            await store.deleteProgressShares(ids: [id])
+            apply(store.cachedFacts())
+        }
+        toast = "Progress pic deleted."
+        await NotificationManager.shared.reschedule(model: self)
+    }
+
     /// Saves today's progress photo (replacing an earlier one from today). Shares a copy if sharing is on.
     func saveProgressPhoto(_ jpeg: Data) async {
         let now = self.now()

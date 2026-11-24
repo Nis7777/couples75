@@ -108,6 +108,15 @@ final class ProgressPhotoStore {
         if changed { persist() }
     }
 
+    /// Deletes one photo, here and in iCloud.
+    func delete(_ id: String) async {
+        removeLocal(id)
+        persist()
+        if cloudEnabled {
+            _ = try? await db.modifyRecords(saving: [], deleting: [CKRecord.ID(recordName: id, zoneID: zoneID)])
+        }
+    }
+
     /// Delete my data: removes every progress photo here and in iCloud.
     func deleteAll() async {
         let ids = photos.map(\.id)
