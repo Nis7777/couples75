@@ -112,6 +112,12 @@ enum Prefs {
     static let shareProgressKey = "shareProgressPhotos"
     static let healthProofKey = "healthProofOn"
     static let liveActivityKey = "liveActivityOn"
+    /// The paywall's one-time offer has been shown on this install.
+    static let exitOfferShownKey = "exitOfferShown"
+    static var exitOfferShown: Bool {
+        get { UserDefaults.standard.bool(forKey: exitOfferShownKey) }
+        set { UserDefaults.standard.set(newValue, forKey: exitOfferShownKey) }
+    }
 
     /// Notification choices (onboarding "Know when your partner checks in", and Profile). All on by default.
     static let partnerCheckInNotifsKey = "notifyPartnerCheckIns"

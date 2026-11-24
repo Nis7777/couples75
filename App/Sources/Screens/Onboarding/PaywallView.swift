@@ -53,7 +53,13 @@ struct PaywallView: View {
                 if onClose != nil {
                     // In onboarding the × always opens the exit sheet; it never drops the user into the app.
                     CloseButton {
-                        if isOnboarding { showExit = true } else { onClose?() }
+                        // Onboarding: the one-time offer the first time (if the App Store has it), then back to the plan.
+                        if isOnboarding && !Prefs.exitOfferShown && purchases.yearlyOffer != nil {
+                            Prefs.exitOfferShown = true
+                            showExit = true
+                        } else {
+                            onClose?()
+                        }
                     }
                 } else {
                     Color.clear.frame(width: 44, height: 44)
@@ -80,27 +86,15 @@ struct PaywallView: View {
         .animation(.easeInOut(duration: 0.3), value: page)
         .screenBackground()
         .onAppear { if !isOnboarding { page = .plans } }
-        .sheet(isPresented: $showExit) {
-            ExitSheet(monthlyPrice: purchases.monthlyPrice ?? "…",
-                      tryMonthly: {
-                          showExit = false
-                          Task { await buy(.monthly) }
-                      },
-                      sevenDayTrial: {
-                          showExit = false
-                          Task { await buy(.yearly7) }
-                      },
-                      keepYearly: {
-                          showExit = false
-                          yearlySelected = true
-                      },
-                      backToPlan: {
-                          showExit = false
-                          onClose?()
-                      })
-                .presentationDetents([.large])
-                .presentationCornerRadius(28)
-                .presentationDragIndicator(.visible)
+        .fullScreenCover(isPresented: $showExit) {
+            ExitOfferView(claim: {
+                await buy(.offer)
+                // Paid: close the offer so "You're in" (or Try again) shows.
+                if model.hasActiveSubscription { showExit = false }
+            }, close: {
+                showExit = false
+                onClose?()
+            })
         }
         .sheet(isPresented: $showAllPlans) { AllPlansSheet() }
         .task {
@@ -409,14 +403,13 @@ struct PaywallView: View {
 
     private var selectedProduct: Product? { yearlySelected ? purchases.yearly : purchases.monthly }
 
-    /// Which plan a button buys: the selected one, or the exit sheet's monthly / 7-day trial.
-    private enum Plan { case selected, monthly, yearly7 }
+    /// Which plan a button buys: the selected one, or the one-time exit offer.
+    private enum Plan { case selected, offer }
 
     private func product(for plan: Plan) -> Product? {
         switch plan {
         case .selected: return selectedProduct
-        case .monthly: return purchases.monthly
-        case .yearly7: return purchases.yearly7
+        case .offer: return purchases.yearlyOffer
         }
     }
 
@@ -476,167 +469,217 @@ struct FooterLinks: View {
     }
 }
 
-/// 13d exit sheet, when × is tapped on the paywall: "Not ready for a whole year?". Both of you at the top, the free
-/// week as the hero offer (on the espresso Pact Card look), month-by-month as the lighter option, then quiet ways
-/// back. Prices are the real ones from the App Store; without a free trial (already used) the week card is hidden.
-struct ExitSheet: View {
+/// 13d, × on the paywall (once per install): the one-time offer. 40% off yearly ($23.99 instead of $39.99, about $1
+/// per person a month, no trial), on sun rays behind the two of you cheering. Prices are the real App Store ones
+/// (the struck-through price is the regular yearly plan). × closes it for good.
+struct ExitOfferView: View {
     @Environment(AppModel.self) private var model
-    var monthlyPrice: String
-    var tryMonthly: () -> Void
-    var sevenDayTrial: () -> Void
-    var keepYearly: () -> Void
-    var backToPlan: () -> Void
-    @State private var shine = false
+    var claim: () async -> Void
+    var close: () -> Void
+    @State private var appeared = false
+    @State private var claiming = false
+    @State private var visible = false
 
     private var purchases: PurchaseManager { model.purchases }
-    private var trialDays: Int? { purchases.trialDays(purchases.yearly7) }
-    private var partner: String { model.draft.partnerName.isEmpty ? "your partner" : model.draft.partnerName }
+    private var offer: Product? { purchases.yearlyOffer }
+    private var offerPrice: String { offer?.displayPrice ?? "" }
+    private var regularPrice: String { purchases.yearly?.displayPrice ?? "" }
+
+    /// "40%", from the real prices.
+    private var percentOff: String {
+        guard let o = offer?.price, let y = purchases.yearly?.price, y > 0 else { return "40%" }
+        let ratio = NSDecimalNumber(decimal: o / y).doubleValue
+        return "\(Int(((1 - ratio) * 100).rounded()))%"
+    }
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 18) {
-                CoupleBusts(left: model.draftScene, right: model.sceneBBuilt)
-                    .frame(height: 92)
-                    .padding(.top, 26)
-                    .accessibilityHidden(true)
-                VStack(spacing: 6) {
-                    Text("Not ready for a whole year?")
-                        .font(.app(26, .bold))
+        ZStack {
+            rays
+            VStack(spacing: 0) {
+                HStack {
+                    Spacer()
+                    Button(action: close) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(Color.textSecondary)
+                            .frame(width: 40, height: 40)
+                            .background(Circle().fill(Color.peachDeep.opacity(0.8)))
+                    }
+                    .accessibilityLabel("No thanks")
+                }
+                .padding(.horizontal, 18)
+                .padding(.top, 8)
+
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 14) {
+                        CoupleScene(left: model.draftScene, right: model.sceneBBuilt, leftPose: .cheer, rightPose: .cheer,
+                                    crop: 0.55, alive: true)
+                            .frame(height: 200)
+                            .scaleEffect(appeared ? 1 : 0.9)
+                            .opacity(appeared ? 1 : 0)
+                            .accessibilityHidden(true)
+                        Text("\(percentOff) off \(Brand.appName)")
+                            .font(.app(38, .heavy))
+                            .foregroundStyle(Color.highlight)
+                            .multilineTextAlignment(.center)
+                            .scaleEffect(appeared ? 1 : 0.8)
+                            .accessibilityAddTraits(.isHeader)
+                        Text("This offer is only shown once.")
+                            .font(.app(16, .medium))
+                            .foregroundStyle(Color.textSecondary)
+                        priceCard
+                            .padding(.top, 6)
+                        Text("Billed \(offerPrice) today, then \(offerPrice)/year. No free trial with this offer.")
+                            .font(.app(14))
+                            .foregroundStyle(Color.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 12)
+                    }
+                    .padding(.horizontal, Metrics.side)
+                    .padding(.bottom, 12)
+                }
+
+                VStack(spacing: 8) {
+                    claimButton
+                    Text("\(offerPrice)/year")
+                        .font(.app(17, .bold))
                         .foregroundStyle(Color.textPrimary)
-                        .multilineTextAlignment(.center)
-                    Text("Start smaller. Same habits, same streak, you and \(partner).")
-                        .font(.app(15))
+                    Text("Auto-renews. Cancel anytime in Settings. One subscription covers you both.")
+                        .font(.app(12))
                         .foregroundStyle(Color.textSecondary)
                         .multilineTextAlignment(.center)
+                    links
+                        .padding(.top, 4)
                 }
-                if let days = trialDays { trialCard(days: days) }
-                monthlyCard
-                HStack(spacing: 14) {
-                    quietLink("Keep yearly", action: keepYearly)
-                    Circle().fill(Color.textSecondary.opacity(0.4)).frame(width: 3, height: 3)
-                    quietLink("Back to our plan", action: backToPlan)
-                }
-                .padding(.top, 2)
-                Text("Cancel anytime in Settings. One subscription covers you both.")
-                    .font(.app(12))
-                    .foregroundStyle(Color.textSecondary.opacity(0.85))
-                    .multilineTextAlignment(.center)
+                .padding(.horizontal, Metrics.side)
+                .padding(.bottom, 10)
             }
-            .padding(.horizontal, Metrics.side)
-            .padding(.bottom, 20)
         }
-        .screenBackground()
-        .onAppear { shine = true }
+        .background(Color.ivory.ignoresSafeArea())
+        .tracksVisibility($visible)
+        .onAppear {
+            Haptics.success()
+            withAnimation(.spring(response: 0.55, dampingFraction: 0.7)) { appeared = true }
+        }
     }
 
-    /// The hero: a free week on the espresso card, with one bright button.
-    private func trialCard(days: Int) -> some View {
-        Button {
-            Haptics.tap()
-            sevenDayTrial()
-        } label: {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Text("NO CHARGE TODAY")
-                        .font(.app(11, .heavy))
-                        .tracking(1.6)
-                        .foregroundStyle(Color.sand)
-                    Spacer()
-                    Image(systemName: "gift.fill")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(Color.sand)
+    /// Sun rays turning slowly behind everything (paused off screen; still with Reduce Motion).
+    private var rays: some View {
+        LoopClock(period: 90_000, paused: !visible) { t in
+            Canvas { ctx, size in
+                let c = CGPoint(x: size.width / 2, y: size.height * 0.26)
+                let r = max(size.width, size.height) * 1.2
+                let count = 18
+                let turn = t / 90_000 * 2 * .pi
+                for i in 0..<count {
+                    let a0 = turn + Double(i) * 2 * .pi / Double(count)
+                    let a1 = a0 + .pi / Double(count)
+                    var p = Path()
+                    p.move(to: c)
+                    p.addLine(to: CGPoint(x: c.x + cos(a0) * r, y: c.y + sin(a0) * r))
+                    p.addLine(to: CGPoint(x: c.x + cos(a1) * r, y: c.y + sin(a1) * r))
+                    p.closeSubpath()
+                    ctx.fill(p, with: .color(Color.peach.opacity(0.9)))
                 }
-                Text(days == 7 ? "A week, free" : "\(days) days, free")
-                    .font(.app(32, .heavy))
+            }
+        }
+        .overlay(RadialGradient(colors: [Color.ivory.opacity(0), Color.ivory.opacity(0.85)],
+                                center: UnitPoint(x: 0.5, y: 0.26), startRadius: 120, endRadius: 520))
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    private var priceCard: some View {
+        VStack(spacing: 6) {
+            if !regularPrice.isEmpty {
+                Text("\(regularPrice)/year")
+                    .font(.app(18, .medium))
+                    .strikethrough(true, color: Color.textSecondary)
+                    .foregroundStyle(Color.textSecondary)
+            }
+            Text("\(offerPrice)/year")
+                .font(.app(42, .heavy))
+                .foregroundStyle(Color.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text("\(Brand.appName) · Yearly for both of you")
+                .font(.app(15, .semibold))
+                .foregroundStyle(Color.textSecondary)
+            if let each = purchases.perPersonPerMonth(offer) {
+                Text("That's \(each) per person a month")
+                    .font(.app(13, .bold))
                     .foregroundStyle(Color.white)
-                Text(trialTerms(days: days))
-                    .font(.app(14, .medium))
-                    .foregroundStyle(Color.white.opacity(0.8))
-                    .fixedSize(horizontal: false, vertical: true)
-                    .multilineTextAlignment(.leading)
-                Text("Start our free week")
-                    .font(.app(17, .bold))
-                    .foregroundStyle(Color(hex: 0x271C16))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(Capsule().fill(Color.sand))
+                    .padding(.horizontal, 12)
+                    .frame(height: 28)
+                    .background(Capsule().fill(Color.sage))
                     .padding(.top, 4)
             }
-            .padding(18)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(PactCardBackground())
-            .overlay(sheen)
-            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(Color.white.opacity(0.25), lineWidth: 1))
-            .shadow(color: Color.coral.opacity(0.25), radius: 16, y: 8)
         }
-        .buttonStyle(PressableStyle())
-        .accessibilityLabel("\(days) days free. \(trialTerms(days: days))")
+        .padding(.vertical, 20)
+        .frame(maxWidth: .infinity)
+        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(Color.white.opacity(0.88)))
+        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous)
+            .stroke(Color.highlight.opacity(0.45), style: StrokeStyle(lineWidth: 2, dash: [7, 6])))
+        .accessibilityElement(children: .combine)
     }
 
-    private func trialTerms(days: Int) -> String {
-        let price = purchases.yearly7?.displayPrice ?? purchases.yearlyPrice ?? ""
-        let each = purchases.perPersonPerMonth(purchases.yearly7).map { " (\($0) per person a month)" } ?? ""
-        return "Then \(price) a year for both of you\(each). Cancel before day \(days) and you pay nothing."
-    }
-
-    /// A light sweep across the card once, when the sheet opens.
-    private var sheen: some View {
-        OneShotClock(duration: 1300, play: shine) { t in
-            GeometryReader { geo in
-                let p = seg(t, 350, 1300, easeOut: false)
-                LinearGradient(colors: [.white.opacity(0), .white.opacity(0.22), .white.opacity(0)],
-                               startPoint: .leading, endPoint: .trailing)
-                    .frame(width: 90, height: geo.size.height * 1.6)
-                    .rotationEffect(.degrees(20))
-                    .offset(x: -120 + (geo.size.width + 240) * p, y: -geo.size.height * 0.3)
-                    .opacity(p > 0 && p < 1 ? 1 : 0)
-            }
-        }
-        .allowsHitTesting(false)
-    }
-
-    /// The lighter option: month by month.
-    private var monthlyCard: some View {
+    /// A chunky button with a darker bottom edge that presses down.
+    private var claimButton: some View {
         Button {
+            guard !claiming else { return }
             Haptics.tap()
-            tryMonthly()
-        } label: {
-            HStack(spacing: 14) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Month by month")
-                        .font(.app(18, .bold))
-                        .foregroundStyle(Color.textPrimary)
-                    Text(monthlyTerms)
-                        .font(.app(13))
-                        .foregroundStyle(Color.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                Spacer(minLength: 8)
-                Text("Go monthly")
-                    .font(.app(15, .bold))
-                    .foregroundStyle(Color.textPrimary)
-                    .padding(.horizontal, 14)
-                    .frame(height: 38)
-                    .background(Capsule().stroke(Color.textPrimary, lineWidth: 1.5))
+            Task {
+                claiming = true
+                await claim()
+                claiming = false
             }
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .card(radius: 18, shadow: false)
+        } label: {
+            ZStack {
+                if claiming {
+                    ProgressView().tint(.white)
+                } else {
+                    Text("Claim my discount")
+                        .font(.app(20, .bold))
+                        .foregroundStyle(Color.white)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 58)
         }
-        .buttonStyle(PressableStyle())
-        .accessibilityLabel("Month by month. \(monthlyTerms)")
+        .buttonStyle(ChunkyButtonStyle(color: Color.highlight, edge: Color(hex: 0xB9532F)))
+        .disabled(offer == nil)
     }
 
-    private var monthlyTerms: String {
-        let each = purchases.perPersonPerMonth(purchases.monthly).map { " · \($0) each" } ?? ""
-        return "\(monthlyPrice) a month for 2 people\(each). Cancel anytime."
+    private var links: some View {
+        HStack(spacing: 18) {
+            Button("Restore Purchases") {
+                Task {
+                    await purchases.restore()
+                    model.toast = purchases.entitlement != nil ? "Purchases restored." : "No active subscription found."
+                }
+            }
+            Link("Terms of Use", destination: Brand.termsURL)
+            Link("Privacy Policy", destination: Brand.privacyURL)
+        }
+        .font(.app(13, .semibold))
+        .foregroundStyle(Color.highlight)
+        .tint(Color.highlight)
     }
+}
 
-    private func quietLink(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(title, action: action)
-            .font(.app(15, .semibold))
-            .foregroundStyle(Color.textSecondary)
+/// A raised capsule: the face sits on a darker edge and moves down onto it when pressed.
+struct ChunkyButtonStyle: ButtonStyle {
+    var color: Color
+    var edge: Color
+
+    func makeBody(configuration: Configuration) -> some View {
+        let pressed = configuration.isPressed
+        return configuration.label
+            .background(Capsule().fill(color))
+            .offset(y: pressed ? 4 : 0)
+            .background(Capsule().fill(edge).offset(y: 4))
+            .animation(.easeOut(duration: 0.08), value: pressed)
     }
 }
 

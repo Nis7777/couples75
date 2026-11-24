@@ -71,24 +71,26 @@ email on the EU App Store, so I'll decide what to enter.
 
 Create a subscription group: Reference Name `Pact`, then group localization English (U.S.), Display Name `Pact`.
 
-Create three auto-renewable subscriptions in that group:
+Create four auto-renewable subscriptions in that group (the last one is the paywall's one-time 40% off offer):
 
 | Reference Name | Product ID | Duration | Price (base country United States) | Display Name | Description |
 |---|---|---|---|---|---|
 | Pact Yearly | `com.tomasbeja.pact.yearly` | 1 Year | $39.99 | `Pact Yearly` | `Pact for both of you, billed yearly` |
 | Pact Yearly 7-day trial | `com.tomasbeja.pact.yearly7` | 1 Year | $39.99 | `Pact Yearly` | `Pact for both of you, 7-day free trial` |
 | Pact Monthly | `com.tomasbeja.pact.monthly` | 1 Month | $12.99 | `Pact Monthly` | `Pact for both of you, billed monthly` |
+| Pact Yearly Offer | `com.tomasbeja.pact.yearlyoffer` | 1 Year | $23.99 | `Pact Yearly (40% off)` | `Pact for both of you, 40% off, billed yearly` |
 
 - For prices: set **United States** as the base country, pick the $39.99 / $12.99 price points, and let Apple
   calculate all other countries automatically.
   Then open the full price list for each subscription and check the **euro countries** (Portugal, Spain, France,
   Germany, Italy, Netherlands, Ireland and the rest of the eurozone) and the **United Kingdom**. If Apple's automatic
   price isn't round, set it manually for those countries to **39,99 €** (yearly) and **12,99 €** (monthly) for the
-  eurozone, and **£39.99** and **£12.99** for the UK. Leave every other country on Apple's automatic price. Tell me
+  eurozone, and **£39.99** and **£12.99** for the UK (the offer: **23,99 €** and **£23.99**). Leave every other country on Apple's automatic price. Tell me
   which countries you changed.
 - Introductory offers: **Pact Yearly** → Free Trial, **3 days**, all countries, starting now, no end date.
-  **Pact Yearly 7-day trial** → Free Trial, **1 week**, same settings. **Pact Monthly** → none.
-- Subscription ranking inside the group: Pact Yearly first, Pact Yearly 7-day trial second, Pact Monthly last.
+  **Pact Yearly 7-day trial** → Free Trial, **1 week**, same settings. **Pact Monthly** and **Pact Yearly Offer** → none.
+- Subscription ranking inside the group: Pact Yearly, Pact Yearly 7-day trial and Pact Yearly Offer on the same
+  level at the top, Pact Monthly below.
 - Each subscription asks for a **Review Screenshot**: leave it empty and tell me (I'll upload a screenshot of the
   paywall).
 

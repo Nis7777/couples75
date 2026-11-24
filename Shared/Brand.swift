@@ -21,9 +21,11 @@ enum Brand {
     static let checkInUploadWindowHours: Double = 6
     /// One subscription covers both partners. Prices always come from StoreKit.
     static let iapYearly = "com.tomasbeja.pact.yearly"      // $39.99 a year (US base price), 3-day free trial
-    static let iapYearly7 = "com.tomasbeja.pact.yearly7"    // same price, 7-day free trial (exit sheet only)
+    static let iapYearly7 = "com.tomasbeja.pact.yearly7"    // same price, 7-day free trial (no longer offered)
     static let iapMonthly = "com.tomasbeja.pact.monthly"    // $12.99 a month (US base price), no trial
-    static let allProducts = [iapYearly, iapYearly7, iapMonthly]
+    /// The paywall's one-time exit offer: 40% off yearly, $23.99 a year (about $1 per person a month), no trial.
+    static let iapYearlyOffer = "com.tomasbeja.pact.yearlyoffer"
+    static let allProducts = [iapYearly, iapYearly7, iapMonthly, iapYearlyOffer]
     static let savesPerRound = 3
     /// 4 to 6 rules per person, at least 2 of them photo rules.
     static let minRules = 4

@@ -10,7 +10,7 @@ struct Entitlement: Equatable {
     /// In the free-trial period right now.
     var isTrial: Bool = false
 
-    var isYearly: Bool { productID == Brand.iapYearly || productID == Brand.iapYearly7 }
+    var isYearly: Bool { productID != Brand.iapMonthly }
     var planName: String { isYearly ? "Yearly" : "Monthly" }
 }
 
@@ -22,6 +22,8 @@ final class PurchaseManager {
     private(set) var yearly: Product?
     private(set) var yearly7: Product?
     private(set) var monthly: Product?
+    /// The one-time exit offer (40% off yearly).
+    private(set) var yearlyOffer: Product?
     private(set) var entitlement: Entitlement?
     private(set) var isLoadingProducts = false
     private(set) var productsFailed = false
@@ -105,6 +107,7 @@ final class PurchaseManager {
             yearly = products.first { $0.id == Brand.iapYearly }
             yearly7 = products.first { $0.id == Brand.iapYearly7 }
             monthly = products.first { $0.id == Brand.iapMonthly }
+            yearlyOffer = products.first { $0.id == Brand.iapYearlyOffer }
             productsFailed = yearly == nil && monthly == nil
             if let sub = yearly?.subscription {
                 trialEligible = await sub.isEligibleForIntroOffer
@@ -127,7 +130,13 @@ final class PurchaseManager {
             if best == nil || exp > (best?.expirationDate ?? .distantPast) { best = ent }
         }
         if var b = best {
-            let product = b.productID == Brand.iapMonthly ? monthly : (b.productID == Brand.iapYearly7 ? yearly7 : yearly)
+            let product: Product?
+            switch b.productID {
+            case Brand.iapMonthly: product = monthly
+            case Brand.iapYearly7: product = yearly7
+            case Brand.iapYearlyOffer: product = yearlyOffer
+            default: product = yearly
+            }
             if let status = try? await product?.subscription?.status.first,
                case .verified(let info) = status.renewalInfo {
                 b.willAutoRenew = info.willAutoRenew
