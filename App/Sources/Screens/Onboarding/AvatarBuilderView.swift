@@ -147,7 +147,7 @@ struct AvatarBuilderView: View {
                 .font(.app(14, .medium))
                 .foregroundStyle(Color.textSecondary)
             LazyVGrid(columns: columns, spacing: 14) {
-                swatch(hex: original, name: "As drawn", selected: value.wrappedValue == nil) {
+                swatch(hex: original, name: Self.closestName(to: original, in: palette), selected: value.wrappedValue == nil) {
                     value.wrappedValue = nil
                 }
                 ForEach(palette) { s in
@@ -159,6 +159,23 @@ struct AvatarBuilderView: View {
             Spacer(minLength: 0)
         }
         .padding(.top, 4)
+    }
+
+    /// The character's own colour gets a normal shade name: the name of the closest colour in the palette.
+    static func closestName(to hex: String, in palette: [AvatarPalette.Swatch]) -> String {
+        func rgb(_ h: String) -> (Double, Double, Double)? {
+            let clean = h.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+            guard clean.count == 6, let v = UInt32(clean, radix: 16) else { return nil }
+            return (Double((v >> 16) & 0xFF), Double((v >> 8) & 0xFF), Double(v & 0xFF))
+        }
+        guard let c = rgb(hex) else { return palette.first?.name ?? "" }
+        return palette.min { l, r in
+            func d(_ s: AvatarPalette.Swatch) -> Double {
+                guard let p = rgb(s.hex) else { return .infinity }
+                return pow(p.0 - c.0, 2) + pow(p.1 - c.1, 2) + pow(p.2 - c.2, 2)
+            }
+            return d(l) < d(r)
+        }?.name ?? ""
     }
 
     private func swatch(hex: String, name: String, selected: Bool, action: @escaping () -> Void) -> some View {
