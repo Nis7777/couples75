@@ -24,7 +24,7 @@ Take a daily progress pic if you like. Progress photos are private by default: t
 - Shared streak, XP, ranks and badges
 - Photo proof, reactions and love notes
 - Private progress photos with a before/after slider and timelapse
-- Widgets, Live Activity, Apple Watch and Apple Health. No account to create: it runs on iCloud
+- Widgets, Live Activity and Apple Health. No account to create: it runs on iCloud
 
 ## Keywords
 couples,habits,glow up,self improvement,challenge,partner,accountability,streak,goals,level up
@@ -67,7 +67,7 @@ Apple counts data as "collected" only when the developer (or a third party) can 
   of the code and no longer write the `code` field. Open invites made by older builds still work.
 - The legacy record types in `docs/pact.ckdb` (Couple, Member, CheckIn…) aren't used by the app any more. If they
   were never deployed to Production, don't deploy them. If they were, set their `_world` read permission to none.
-- **Privacy manifests** are in `App/`, `Widgets/` and `Watch/` (`PrivacyInfo.xcprivacy`). After archiving, Xcode →
+- **Privacy manifests** are in `App/` and `Widgets/` (`PrivacyInfo.xcprivacy`). After archiving, Xcode →
   Organizer → right-click the archive → Generate Privacy Report should list UserDefaults and Disk space.
 - **Push entitlement.** In the archive (Organizer → Show in Finder → app → entitlements), `aps-environment` should
   read `production`. Xcode switches it from `development` when it signs for App Store distribution.

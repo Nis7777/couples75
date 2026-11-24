@@ -116,10 +116,8 @@ One subscription covers both partners: only the person who starts (A) pays; the 
    buyer's own `Member` record. The couple counts as active while either member's subscription is active.
 5. When a trial starts the app schedules a local reminder for Day 2 of the trial.
 
-## Apple Watch, HealthKit, Live Activities
+## HealthKit, Live Activities
 
-- The project has a watchOS target (`PactWatch`) embedded in the iPhone app. If Xcode says the watchOS
-  platform isn't installed, click **Get** (Xcode → Settings → Components → watchOS) once; then Run works as before.
 - Enable **HealthKit** for the App ID (read only) in the Apple Developer portal; the entitlement is in
   `Config/App.entitlements`.
 - Live Activities need nothing extra (`NSSupportsLiveActivities` is in the Info.plist).

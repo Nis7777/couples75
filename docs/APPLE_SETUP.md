@@ -9,7 +9,6 @@ Do the steps in order. Values to copy are in `code`.
 |---|---|
 | App bundle ID | `com.tomasbeja.pact` |
 | Widgets bundle ID | `com.tomasbeja.pact.widgets` |
-| Apple Watch bundle ID | `com.tomasbeja.pact.watchkitapp` |
 | Tests bundle ID (never uploaded) | `com.tomasbeja.pact.tests` |
 | App Group | `group.com.tomasbeja.pact` |
 | iCloud container | `iCloud.com.tomasbeja.pact` |
@@ -48,7 +47,7 @@ App Store; as an **organization**, the company name (needs a D-U-N-S number, tak
 
 ## 2. Identifiers (easiest: let Xcode create them)
 
-In Xcode, for each of the targets **Pact**, **Widgets** and **PactWatch**: Signing & Capabilities → tick
+In Xcode, for each of the targets **Pact** and **Widgets**: Signing & Capabilities → tick
 "Automatically manage signing" → pick your Team. Then on the **Pact** target:
 
 - **iCloud**: tick CloudKit, then under Containers press **+** and add `iCloud.com.tomasbeja.pact` (tick it).
@@ -66,7 +65,6 @@ If you'd rather do it by hand (developer.apple.com → Certificates, Identifiers
    - `com.tomasbeja.pact`: tick **App Groups** (configure → the group), **iCloud** (CloudKit, configure → the
      container), **Push Notifications**, **HealthKit**.
    - `com.tomasbeja.pact.widgets`: tick **App Groups** (the same group).
-   - `com.tomasbeja.pact.watchkitapp`: no capabilities needed.
 
 ## 3. App Store Connect: the app
 

@@ -27,7 +27,6 @@ Skip any that already exist.
      `iCloud.com.tomasbeja.pact`), **Push Notifications**, **HealthKit**. Save.
    - Description `Pact Widgets`, Bundle ID `com.tomasbeja.pact.widgets`. Capabilities: **App Groups** (Configure →
      `group.com.tomasbeja.pact`). Save.
-   - Description `Pact Watch`, Bundle ID `com.tomasbeja.pact.watchkitapp`. No capabilities. Save.
 
 ## Step 2. Check the agreements (App Store Connect → Business)
 
@@ -134,7 +133,7 @@ Take a daily progress pic if you like. Progress photos are private by default: t
 - Shared streak, XP, ranks and badges
 - Photo proof, reactions and love notes
 - Private progress photos with a before/after slider and timelapse
-- Widgets, Live Activity, Apple Watch and Apple Health. No account to create: it runs on iCloud
+- Widgets, Live Activity and Apple Health. No account to create: it runs on iCloud
 
 Subscriptions: every Pact plan (yearly, monthly and the yearly offer) renews automatically unless cancelled at least 24 hours before the end of the period. Manage or cancel in Settings > [your name] > Subscriptions. One subscription covers both partners.
 

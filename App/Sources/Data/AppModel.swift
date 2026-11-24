@@ -648,11 +648,6 @@ final class AppModel {
         full.signedB = memberB?.joinedAt
         full.partnerTotal = partnerToday?.items.count ?? 0
         full.save()
-        WatchSync.shared.push(WatchPayload(
-            day: day, roundLength: widgetRoundLength, streak: state.streak, myName: full.myName,
-            partnerName: full.partnerName, partnerLeft: full.partnerLeft, partnerTotal: full.partnerTotal,
-            rules: full.myRules.map { WatchPayload.Rule(id: $0.id, title: $0.title, isHonour: $0.isHonour, done: $0.done) },
-            updatedAt: Date()))
         WidgetCenter.shared.reloadAllTimelines()
     }
 }

@@ -2,7 +2,7 @@ import Foundation
 
 /// Every product-level constant lives here. Use these everywhere instead of literals.
 enum Brand {
-    /// The app's name everywhere users see it (plus CFBundleDisplayName in Config and the Watch, see README).
+    /// The app's name everywhere users see it (plus CFBundleDisplayName in Config, see README).
     static let appName = "Pact"
     static let tagline = "Level up as a couple."
     /// One line on what the app is, for the paywall, share cards and the App Store.
