@@ -27,7 +27,7 @@ struct PaywallView: View {
         case takeOver(payer: String)
     }
 
-    enum Page: Hashable { case outcome, trial, plans }
+    enum Page: Hashable { case outcome, plans }
 
     @Environment(AppModel.self) private var model
     var variant: Variant
@@ -76,7 +76,6 @@ struct PaywallView: View {
             Group {
                 switch page {
                 case .outcome: outcomePage
-                case .trial: trialPage
                 case .plans: plansPage
                 }
             }
@@ -105,7 +104,7 @@ struct PaywallView: View {
 
     private var pageDots: some View {
         HStack(spacing: 6) {
-            ForEach([Page.outcome, Page.trial, Page.plans], id: \.self) { p in
+            ForEach([Page.outcome, Page.plans], id: \.self) { p in
                 Capsule()
                     .fill(p == page ? Color.gold : Color.track)
                     .frame(width: p == page ? 22 : 8, height: 8)
@@ -150,7 +149,7 @@ struct PaywallView: View {
             TrophyScene(left: model.sceneA, right: model.sceneBBuilt, badge: false)
                 .frame(maxHeight: .infinity)
             BottomActions {
-                PrimaryButton("Continue") { page = hasTrial ? .trial : .plans }
+                PrimaryButton("Continue") { page = .plans }
             }
         }
     }
@@ -163,55 +162,6 @@ struct PaywallView: View {
                 .frame(width: 22)
             Text(text).font(.app(16, .medium)).foregroundStyle(Color.textPrimary)
             Spacer(minLength: 0)
-        }
-        .accessibilityElement(children: .combine)
-    }
-
-    // MARK: 2. Trial timeline (13b)
-
-    private var trialPage: some View {
-        VStack(spacing: 0) {
-            TitleText("How your free trial works", size: 30)
-                .padding(.horizontal, 28)
-                .padding(.top, 10)
-            VStack(alignment: .leading, spacing: 0) {
-                let days = purchases.trialDays(purchases.yearly) ?? 7
-                timelineRow(day: "Today", text: "Full access for both of you", last: false)
-                timelineRow(day: "Day \(max(2, days - 1))", text: "We remind you", last: false)
-                timelineRow(day: "Day \(days)", text: "Trial ends, billing starts", last: true)
-            }
-            .padding(24)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .card()
-            .padding(.horizontal, Metrics.side)
-            .padding(.top, 28)
-            Spacer(minLength: 12)
-            Text("No commitment. Cancel anytime.")
-                .font(.app(15, .medium))
-                .foregroundStyle(Color.textSecondary)
-            BottomActions {
-                PrimaryButton("Continue") { page = .plans }
-            }
-        }
-    }
-
-    /// 13b: plain gold dots on a gold line; the last dot (trial ends) is coral.
-    private func timelineRow(day: String, text: String, last: Bool) -> some View {
-        HStack(alignment: .top, spacing: 18) {
-            VStack(spacing: 0) {
-                Circle()
-                    .fill(last ? Color.coral.opacity(0.8) : Color.gold)
-                    .frame(width: 20, height: 20)
-                    .padding(.top, 4)
-                if !last {
-                    Rectangle().fill(Color.gold).frame(width: 2.5).frame(minHeight: 64, maxHeight: 96)
-                }
-            }
-            .frame(width: 20)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(day).font(.app(21, .bold)).foregroundStyle(Color.textPrimary)
-                Text(text).font(.app(17)).foregroundStyle(Color.textSecondary)
-            }
         }
         .accessibilityElement(children: .combine)
     }
@@ -231,6 +181,24 @@ struct PaywallView: View {
                         planCard(yearly: false)
                         planCard(yearly: true)
                             .padding(.bottom, 10)
+                        if yearlySelected, let days = purchases.trialDays(purchases.yearly) {
+                            // The trial, in one line (no separate page): free now, a reminder the day before it ends.
+                            HStack(alignment: .top, spacing: 8) {
+                                Image(systemName: "bell.fill")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(Color.sage)
+                                    .padding(.top, 2)
+                                Text("Free for \(days) days. We'll remind you 1 day before your trial ends, so you can cancel anytime before you're charged.")
+                                    .font(.app(14, .medium))
+                                    .foregroundStyle(Color.textPrimary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.sage.opacity(0.12)))
+                            .transition(.opacity)
+                        }
                         #if DEBUG
                         if purchases.trialUsedUp {
                             // Test builds only: why there's no free trial on this device.

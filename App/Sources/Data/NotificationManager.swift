@@ -45,7 +45,7 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
     private static let trialEndKey = "trialEndsAt"
 
-    /// "We remind you": a reminder two days before the 7-day free trial ends.
+    /// "We'll remind you 1 day before your trial ends" (the paywall's promise).
     /// Stored so it's (re)scheduled once notifications are allowed.
     func scheduleTrialReminder(trialEnd: Date) {
         UserDefaults.standard.set(trialEnd, forKey: Self.trialEndKey)
@@ -54,11 +54,10 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
     private func addTrialReminderIfNeeded() async {
         guard let end = UserDefaults.standard.object(forKey: Self.trialEndKey) as? Date else { return }
-        let fire = max(end.addingTimeInterval(-48 * 3600), Date().addingTimeInterval(3600))
+        let fire = max(end.addingTimeInterval(-24 * 3600), Date().addingTimeInterval(3600))
         guard fire < end, await authorizationStatus() == .authorized else { return }
-        let days = max(1, Int((end.timeIntervalSince(fire) / 86_400).rounded()))
         schedule(id: "trial-reminder", title: Brand.appName,
-                 body: "Your free trial ends in \(days) day\(days == 1 ? "" : "s"). Nothing to do if you're staying; you can cancel anytime in Settings.",
+                 body: "Your free trial ends tomorrow. Nothing to do if you're staying; you can cancel anytime in Settings.",
                  at: fire, route: "profile")
     }
 
