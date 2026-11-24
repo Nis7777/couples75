@@ -406,7 +406,7 @@ struct PaywallView: View {
 
     private var selectedProduct: Product? { yearlySelected ? purchases.yearly : purchases.monthly }
 
-    /// Which plan a button buys: the selected one, or the exit offer's 40% off / 7-day free trial.
+    /// Which plan a button buys: the selected one, or the exit offer's discount / 7-day free trial.
     private enum Plan { case selected, offer, freeWeek }
 
     private func product(for plan: Plan) -> Product? {
@@ -473,7 +473,7 @@ struct FooterLinks: View {
     }
 }
 
-/// 13d, × on the paywall (once per install): the one-time offer. 40% off yearly ($23.99 instead of $39.99, about $1
+/// 13d, × on the paywall (once per install): the one-time offer. 38% off yearly ($24.99 instead of $39.99, about $1
 /// per person a month, no trial), on sun rays behind the two of you cheering. Prices are the real App Store ones
 /// (the struck-through price is the regular yearly plan). × closes it for good.
 struct ExitOfferView: View {
@@ -491,9 +491,9 @@ struct ExitOfferView: View {
     private var offerPrice: String { offer?.displayPrice ?? "" }
     private var regularPrice: String { purchases.yearly?.displayPrice ?? "" }
 
-    /// "40%", from the real prices.
+    /// "38%", from the real prices.
     private var percentOff: String {
-        guard let o = offer?.price, let y = purchases.yearly?.price, y > 0 else { return "40%" }
+        guard let o = offer?.price, let y = purchases.yearly?.price, y > 0 else { return "38%" }
         let ratio = NSDecimalNumber(decimal: o / y).doubleValue
         return "\(Int(((1 - ratio) * 100).rounded()))%"
     }

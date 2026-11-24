@@ -95,7 +95,7 @@
         {
           "adHocOffers": [],
           "codeOffers": [],
-          "displayPrice": "23.99",
+          "displayPrice": "24.99",
           "familyShareable": false,
           "groupNumber": 1,
           "internalID": "C75YEAROFFER",
@@ -103,13 +103,13 @@
           "localizations": [
             {
               "description": "Pact for both of you, billed yearly (one-time offer).",
-              "displayName": "Yearly (40% off)",
+              "displayName": "Yearly (38% off)",
               "locale": "en_US"
             }
           ],
           "productID": "com.tomasbeja.pact.yearlyoffer",
           "recurringSubscriptionPeriod": "P1Y",
-          "referenceName": "Yearly offer (40% off)",
+          "referenceName": "Yearly offer (38% off)",
           "subscriptionGroupID": "C75GROUP",
           "type": "RecurringSubscription",
           "winbackOffers": []
