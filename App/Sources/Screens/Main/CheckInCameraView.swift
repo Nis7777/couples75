@@ -285,9 +285,14 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate {
     }
 
     func capture() async -> UIImage? {
-        // The app is portrait-only: rotate the captured photo upright.
-        if let connection = output.connection(with: .video), connection.isVideoRotationAngleSupported(90) {
-            connection.videoRotationAngle = 90
+        if let connection = output.connection(with: .video) {
+            // The app is portrait-only: rotate the captured photo upright.
+            if connection.isVideoRotationAngleSupported(90) { connection.videoRotationAngle = 90 }
+            // Front camera: the preview is mirrored, so save the photo mirrored too (what you saw is what's sent).
+            if connection.isVideoMirroringSupported {
+                connection.automaticallyAdjustsVideoMirroring = false
+                connection.isVideoMirrored = position == .front
+            }
         }
         return await withCheckedContinuation { (c: CheckedContinuation<UIImage?, Never>) in
             continuation = c

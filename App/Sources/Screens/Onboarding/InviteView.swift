@@ -8,10 +8,36 @@ struct InviteView: View {
 
     /// They said "Yes, we're together": the partner is right here, so the code comes first, big.
     private var partnerHere: Bool { model.draft.partnerWithYou == true }
+    /// The partner entered the code and is setting up on their phone.
+    private var partnerJoining: Bool { model.memberB != nil && model.memberB?.joinedAt == nil }
+    @State private var leaving = false
+
+    /// They've joined: on to the app, where "{B} accepted your invite" shows.
+    private func partnerJoined() {
+        guard !leaving else { return }
+        leaving = true
+        Haptics.success()
+        next()
+    }
 
     var body: some View {
         OnboardingPage(step: nil, back: nil) {
-            if partnerHere {
+            if partnerJoining {
+                VStack(spacing: 16) {
+                    TitleText("\(model.nameB) is joining", size: 30)
+                        .padding(.top, 22)
+                    CoupleScene(left: model.sceneA, right: model.sceneBBuilt, crop: 0.6, overlap: 0.0,
+                                alignment: .top, fillHeight: true)
+                        .padding(.horizontal, -8)
+                        .frame(maxHeight: .infinity)
+                    HStack(spacing: 8) {
+                        ProgressView().tint(.coral)
+                        Text("\(model.nameB) is setting up on their phone…")
+                            .font(.app(15, .medium))
+                            .foregroundStyle(Color.textSecondary)
+                    }
+                }
+            } else if partnerHere {
                 VStack(spacing: 14) {
                     TitleText("Get \(model.nameB) on their phone", size: 30)
                         .padding(.top, 22)
@@ -47,13 +73,24 @@ struct InviteView: View {
                 }
             }
         } actions: {
-            if partnerHere {
+            if partnerJoining {
+                TextLinkButton("Continue to the app") { next() }
+            } else if partnerHere {
                 PrimaryButton("Continue") { next() }
                 InviteShareButton(title: "Send the invite instead", secondary: true)
             } else {
                 InviteShareButton(title: "Send invite")
                 InviteCodeLine()
                 TextLinkButton("Done for now") { next() }
+            }
+        }
+        .onChange(of: model.memberB?.joinedAt) { _, joined in if joined != nil { partnerJoined() } }
+        .task {
+            // Check for the partner every few seconds while this screen is open (a push also wakes the app).
+            while !Task.isCancelled {
+                if model.memberB?.joinedAt != nil { partnerJoined(); return }
+                try? await Task.sleep(nanoseconds: 6_000_000_000)
+                await model.refresh()
             }
         }
     }

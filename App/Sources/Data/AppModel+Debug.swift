@@ -170,7 +170,7 @@ extension AppModel {
         pendingInvite = nil
         invite = nil
         onboardingDone = false
-        seenCodeEntry = false
+        seenCodeEntry = true
         tab = .today
         meIDReset()
         apply(mock.cachedFacts())

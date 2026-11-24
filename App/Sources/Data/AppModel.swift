@@ -268,7 +268,8 @@ final class AppModel {
         draft = OnboardingDraft.load()
         joinDraft = JoinDraft.load()
         onboardingDone = UserDefaults.standard.bool(forKey: Prefs.onboardingDoneKey)
-        seenCodeEntry = UserDefaults.standard.bool(forKey: Prefs.seenCodeEntryKey)
+        // A fresh install opens on the hook ("Level up as a couple."); its "My partner invited me" opens the code screen.
+        seenCodeEntry = UserDefaults.standard.object(forKey: Prefs.seenCodeEntryKey) as? Bool ?? true
         invite = store.currentInvite
         progress.cloudEnabled = !mock
     }

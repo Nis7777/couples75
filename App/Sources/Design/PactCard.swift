@@ -563,7 +563,10 @@ struct PartnerJoinedView: View {
             VStack(spacing: 14) {
                 SmallLabel(text: "It's official")
                     .padding(.top, 30)
-                TitleText("\(model.nameB) signed your pact", size: 30)
+                TitleText("\(model.nameB) accepted your invite", size: 30)
+                Text("They signed your pact.")
+                    .font(.app(16, .medium))
+                    .foregroundStyle(Color.textSecondary)
                 PactCardReveal(data: model.pactCard, signA: false, signB: true)
                     .padding(.vertical, 12)
                 BodyText("Day 1 starts tomorrow. Today is a free warm-up: try a check-in, it doesn't count.")

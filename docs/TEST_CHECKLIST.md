@@ -147,3 +147,8 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
 - [ ] A (payer) leaves: B sees "{A} left"; starting over asks B for their own subscription.
 - [ ] Delete my data in airplane mode: it says to connect first and deletes nothing; online it deletes and the
       partner sees that you left.
+- [ ] Fresh install opens on "Level up as a couple."; "My partner invited me" there opens the code screen.
+- [ ] A is still on "Send {B} their invite" when B joins: within seconds it shows "{B} is joining", then moves on to
+      "{B} accepted your invite" (the card with their signature). Same from the Waiting screen.
+- [ ] Front camera proof photo: the saved photo looks like the preview (mirrored, like a selfie); the stamp text reads
+      normally.

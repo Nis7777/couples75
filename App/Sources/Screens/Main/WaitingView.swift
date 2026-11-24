@@ -89,6 +89,13 @@ struct WaitingView: View {
             .padding(.bottom, 24)
         }
         .refreshable { await model.refresh() }
+        .task {
+            // Notice the partner joining within seconds while this screen is open (a push also wakes the app).
+            while !Task.isCancelled, model.memberB?.joinedAt == nil {
+                try? await Task.sleep(nanoseconds: 10_000_000_000)
+                await model.refresh()
+            }
+        }
         .manageSubscriptionsSheet(isPresented: $showManage)
     }
 }
