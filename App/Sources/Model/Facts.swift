@@ -274,7 +274,7 @@ struct CheckInFact: Codable, Equatable, Identifiable {
     var uploadedAt: Date?
     /// Photo rule submitted as an honour tap because the owner's iCloud was full.
     var honourFallback: Bool = false
-    /// Proved by Apple Health instead of a photo or a tap: "Apple Health · 8,412 steps".
+    /// Proved by Apple Health instead of a photo or a tap: "Checked with Apple Health" (never the reading itself).
     var healthProof: String? = nil
 }
 

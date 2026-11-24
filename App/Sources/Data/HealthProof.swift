@@ -33,16 +33,10 @@ enum HealthMetric: Equatable {
         }
     }
 
-    /// The proof line on the check-in: "Apple Health · 8,412 steps".
-    func proofText(_ value: Double) -> String {
-        let f = Self.fmt
-        switch self {
-        case .steps: return "Apple Health · \(f(value.rounded(.down))) steps"
-        case .exerciseMinutes: return "Apple Health · \(Int(value)) min exercise"
-        case .waterLiters: return "Apple Health · \(f((value * 10).rounded(.down) / 10)) L water"
-        case .mindfulMinutes: return "Apple Health · \(Int(value)) mindful min"
-        }
-    }
+    /// The proof line saved with the check-in and sent to the partner. It says only THAT Health confirmed the habit,
+    /// never the reading itself: Apple doesn't allow health readings to be stored in iCloud. (The number is shown
+    /// on this iPhone only, as progress on Today.)
+    func proofText(_ value: Double) -> String { "Checked with Apple Health" }
 
     static func number(in title: String, before suffix: String) -> Double? {
         let pattern = "([0-9]+(?:[.,][0-9]+)?)\\s*" + NSRegularExpression.escapedPattern(for: suffix)

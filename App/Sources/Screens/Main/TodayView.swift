@@ -436,7 +436,7 @@ struct TodayView: View {
             return (health, Color.textSecondary)
         }
         if let proof = item.checkIn?.healthProof, item.isChecked {
-            return (proof.replacingOccurrences(of: "Apple Health · ", with: ""), .sage)
+            return (proof.replacingOccurrences(of: "Apple Health · ", with: ""), .sage)   // "Checked with Apple Health"
         }
         if !warmup, !item.isChecked, item.rule.type == .honour, hour < 18 { return ("Tap tonight", Color.textSecondary) }
         if item.state == .notSent { return ("Not sent yet", .coral) }
