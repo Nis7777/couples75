@@ -200,7 +200,7 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             case .approve: post("\(name) approved your \(rule) ❤️", route: "checkin:\(c.id)")
             case .emoji: post("\(name) reacted \(r.emoji ?? "") to your \(rule)", route: "checkin:\(c.id)")
             case .comment: post("\(name): \"\(r.comment ?? "")\"", route: "checkin:\(c.id)")
-            case .sus: post("\(name) thinks that's sus 🤨", route: "checkin:\(c.id)")
+            case .sus: post("\(name) has a question about your \(rule) 🤨", route: "checkin:\(c.id)")
             case .seen: break
             }
         }
