@@ -33,10 +33,9 @@ enum HealthMetric: Equatable {
         }
     }
 
-    /// The proof line saved with the check-in and sent to the partner. It says only THAT Health confirmed the habit,
-    /// never the reading itself: Apple doesn't allow health readings to be stored in iCloud. (The number is shown
-    /// on this iPhone only, as progress on Today.)
-    func proofText(_ value: Double) -> String { "Checked with Apple Health" }
+    /// The proof line saved on the check-in and synced to the partner. It carries NO Health value: Apple Health
+    /// data must never be stored in iCloud (App Review Guideline 5.1.3(ii)), so the reading stays on this iPhone.
+    static let proofLine = "Checked off automatically"
 
     static func number(in title: String, before suffix: String) -> Double? {
         let pattern = "([0-9]+(?:[.,][0-9]+)?)\\s*" + NSRegularExpression.escapedPattern(for: suffix)

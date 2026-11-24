@@ -115,7 +115,6 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
 - [ ] Widgets: on habits the ring shows today's done state for you two and the text "🔥 {streak} · habits";
       during a challenge "Day X/N". Honour rules tappable after 18:00.
 - [ ] Live Activity after 17:00 with rules left (real device or Simulator with Live Activities on).
-- [ ] Apple Watch (paired Watch simulator): day, rules, partner; honour rule tap after 18:00.
 - [ ] Apple Health (real device): steps/water/exercise/mindful progress under the rule; auto check-off when met.
 - [ ] Notifications: finishing a challenge, a challenge ending early, saves used.
 

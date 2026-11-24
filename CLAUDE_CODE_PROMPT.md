@@ -429,7 +429,7 @@ In DEBUG builds without a camera (the Simulator) the shutter makes a generated s
 - Paywall shows the price, the renewal period, the trial length and what happens when it ends, "Cancel anytime", Terms, Privacy and Restore. Prices are always localized from StoreKit. No invented ratings or reviews.
 - "Delete my data" and "Leave couple" (6.5), report and block (4.3, 6.5). The app has no sign-up, so Apple's account-deletion rule doesn't apply, but keep "Delete my data" anyway.
 - Privacy: photos are personal data under GDPR. They are stored in the couple owner's iCloud and shared only with the partner; the developer never sees them. Note in the README which data is collected (name, character, time zone, photos, check-ins) for the App Privacy labels.
-- Never use "75 Hard" anywhere in the UI, metadata or code strings. Add to Profile → About: "Pact is not affiliated with 44Seven Media or the 75 HARD program."
+- Never use "75 Hard", and never name 44Seven Media or any other program or company, anywhere: UI, metadata, website or code strings. No disclaimer naming them either.
 - Camera usage string: "Pact uses the camera to take live proof photos for your partner." Photo library (add only) usage string, for saving the timelapse: "Pact saves your progress timelapse video to your photo library when you ask it to." App Store description: see `docs/APP_STORE_SUBMISSION.md` ("4 to 6 daily rules each", private progress photos and the timelapse). Notifications priming as in 5.
 
 ## 9. Build order (finish and test each stage before the next)

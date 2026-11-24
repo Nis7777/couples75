@@ -115,7 +115,7 @@ struct ProfileView: View {
                                 .foregroundStyle(Color.textPrimary)
                         }
                         .tint(.coral)
-                        Text("Steps, exercise, water and mindful minutes check off matching rules by themselves.")
+                        Text("Steps, exercise, water and mindful minutes check off matching habits by themselves. Your Health numbers stay on this iPhone: \(model.partnerName.isEmpty ? "your partner" : model.partnerName) only sees that it's done.")
                             .font(.app(13))
                             .foregroundStyle(Color.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -173,7 +173,8 @@ struct ProfileView: View {
                     Button { contactSupport() } label: { row("Contact support", chevron: true) }
                     VStack(alignment: .leading, spacing: 4) {
                         Text("About").font(.app(17, .medium)).foregroundStyle(Color.textPrimary)
-                        Text(Brand.disclaimer).font(.app(13)).foregroundStyle(Color.textSecondary)
+                        Text("\(Brand.appName) \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "") · \(Brand.tagline)")
+                            .font(.app(13)).foregroundStyle(Color.textSecondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 18)

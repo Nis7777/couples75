@@ -8,8 +8,10 @@ import Foundation
 ///   couple's key. `photo` (Asset, optional): the encrypted photo while it travels to the partner.
 ///   Indexes: `couple` queryable, `modificationDate` (___modTime) queryable + sortable.
 ///   Security: read for `_icloud` (the data is encrypted), create for `_icloud`, write for `_creator`.
-/// - `InviteCode`: record name = the 6-letter code. `couple` (the tag), `sealedKey` (the couple's key locked with
-///   the code), `inviterName`, `createdAt`. Deleted once the partner joins.
+/// - `InviteCode`: record name = "inv." + SHA-256 of the code (`RelayCrypto.inviteRecordName`), never the code
+///   itself. `couple` (the tag), `sealedKey` (the couple's key locked with the code), `inviterName`, `createdAt`.
+///   Deleted once the partner joins. NO queryable index (records can't be listed, only fetched by name), and read
+///   for `_icloud` only. The old `code` field is no longer written.
 /// - `Waitlist`: Android waitlist emails. Create only; nobody can read them from an app.
 ///
 /// **Private database (the user's own iCloud, optional backup):**

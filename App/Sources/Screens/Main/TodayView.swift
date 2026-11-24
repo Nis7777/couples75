@@ -435,8 +435,12 @@ struct TodayView: View {
         if !item.isChecked, let health = model.healthProgressText(for: item.rule) {
             return (health, Color.textSecondary)
         }
-        if let proof = item.checkIn?.healthProof, item.isChecked {
-            return (proof.replacingOccurrences(of: "Apple Health · ", with: ""), .sage)   // "Checked with Apple Health"
+        if item.checkIn?.healthProof != nil, item.isChecked {
+            // Today's Health reading is only on this iPhone; the synced check-in has no number.
+            if let metric = HealthMetric.metric(for: item.rule), let v = model.healthReadings[item.rule.id] {
+                return (metric.progressText(v), .sage)
+            }
+            return (HealthMetric.proofLine, .sage)
         }
         if !warmup, !item.isChecked, item.rule.type == .honour, hour < 18 { return ("Tap tonight", Color.textSecondary) }
         if item.state == .notSent { return ("Not sent yet", .coral) }

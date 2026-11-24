@@ -19,7 +19,7 @@ struct PartnerIPhoneView: View {
                     model.draft.partnerOnIPhone = true
                     autoAdvance { next(true) }
                 }
-                OptionCard(title: "No, Android", isSelected: model.draft.partnerOnIPhone == false, minHeight: 64) {
+                OptionCard(title: "No, they don't have an iPhone", isSelected: model.draft.partnerOnIPhone == false, minHeight: 64) {
                     model.draft.partnerOnIPhone = false
                     autoAdvance { next(false) }
                 }

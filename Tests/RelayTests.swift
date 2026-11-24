@@ -90,4 +90,29 @@ final class RelayTests: XCTestCase {
         RelayCodec.remove(type: "ProgressShare", id: "p1", from: &f)
         XCTAssertTrue(f.progressShares.isEmpty)
     }
+
+    /// The invite record is never named by the code itself, so a listing can't leak open codes.
+    func testInviteRecordNameHidesTheCode() {
+        let name = RelayCrypto.inviteRecordName(code: "K7M2QP")
+        XCTAssertFalse(name.contains("K7M2QP"))
+        XCTAssertEqual(name, RelayCrypto.inviteRecordName(code: "k7m2qp"))
+        XCTAssertNotEqual(name, RelayCrypto.inviteRecordName(code: "K7M2QR"))
+        XCTAssertTrue(name.hasPrefix("inv."))
+    }
+
+    /// The inviter's name is unreadable without the code; old plain names still work.
+    func testInviterNameIsSealedWithTheCode() throws {
+        let sealed = try RelayCrypto.sealInviterName("Maya", code: "K7M2QP", tag: "t1")
+        XCTAssertFalse(sealed.contains("Maya"))
+        XCTAssertEqual(RelayCrypto.openInviterName(sealed, code: "K7M2QP", tag: "t1"), "Maya")
+        XCTAssertNil(RelayCrypto.openInviterName(sealed, code: "K7M2QR", tag: "t1"))
+        XCTAssertEqual(RelayCrypto.openInviterName("Maya", code: "K7M2QP", tag: "t1"), "Maya")
+    }
+
+    /// The share link keeps the code and the name in the fragment (never sent to the web server).
+    func testJoinLinkKeepsCodeAndNameInTheFragment() {
+        let url = RelayStore.joinLink(code: "K7M2QP", name: "Maya Rose")
+        XCTAssertNil(url?.query)
+        XCTAssertEqual(url?.fragment, "code=K7M2QP&from=Maya%20Rose")
+    }
 }

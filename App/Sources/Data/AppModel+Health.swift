@@ -35,18 +35,19 @@ extension AppModel {
         let tz = m.tz
         let start = LocalDate(now(), in: tz).startInstant(in: tz)
         var readings: [String: Double] = [:]
-        var proved: [(RuleFact, String)] = []
+        var proved: [RuleFact] = []
         for item in today.items {
             guard let metric = HealthMetric.metric(for: item.rule),
                   let value = await HealthProof.shared.value(metric, from: start, to: Date()) else { continue }
             readings[item.rule.id] = value
             if !item.isChecked, item.checkIn == nil, value >= metric.target {
-                proved.append((item.rule, metric.proofText(value)))
+                proved.append(item.rule)
             }
         }
         healthReadings = readings
-        for (rule, text) in proved {
-            if await checkIn(rule: rule, photo: nil, healthProof: text) {
+        for rule in proved {
+            // Only a generic line is synced; the Health number never leaves this iPhone (5.1.3(ii)).
+            if await checkIn(rule: rule, photo: nil, healthProof: HealthMetric.proofLine) {
                 toast = "\(rule.title) checked off from Apple Health."
             }
         }

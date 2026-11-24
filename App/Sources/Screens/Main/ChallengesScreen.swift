@@ -8,6 +8,7 @@ struct ChallengesScreen: View {
     @State private var opened: Challenge?
     @State private var confirmGiveUp = false
     @State private var creating = false
+    @State private var showingCurrent = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -46,6 +47,12 @@ struct ChallengesScreen: View {
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
             .presentationCornerRadius(28)
+        }
+        .sheet(isPresented: $showingCurrent) {
+            CurrentChallengeSheet(onGiveUp: { confirmGiveUp = true })
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationCornerRadius(28)
         }
         .sheet(item: $opened) { c in
             ChallengeDetailSheet(challenge: c)
@@ -111,6 +118,9 @@ struct ChallengesScreen: View {
                         Text(c.title).font(.app(20, .bold)).foregroundStyle(Color.textPrimary)
                     }
                     Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color.textSecondary)
                 }
                 DayProgressBar(day: day, total: r.length)
                 HStack(spacing: 8) {
@@ -124,6 +134,9 @@ struct ChallengesScreen: View {
             }
             .padding(16)
             .card(radius: 20)
+            .contentShape(Rectangle())
+            .onTapGesture { openCurrent() }
+            .accessibilityAction(named: "Details") { openCurrent() }
         } else if let c = model.upcomingChallenge {
             HStack(spacing: 12) {
                 CustomIcon(asset: c.asset, symbol: c.icon, size: 46, circled: true)
@@ -135,9 +148,15 @@ struct ChallengesScreen: View {
                 Button("Cancel") { confirmGiveUp = true }
                     .font(.app(15, .semibold))
                     .foregroundStyle(Color.coral)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.textSecondary)
             }
             .padding(16)
             .peachBox(radius: 20)
+            .contentShape(Rectangle())
+            .onTapGesture { openCurrent() }
+            .accessibilityAction(named: "Details") { openCurrent() }
         } else {
             HStack(spacing: 12) {
                 Image(systemName: "leaf.fill").foregroundStyle(Color.sage)
@@ -151,6 +170,11 @@ struct ChallengesScreen: View {
             .padding(16)
             .card(radius: 18, shadow: false)
         }
+    }
+
+    private func openCurrent() {
+        Haptics.tap()
+        showingCurrent = true
     }
 
     private var isUpcoming: Bool { model.activeChallenge == nil && model.upcomingChallenge != nil }
@@ -314,6 +338,7 @@ struct ChallengeDetailSheet: View {
                     }
                     rules
                     proofRow
+                    safetyRow
                     stakes
                     if !model.canStartChallenge { blockedNote }
                 }
@@ -377,12 +402,25 @@ struct ChallengeDetailSheet: View {
             Image(systemName: challenge.proofRequired ? "camera.badge.ellipsis" : "camera")
                 .foregroundStyle(Color.coral)
             Text(challenge.proofRequired
-                 ? "Photo proof is required. Every photo rule needs a live photo, no honour taps."
+                 ? "Photo proof is required. Every photo rule needs a photo taken in the app, no honour taps."
                  : "Photo proof is optional but recommended. Your partner sees it and can cheer.")
                 .font(.app(14))
                 .foregroundStyle(Color.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    /// Guideline 1.4.1: demanding challenges (two workouts, 4 L of water) carry a short safety note.
+    private var safetyRow: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "heart.text.square")
+                .foregroundStyle(Color.coral)
+            Text("Not medical advice. Check with a doctor before a demanding challenge, especially with a health condition or during pregnancy. Spread water over the day, and stop if you feel pain or unwell: pausing is always fine.")
+                .font(.app(14))
+                .foregroundStyle(Color.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
     }
 
     private var stakes: some View {
