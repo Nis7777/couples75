@@ -33,7 +33,7 @@ final class PlanConsistencyTests: XCTestCase {
         f.members = [
             MemberFact(id: a, role: .a, name: "Maya", characterID: "w1", timeZone: "UTC", wakeTime: "07:30",
                        fitnessLevel: .veryActive, joinedAt: joined.addingTimeInterval(-3600), subscribedUntil: end,
-                       subscriptionProduct: Brand.iapYearly, subscriptionPeriods: periods, leftAt: nil),
+                       subscriptionProduct: Brand.iapYearly7, subscriptionPeriods: periods, leftAt: nil),
             MemberFact(id: b, role: .b, name: "Joao", characterID: "m1", timeZone: "UTC", wakeTime: "07:30",
                        fitnessLevel: .veryActive, joinedAt: joined, subscribedUntil: nil,
                        subscriptionProduct: nil, subscriptionPeriods: [], leftAt: nil),

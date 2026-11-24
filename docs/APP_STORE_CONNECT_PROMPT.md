@@ -71,11 +71,12 @@ email on the EU App Store, so I'll decide what to enter.
 
 Create a subscription group: Reference Name `Pact`, then group localization English (U.S.), Display Name `Pact`.
 
-Create four auto-renewable subscriptions in that group (the last one is the paywall's one-time 38% off offer):
+Create three auto-renewable subscriptions in that group (the last one is the paywall's one-time 38% off offer).
+If an older **Pact Yearly** (`com.tomasbeja.pact.yearly`, 3-day trial) exists, the app doesn't use it any more:
+delete it if App Store Connect allows, otherwise just don't add it to the app version.
 
 | Reference Name | Product ID | Duration | Price (base country United States) | Display Name | Description |
 |---|---|---|---|---|---|
-| Pact Yearly | `com.tomasbeja.pact.yearly` | 1 Year | $39.99 | `Pact Yearly` | `Pact for both of you, billed yearly` |
 | Pact Yearly 7-day trial | `com.tomasbeja.pact.yearly7` | 1 Year | $39.99 | `Pact Yearly` | `Pact for both of you, 7-day free trial` |
 | Pact Monthly | `com.tomasbeja.pact.monthly` | 1 Month | $12.99 | `Pact Monthly` | `Pact for both of you, billed monthly` |
 | Pact Yearly Offer | `com.tomasbeja.pact.yearlyoffer` | 1 Year | $24.99 | `Pact Yearly (38% off)` | `Pact for both of you, 38% off, billed yearly` |
@@ -87,11 +88,11 @@ Create four auto-renewable subscriptions in that group (the last one is the payw
   price isn't round, set it manually for those countries to **39,99 €** (yearly) and **12,99 €** (monthly) for the
   eurozone, and **£39.99** and **£12.99** for the UK (the offer: **24,99 €** and **£24.99**). Leave every other country on Apple's automatic price. Tell me
   which countries you changed.
-- Introductory offers: **Pact Yearly** → Free Trial, **3 days**, all countries, starting now, no end date.
-  **Pact Yearly 7-day trial** → Free Trial, **1 week**, same settings. **Pact Yearly Offer** → Free Trial, **1 week**. **Pact Monthly** → none. (The paywall's yearly plan is the
-  7-day one; Pact Yearly with 3 days is no longer shown.)
-- Subscription ranking inside the group: Pact Yearly at the top, Pact Yearly Offer on the same level or right below,
-  Pact Yearly 7-day trial on its own level, Pact Monthly last. (Levels only decide when a switch between plans takes
+- Introductory offers: **Pact Yearly 7-day trial** → Free Trial, **1 week**, all countries, starting now, no end
+  date (it's the paywall's yearly plan). **Pact Yearly Offer** → Free Trial, **1 week**, same settings.
+  **Pact Monthly** → none.
+- Subscription ranking inside the group: Pact Yearly 7-day trial at the top, Pact Yearly Offer on the same level or
+  right below, Pact Monthly last. (Levels only decide when a switch between plans takes
   effect; the app doesn't depend on them.)
 - Each subscription asks for a **Review Screenshot**: leave it empty and tell me (I'll upload a screenshot of the
   paywall).

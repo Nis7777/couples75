@@ -45,7 +45,7 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
     private static let trialEndKey = "trialEndsAt"
 
-    /// "Day 2: we remind you": a reminder two days before the free trial ends (day 2 of a 3-day trial).
+    /// "We remind you": a reminder two days before the 7-day free trial ends.
     /// Stored so it's (re)scheduled once notifications are allowed.
     func scheduleTrialReminder(trialEnd: Date) {
         UserDefaults.standard.set(trialEnd, forKey: Self.trialEndKey)

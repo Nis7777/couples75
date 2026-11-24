@@ -14,8 +14,8 @@ Do the steps in order. Values to copy are in `code`.
 | App Group | `group.com.tomasbeja.pact` |
 | iCloud container | `iCloud.com.tomasbeja.pact` |
 | Subscription group | `Pact` |
-| Yearly (3-day free trial) | `com.tomasbeja.pact.yearly` |
-| Yearly (7-day free trial, exit offer) | `com.tomasbeja.pact.yearly7` |
+| Yearly (7-day free trial) | `com.tomasbeja.pact.yearly7` |
+| Yearly offer (38% off, 7-day free trial) | `com.tomasbeja.pact.yearlyoffer` |
 | Monthly | `com.tomasbeja.pact.monthly` |
 | URL scheme | `pactapp` |
 | Background task | `com.tomasbeja.pact.refresh` (already in Info.plist) |
@@ -86,13 +86,14 @@ terms for subscription apps; alternatively paste the same URL in App Information
 
 ## 4. App Store Connect: the subscriptions
 
-Your app → Monetization → **Subscriptions** → create the group **Pact**, then three auto-renewable subscriptions:
+Your app → Monetization → **Subscriptions** → create the group **Pact**, then three auto-renewable subscriptions
+(an older `com.tomasbeja.pact.yearly` with a 3-day trial isn't used any more: don't add it to the app version):
 
 | Reference name | Product ID | Duration | Price | Introductory offer |
 |---|---|---|---|---|
-| Pact Yearly | `com.tomasbeja.pact.yearly` | 1 year | $39.99 (United States base) | Free trial, 3 days |
-| Pact Yearly 7-day trial | `com.tomasbeja.pact.yearly7` | 1 year | $39.99 | Free trial, 1 week |
+| Pact Yearly 7-day trial | `com.tomasbeja.pact.yearly7` | 1 year | $39.99 (United States base) | Free trial, 1 week |
 | Pact Monthly | `com.tomasbeja.pact.monthly` | 1 month | $12.99 | none |
+| Pact Yearly Offer | `com.tomasbeja.pact.yearlyoffer` | 1 year | $24.99 | Free trial, 1 week |
 
 For each: a display name and description (e.g. "Pact for both of you, billed yearly"), and a review screenshot of
 the paywall. Put the yearly plans above the monthly in the group's ranking. They're submitted with the first

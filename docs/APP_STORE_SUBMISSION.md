@@ -32,9 +32,9 @@ The 75 challenge in Pact is not affiliated with 44Seven Media or the 75 HARD pro
 couples,habits,glow up,self improvement,challenge,partner,accountability,streak,goals,level up
 
 ## Subscriptions
-- Yearly, $39.99 (3-day free trial) — covers both partners
-- Yearly with a 7-day free trial (exit offer), $39.99
+- Yearly, $39.99 (7-day free trial) — covers both partners
 - Monthly, $12.99 (yearly saves 74%)
+- Yearly offer, $24.99 (7-day free trial), shown once when closing the paywall
 
 ## App Privacy labels
 Data linked to the user, not used for tracking: name, character, time zone, check-in photos, check-ins,

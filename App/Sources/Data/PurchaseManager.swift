@@ -105,8 +105,8 @@ final class PurchaseManager {
         do {
             let products = try await Product.products(for: Brand.allProducts)
             yearly7 = products.first { $0.id == Brand.iapYearly7 }
-            // The paywall's yearly plan comes with a 7-day free trial (the 3-day product is kept only for old buyers).
-            yearly = yearly7 ?? products.first { $0.id == Brand.iapYearly }
+            // The paywall's yearly plan: $39.99 a year with a 7-day free trial.
+            yearly = yearly7
             monthly = products.first { $0.id == Brand.iapMonthly }
             yearlyOffer = products.first { $0.id == Brand.iapYearlyOffer }
             productsFailed = yearly == nil && monthly == nil
@@ -135,7 +135,6 @@ final class PurchaseManager {
             switch b.productID {
             case Brand.iapMonthly: product = monthly
             case Brand.iapYearly7: product = yearly7
-            case Brand.iapYearly: product = yearly
             case Brand.iapYearlyOffer: product = yearlyOffer
             default: product = yearly
             }

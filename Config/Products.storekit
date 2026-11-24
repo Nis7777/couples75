@@ -22,33 +22,6 @@
           "displayPrice": "39.99",
           "familyShareable": false,
           "groupNumber": 1,
-          "internalID": "C75YEAR",
-          "introductoryOffer": {
-            "internalID": "C75YEARTRIAL",
-            "numberOfPeriods": 1,
-            "paymentMode": "free",
-            "subscriptionPeriod": "P3D"
-          },
-          "localizations": [
-            {
-              "description": "Pact for both of you, billed yearly after a 3-day free trial.",
-              "displayName": "Yearly",
-              "locale": "en_US"
-            }
-          ],
-          "productID": "com.tomasbeja.pact.yearly",
-          "recurringSubscriptionPeriod": "P1Y",
-          "referenceName": "Yearly",
-          "subscriptionGroupID": "C75GROUP",
-          "type": "RecurringSubscription",
-          "winbackOffers": []
-        },
-        {
-          "adHocOffers": [],
-          "codeOffers": [],
-          "displayPrice": "39.99",
-          "familyShareable": false,
-          "groupNumber": 1,
           "internalID": "C75YEAR7",
           "introductoryOffer": {
             "internalID": "C75YEAR7TRIAL",
