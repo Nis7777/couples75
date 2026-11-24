@@ -20,10 +20,10 @@ enum Brand {
     /// A check-in must reach iCloud within this many hours of being taken.
     static let checkInUploadWindowHours: Double = 6
     /// One subscription covers both partners. Prices always come from StoreKit.
-    static let iapYearly = "com.tomasbeja.pact.yearly"      // $39.99 a year (US base price), 3-day free trial
-    static let iapYearly7 = "com.tomasbeja.pact.yearly7"    // same price, 7-day free trial (the exit offer's second choice)
+    static let iapYearly = "com.tomasbeja.pact.yearly"      // $39.99 a year, 3-day free trial (no longer shown)
+    static let iapYearly7 = "com.tomasbeja.pact.yearly7"    // $39.99 a year, 7-day free trial: the paywall's yearly plan
     static let iapMonthly = "com.tomasbeja.pact.monthly"    // $12.99 a month (US base price), no trial
-    /// The paywall's one-time exit offer: 38% off yearly, $24.99 a year (about $1.04 per person a month), no trial.
+    /// The paywall's exit offer: 38% off yearly, $24.99 a year (about $1.04 per person a month), 7-day free trial.
     static let iapYearlyOffer = "com.tomasbeja.pact.yearlyoffer"
     static let allProducts = [iapYearly, iapYearly7, iapMonthly, iapYearlyOffer]
     static let savesPerRound = 3

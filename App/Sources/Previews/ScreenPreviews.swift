@@ -182,7 +182,7 @@ private let noop: () -> Void = {}
     screen { PaywallView(variant: .onboarding(partner: "Joao"), onClose: noop, onPurchased: noop) }
 }
 #Preview("13d Exit offer", traits: .sizeThatFitsLayout) {
-    screen { ExitOfferView(claim: {}, freeWeek: {}, close: noop) }
+    screen { ExitOfferView(claim: {}, close: noop) }
 }
 #Preview("14 Invite", traits: .sizeThatFitsLayout) { screen { InviteView(next: noop) } }
 #Preview("Notifications", traits: .sizeThatFitsLayout) { screen { NotificationPrimingView(next: noop) } }

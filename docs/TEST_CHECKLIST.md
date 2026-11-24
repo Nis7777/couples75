@@ -165,3 +165,7 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
       down). Under it "Or start with a 7-day free trial ($39.99/year after)" buys the 7-day plan (hidden when the Apple ID
       already used a trial). Claim → Apple's purchase sheet → "You're in". × → back to "Your next 90 days". The second × goes
       straight back to the plan (the offer shows once). In the Simulator use the Products.storekit file.
+- [ ] Paywall Yearly card: "7-day free trial first"; the trial page says Today / Day 6 reminder / Day 7. Simulator:
+      if no trial shows, reset test purchases (Debug → StoreKit → Manage Transactions → delete all).
+- [ ] Paywall × → the offer every time in test builds (once in the App Store build): "Start my 7-day free trial",
+      "7 days free, then $24.99/year".

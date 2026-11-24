@@ -88,7 +88,8 @@ Create four auto-renewable subscriptions in that group (the last one is the payw
   eurozone, and **£39.99** and **£12.99** for the UK (the offer: **24,99 €** and **£24.99**). Leave every other country on Apple's automatic price. Tell me
   which countries you changed.
 - Introductory offers: **Pact Yearly** → Free Trial, **3 days**, all countries, starting now, no end date.
-  **Pact Yearly 7-day trial** → Free Trial, **1 week**, same settings. **Pact Monthly** and **Pact Yearly Offer** → none.
+  **Pact Yearly 7-day trial** → Free Trial, **1 week**, same settings. **Pact Yearly Offer** → Free Trial, **1 week**. **Pact Monthly** → none. (The paywall's yearly plan is the
+  7-day one; Pact Yearly with 3 days is no longer shown.)
 - Subscription ranking inside the group: Pact Yearly at the top, Pact Yearly Offer on the same level or right below,
   Pact Yearly 7-day trial on its own level, Pact Monthly last. (Levels only decide when a switch between plans takes
   effect; the app doesn't depend on them.)

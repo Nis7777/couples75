@@ -53,8 +53,9 @@ struct PaywallView: View {
                 if onClose != nil {
                     // In onboarding the × always opens the exit sheet; it never drops the user into the app.
                     CloseButton {
-                        // Onboarding: the one-time offer the first time (if the App Store has it), then back to the plan.
-                        if isOnboarding && !Prefs.exitOfferShown && purchases.yearlyOffer != nil {
+                        // Onboarding: the one-time offer the first time, then back to the plan. (Test builds: every
+                        // time, so it can be checked.)
+                        if isOnboarding && (!Prefs.exitOfferShown || AppEnvironment.isDebug) {
                             Prefs.exitOfferShown = true
                             showExit = true
                         } else {
@@ -90,9 +91,6 @@ struct PaywallView: View {
             ExitOfferView(claim: {
                 await buy(.offer)
                 // Paid: close the offer so "You're in" (or Try again) shows.
-                if model.hasActiveSubscription { showExit = false }
-            }, freeWeek: {
-                await buy(.freeWeek)
                 if model.hasActiveSubscription { showExit = false }
             }, close: {
                 showExit = false
@@ -177,9 +175,10 @@ struct PaywallView: View {
                 .padding(.horizontal, 28)
                 .padding(.top, 10)
             VStack(alignment: .leading, spacing: 0) {
+                let days = purchases.trialDays(purchases.yearly) ?? 7
                 timelineRow(day: "Today", text: "Full access for both of you", last: false)
-                timelineRow(day: "Day 2", text: "We remind you", last: false)
-                timelineRow(day: "Day 3", text: "Trial ends, billing starts", last: true)
+                timelineRow(day: "Day \(max(2, days - 1))", text: "We remind you", last: false)
+                timelineRow(day: "Day \(days)", text: "Trial ends, billing starts", last: true)
             }
             .padding(24)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -407,13 +406,12 @@ struct PaywallView: View {
     private var selectedProduct: Product? { yearlySelected ? purchases.yearly : purchases.monthly }
 
     /// Which plan a button buys: the selected one, or the exit offer's discount / 7-day free trial.
-    private enum Plan { case selected, offer, freeWeek }
+    private enum Plan { case selected, offer }
 
     private func product(for plan: Plan) -> Product? {
         switch plan {
         case .selected: return selectedProduct
         case .offer: return purchases.yearlyOffer
-        case .freeWeek: return purchases.yearly7
         }
     }
 
@@ -479,8 +477,6 @@ struct FooterLinks: View {
 struct ExitOfferView: View {
     @Environment(AppModel.self) private var model
     var claim: () async -> Void
-    /// The other choice: a 7-day free trial of the regular yearly plan (when this Apple ID can still get a trial).
-    var freeWeek: () async -> Void
     var close: () -> Void
     @State private var appeared = false
     @State private var claiming = false
@@ -490,6 +486,8 @@ struct ExitOfferView: View {
     private var offer: Product? { purchases.yearlyOffer }
     private var offerPrice: String { offer?.displayPrice ?? "" }
     private var regularPrice: String { purchases.yearly?.displayPrice ?? "" }
+    /// The offer's free trial (7 days), if this Apple ID can still get one.
+    private var trialDays: Int? { purchases.trialDays(offer) }
 
     /// "38%", from the real prices.
     private var percentOff: String {
@@ -535,7 +533,8 @@ struct ExitOfferView: View {
                             .foregroundStyle(Color.textSecondary)
                         priceCard
                             .padding(.top, 6)
-                        Text("Billed \(offerPrice) today, then \(offerPrice)/year. No free trial with this offer.")
+                        Text(trialDays.map { "Free for \($0) days, then \(offerPrice)/year. Cancel before day \($0) and you pay nothing." }
+                             ?? "Billed \(offerPrice) today, then \(offerPrice)/year.")
                             .font(.app(14))
                             .foregroundStyle(Color.textSecondary)
                             .multilineTextAlignment(.center)
@@ -547,25 +546,7 @@ struct ExitOfferView: View {
 
                 VStack(spacing: 8) {
                     claimButton
-                    if let days = purchases.trialDays(purchases.yearly7) {
-                        Button {
-                            guard !claiming else { return }
-                            Haptics.tap()
-                            Task {
-                                claiming = true
-                                await freeWeek()
-                                claiming = false
-                            }
-                        } label: {
-                            Text("Or start with a \(days)-day free trial (\(purchases.yearly7?.displayPrice ?? regularPrice)/year after)")
-                                .font(.app(14, .semibold))
-                                .foregroundStyle(Color.textPrimary)
-                                .underline()
-                                .multilineTextAlignment(.center)
-                        }
-                        .padding(.top, 2)
-                    }
-                    Text("\(offerPrice)/year")
+                    Text(trialDays.map { "\($0) days free, then \(offerPrice)/year" } ?? "\(offerPrice)/year")
                         .font(.app(17, .bold))
                         .foregroundStyle(Color.textPrimary)
                     Text("Auto-renews. Cancel anytime in Settings. One subscription covers you both.")
@@ -585,6 +566,7 @@ struct ExitOfferView: View {
             Haptics.success()
             withAnimation(.spring(response: 0.55, dampingFraction: 0.7)) { appeared = true }
         }
+        .task { if purchases.yearlyOffer == nil { await purchases.loadProducts() } }
     }
 
     /// Sun rays turning slowly behind everything (paused off screen; still with Reduce Motion).
@@ -627,7 +609,7 @@ struct ExitOfferView: View {
                 .foregroundStyle(Color.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-            Text("\(Brand.appName) · Yearly for both of you")
+            Text(trialDays.map { "\(Brand.appName) · Yearly · \($0) days free first" } ?? "\(Brand.appName) · Yearly for both of you")
                 .font(.app(15, .semibold))
                 .foregroundStyle(Color.textSecondary)
             if let each = purchases.perPersonPerMonth(offer) {
@@ -663,7 +645,7 @@ struct ExitOfferView: View {
                 if claiming {
                     ProgressView().tint(.white)
                 } else {
-                    Text("Claim my discount")
+                    Text(trialDays.map { "Start my \($0)-day free trial" } ?? "Claim my discount")
                         .font(.app(20, .bold))
                         .foregroundStyle(Color.white)
                 }
