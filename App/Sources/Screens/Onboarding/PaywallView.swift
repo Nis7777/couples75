@@ -231,6 +231,15 @@ struct PaywallView: View {
                         planCard(yearly: false)
                         planCard(yearly: true)
                             .padding(.bottom, 10)
+                        #if DEBUG
+                        if purchases.trialUsedUp {
+                            // Test builds only: why there's no free trial on this device.
+                            Text("Test build: no free trial because this account already used one. In Xcode: Debug → StoreKit → Manage Transactions → delete them all, then run again.")
+                                .font(.app(12, .semibold))
+                                .foregroundStyle(Color.highlight)
+                                .multilineTextAlignment(.center)
+                        }
+                        #endif
                         VStack(spacing: 4) {
                             Text("No second payment for \(partnerName.isEmpty ? "your partner" : partnerName).")
                                 .font(.app(15))

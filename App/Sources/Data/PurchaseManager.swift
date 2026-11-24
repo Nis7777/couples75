@@ -72,6 +72,9 @@ final class PurchaseManager {
     }
 
     /// Free-trial length in days for a product (3 for yearly, 7 for yearly7), nil when none or not eligible.
+    /// The plan has a free trial, but this account already used one (Apple gives one per account).
+    var trialUsedUp: Bool { !trialEligible && yearly?.subscription?.introductoryOffer?.paymentMode == .freeTrial }
+
     func trialDays(_ product: Product?) -> Int? {
         guard trialEligible, let offer = product?.subscription?.introductoryOffer, offer.paymentMode == .freeTrial else {
             return nil
