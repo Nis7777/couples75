@@ -27,7 +27,8 @@ what's described, stop and tell me what you see.
 7. Ranking (levels) in the group: keep **Pact Yearly** and **Pact Yearly 7-day trial** on separate levels, as they
    are. Put **Pact Yearly Offer** on the same level as Pact Yearly, or on its own level right below it if that's not
    possible. **Pact Monthly** stays at the bottom. The app doesn't depend on the levels.
-8. App Store → the **1.0** version page → **In-App Purchases and Subscriptions** → add **Pact Yearly Offer** next to
-   the other three. Save.
+8. App Store → the **1.0** version page → **In-App Purchases and Subscriptions**: make sure all four are added (Pact
+   Yearly, Pact Yearly 7-day trial, Pact Monthly, Pact Yearly Offer). Keep the 7-day trial: the offer screen uses it.
+   Save.
 9. Tell me: that it was created and its status, the prices you set by hand, and what's still missing (the review
    screenshot).

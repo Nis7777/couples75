@@ -162,5 +162,6 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
       phone if you share them). The partner's shared photos have no trash button.
 - [ ] Paywall × (first time only): full-screen "40% off Pact" on turning sun rays, both characters cheering,
       "$39.99/year" struck through, "$23.99/year", "That's $1.00 per person a month", "Claim my discount" (presses
-      down). Claim → Apple's purchase sheet → "You're in". × → back to "Your next 90 days". The second × goes
+      down). Under it "Or start with a 7-day free trial ($39.99/year after)" buys the 7-day plan (hidden when the Apple ID
+      already used a trial). Claim → Apple's purchase sheet → "You're in". × → back to "Your next 90 days". The second × goes
       straight back to the plan (the offer shows once). In the Simulator use the Products.storekit file.

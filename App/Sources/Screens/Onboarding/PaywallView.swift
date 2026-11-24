@@ -91,6 +91,9 @@ struct PaywallView: View {
                 await buy(.offer)
                 // Paid: close the offer so "You're in" (or Try again) shows.
                 if model.hasActiveSubscription { showExit = false }
+            }, freeWeek: {
+                await buy(.freeWeek)
+                if model.hasActiveSubscription { showExit = false }
             }, close: {
                 showExit = false
                 onClose?()
@@ -403,13 +406,14 @@ struct PaywallView: View {
 
     private var selectedProduct: Product? { yearlySelected ? purchases.yearly : purchases.monthly }
 
-    /// Which plan a button buys: the selected one, or the one-time exit offer.
-    private enum Plan { case selected, offer }
+    /// Which plan a button buys: the selected one, or the exit offer's 40% off / 7-day free trial.
+    private enum Plan { case selected, offer, freeWeek }
 
     private func product(for plan: Plan) -> Product? {
         switch plan {
         case .selected: return selectedProduct
         case .offer: return purchases.yearlyOffer
+        case .freeWeek: return purchases.yearly7
         }
     }
 
@@ -475,6 +479,8 @@ struct FooterLinks: View {
 struct ExitOfferView: View {
     @Environment(AppModel.self) private var model
     var claim: () async -> Void
+    /// The other choice: a 7-day free trial of the regular yearly plan (when this Apple ID can still get a trial).
+    var freeWeek: () async -> Void
     var close: () -> Void
     @State private var appeared = false
     @State private var claiming = false
@@ -541,6 +547,24 @@ struct ExitOfferView: View {
 
                 VStack(spacing: 8) {
                     claimButton
+                    if let days = purchases.trialDays(purchases.yearly7) {
+                        Button {
+                            guard !claiming else { return }
+                            Haptics.tap()
+                            Task {
+                                claiming = true
+                                await freeWeek()
+                                claiming = false
+                            }
+                        } label: {
+                            Text("Or start with a \(days)-day free trial (\(purchases.yearly7?.displayPrice ?? regularPrice)/year after)")
+                                .font(.app(14, .semibold))
+                                .foregroundStyle(Color.textPrimary)
+                                .underline()
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.top, 2)
+                    }
                     Text("\(offerPrice)/year")
                         .font(.app(17, .bold))
                         .foregroundStyle(Color.textPrimary)
