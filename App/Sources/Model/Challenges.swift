@@ -61,6 +61,10 @@ struct Challenge: Identifiable, Equatable {
     var replacesHabits = false
     var icon: String
     var isSignature = false
+    /// "Create your own": the rules the couple picked (the same for both of you).
+    var customIdeas: [RuleIdea] = []
+
+    var isCustom: Bool { id.hasPrefix(Challenges.customPrefix) }
 
     /// Custom image named `challenge_{id}` replaces the SF Symbol when it's in the asset catalogue.
     var asset: String { "challenge_\(id)" }
@@ -71,7 +75,7 @@ struct Challenge: Identifiable, Equatable {
     var lengthText: String { days % 7 == 0 && days <= 28 ? "\(days / 7) week\(days == 7 ? "" : "s")" : "\(days) days" }
     var savesText: String { saves == 0 ? "No saves" : "\(saves) shared save\(saves == 1 ? "" : "s")" }
 
-    func ruleIdeas() -> [RuleIdea] { rules.compactMap(\.idea) }
+    func ruleIdeas() -> [RuleIdea] { customIdeas.isEmpty ? rules.compactMap(\.idea) : customIdeas }
 }
 
 enum Challenges {
@@ -126,7 +130,33 @@ enum Challenges {
 
     static func challenge(_ id: String?) -> Challenge? {
         guard let id else { return nil }
+        if id.hasPrefix(customPrefix) { return custom(fromID: id) }
         return all.first { $0.id == id }
+    }
+
+    // MARK: Create your own
+
+    /// A custom challenge keeps its name, length and saves in its id ("custom|30|1|Summer Shred"), so every screen
+    /// that looks a challenge up by id (finish screen, milestones, share card) shows it like the built-in ones.
+    /// Its rules are stored as the couple's rules for that round.
+    static let customPrefix = "custom|"
+    static let customLengths = [7, 14, 21, 30, 60, 75]
+    static let customMaxRules = 3
+
+    static func custom(title: String, days: Int, saves: Int, ideas: [RuleIdea]) -> Challenge {
+        let name = String(title.trimmingCharacters(in: .whitespacesAndNewlines).prefix(30))
+        let clean = name.isEmpty ? "Our challenge" : name
+        var c = Challenge(id: "\(customPrefix)\(days)|\(saves)|\(clean)", title: clean,
+                          tagline: "Your own challenge, the same rules for both of you.", area: nil, days: days,
+                          rules: [], saves: saves, icon: "star.fill")
+        c.customIdeas = ideas
+        return c
+    }
+
+    private static func custom(fromID id: String) -> Challenge? {
+        let parts = id.dropFirst(customPrefix.count).split(separator: "|", maxSplits: 2).map(String.init)
+        guard parts.count == 3, let days = Int(parts[0]), let saves = Int(parts[1]) else { return nil }
+        return custom(title: parts[2], days: days, saves: saves, ideas: [])
     }
 
     static func inArea(_ area: Area) -> [Challenge] { all.filter { $0.area == area } }

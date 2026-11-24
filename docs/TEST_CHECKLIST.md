@@ -154,3 +154,6 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
       normally.
 - [ ] A tap check-in (no photo) shows as done ✓ on the partner's phone with no "Tap to approve", no coral dot, no
       Proof badge; its notification reads "{name} finished {habit} ✓". Photo check-ins still ask to be approved.
+- [ ] Challenges → "Create your own": name, length (7–75 days), saves (0–3), 1–3 rules from the library or typed
+      in (photo or tap). Continue → the usual details (optional bet) → Start tomorrow. Both of you get the same
+      rules the next day; the name shows on Today, the finish screen and the share card.

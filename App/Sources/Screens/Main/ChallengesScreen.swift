@@ -7,6 +7,7 @@ struct ChallengesScreen: View {
     @Environment(AppModel.self) private var model
     @State private var opened: Challenge?
     @State private var confirmGiveUp = false
+    @State private var creating = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -18,6 +19,7 @@ struct ChallengesScreen: View {
                     .padding(.top, 10)
                 XPCard(xp: model.xp)
                 current
+                createOwnCard
                 Text("Signature")
                     .font(.app(19, .bold))
                     .foregroundStyle(Color.textPrimary)
@@ -35,6 +37,16 @@ struct ChallengesScreen: View {
             .padding(.horizontal, Metrics.side)
             .padding(.bottom, 24)
         }
+        .sheet(isPresented: $creating) {
+            CustomChallengeSheet { c in
+                creating = false
+                // Then the usual details (bet, Start tomorrow), once this sheet has gone.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { opened = c }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+            .presentationCornerRadius(28)
+        }
         .sheet(item: $opened) { c in
             ChallengeDetailSheet(challenge: c)
                 .presentationDetents([.large])
@@ -47,6 +59,42 @@ struct ChallengesScreen: View {
         } message: {
             Text(giveUpMessage)
         }
+    }
+
+    // MARK: Create your own
+
+    private var createOwnCard: some View {
+        Button {
+            Haptics.tap()
+            creating = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "plus")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(Color.gold)
+                    .frame(width: 46, height: 46)
+                    .background(Circle().fill(Color.peach))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Create your own")
+                        .font(.app(17, .bold))
+                        .foregroundStyle(Color.textPrimary)
+                    Text("Your name, your length, your rules")
+                        .font(.app(13))
+                        .foregroundStyle(Color.textSecondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.textSecondary)
+            }
+            .padding(14)
+            .card(radius: 18, shadow: false)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableStyle())
+        .disabled(!model.canStartChallenge)
+        .opacity(model.canStartChallenge ? 1 : 0.5)
+        .accessibilityHint("Make a challenge with your own name, length and rules")
     }
 
     // MARK: Current
@@ -252,7 +300,8 @@ struct ChallengeDetailSheet: View {
                     HStack(alignment: .center, spacing: 14) {
                         CustomIcon(asset: challenge.asset, symbol: challenge.icon, size: 64, circled: true)
                         VStack(alignment: .leading, spacing: 3) {
-                            if let area = challenge.area { SmallLabel(text: area.title) } else { SmallLabel(text: "Signature") }
+                            if let area = challenge.area { SmallLabel(text: area.title) }
+                            else { SmallLabel(text: challenge.isCustom ? "Your own" : "Signature") }
                             Text(challenge.title).font(.app(26, .bold)).foregroundStyle(Color.textPrimary)
                         }
                     }

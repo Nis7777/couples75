@@ -78,6 +78,15 @@ extension AppModel {
                 let level = ["workout", "steps", "water"].contains(rule.key) && !c.proofRequired ? intensity : rule.intensity
                 if let idea = RuleIdea.library(rule.key, intensity: level) { ideas.append(idea) }
             }
+            // Create your own: the same rules for both, fitness ones at each person's level.
+            for idea in c.customIdeas {
+                if let key = idea.libraryKey, ["workout", "steps", "water"].contains(key),
+                   let leveled = RuleIdea.library(key, intensity: intensity) {
+                    ideas.append(leveled)
+                } else {
+                    ideas.append(idea)
+                }
+            }
             let challengeKeys = Set(ideas.compactMap(\.libraryKey))
             let kept = c.replacesHabits ? [] : habits.filter { !challengeKeys.contains($0.libraryKey) }
             var position = 1
