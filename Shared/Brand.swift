@@ -40,5 +40,4 @@ enum Brand {
     static let minIOS = "17.0"
 
     static let backgroundRefreshID = "com.tomasbeja.pact.refresh"
-    static let disclaimer = "\(appName)'s The 75 challenge is not affiliated with 44Seven Media or the 75 HARD program."
 }

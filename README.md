@@ -142,11 +142,10 @@ Settings → App Store → Sandbox Account).
 
 What the partners share passes through the app's CloudKit public database end-to-end encrypted with the couple's
 key, so the developer can't read it. Apple Health readings never leave the iPhone (the partner only sees
-"Checked off automatically"). The developer can only read the inviter's first name (open invites) and the optional
-waitlist email. The App Privacy answers are in `docs/APP_STORE_SUBMISSION.md` and match `App/PrivacyInfo.xcprivacy`.
+"Checked off automatically"). The inviter's first name in an open invite is encrypted with the invite code. The developer can only read the
+optional waitlist email. The App Privacy answers are in `docs/APP_STORE_SUBMISSION.md` and match `App/PrivacyInfo.xcprivacy`.
 Photos are personal data under GDPR; "Leave couple" and "Delete my data" remove them.
 
-Pact's "The 75" challenge is not affiliated with 44Seven Media or the 75 HARD program.
 
 ## Renaming the app
 

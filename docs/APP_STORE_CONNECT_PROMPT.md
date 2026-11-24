@@ -99,14 +99,12 @@ delete it if App Store Connect allows, otherwise just don't add it to the app ve
 
 Pact keeps user data on the users' iPhones; what the two partners share travels between their phones through the
 app's CloudKit database, end-to-end encrypted with a key only the couple has, so the developer can't read it. Only
-two things reach the developer in readable form. Answer:
+one thing reaches the developer in readable form: the optional waitlist email. Answer:
 
 - Do you collect data? **Yes**.
-- **Contact Info → Name**: used for **App Functionality**; linked to the user **Yes**; tracking **No**.
-  (The inviter's first name is in the invite-code record while an invite is open.)
 - **Contact Info → Email Address**: used for **App Functionality**; linked to the user **Yes**; tracking **No**.
   (Optional waitlist for partners without an iPhone.)
-- Nothing else is collected (no health, photos, user content, identifiers, usage data, diagnostics or purchases by
+- Nothing else is collected (no name: the inviter's name in an open invite is encrypted with the invite code; no health, photos, user content, identifiers, usage data, diagnostics or purchases by
   the developer). Tracking: **No**.
 - Publish the privacy answers.
 

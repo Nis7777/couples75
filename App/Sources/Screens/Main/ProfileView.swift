@@ -173,7 +173,8 @@ struct ProfileView: View {
                     Button { contactSupport() } label: { row("Contact support", chevron: true) }
                     VStack(alignment: .leading, spacing: 4) {
                         Text("About").font(.app(17, .medium)).foregroundStyle(Color.textPrimary)
-                        Text(Brand.disclaimer).font(.app(13)).foregroundStyle(Color.textSecondary)
+                        Text("\(Brand.appName) \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "") · \(Brand.tagline)")
+                            .font(.app(13)).foregroundStyle(Color.textSecondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 18)

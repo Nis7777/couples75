@@ -99,4 +99,13 @@ final class RelayTests: XCTestCase {
         XCTAssertNotEqual(name, RelayCrypto.inviteRecordName(code: "K7M2QR"))
         XCTAssertTrue(name.hasPrefix("inv."))
     }
+
+    /// The inviter's name is unreadable without the code; old plain names still work.
+    func testInviterNameIsSealedWithTheCode() throws {
+        let sealed = try RelayCrypto.sealInviterName("Maya", code: "K7M2QP", tag: "t1")
+        XCTAssertFalse(sealed.contains("Maya"))
+        XCTAssertEqual(RelayCrypto.openInviterName(sealed, code: "K7M2QP", tag: "t1"), "Maya")
+        XCTAssertNil(RelayCrypto.openInviterName(sealed, code: "K7M2QR", tag: "t1"))
+        XCTAssertEqual(RelayCrypto.openInviterName("Maya", code: "K7M2QP", tag: "t1"), "Maya")
+    }
 }

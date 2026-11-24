@@ -35,8 +35,8 @@ couples,habits,glow up,self improvement,challenge,partner,accountability,streak,
 - Yearly offer, $24.99 (no free trial), shown once when closing the paywall
 
 ## App Privacy labels
-Use the questionnaire answers below: only **Name** (open invite) and **Email Address** (optional waitlist) are
-collected, both for App Functionality, linked, not used for tracking. These match `App/PrivacyInfo.xcprivacy`.
+Use the questionnaire answers below: only **Email Address** (optional waitlist) is collected, for App
+Functionality, linked, not used for tracking. These match `App/PrivacyInfo.xcprivacy`.
 
 ## URLs
 - Privacy Policy: https://nis7777.github.io/pact/privacy.html
@@ -49,9 +49,9 @@ Pact's data stays in the user's iCloud and never reaches the developer, except t
 Apple counts data as "collected" only when the developer (or a third party) can access it, so answer:
 - **Contact Info → Email Address**: collected (waitlist only); purpose App Functionality (to tell them
   when Pact works for their partner); not used for tracking.
-- **Contact Info → Name**: collected (the inviter's first name sits in the public invite-code record while an invite
-  is open); purpose App Functionality; not used for tracking.
-- For both, answer "linked to the user" **Yes** (the safe answer).
+- Answer "linked to the user" **Yes** (the safe answer).
+- **Name: not collected.** The inviter's first name in an open invite is encrypted with the 6-letter code, so only
+  the person with the code can read it, not the developer.
 - Everything else (photos, health, fitness, user content, identifiers, purchases): not collected by the
   developer. What the partners share passes through the app's CloudKit database end-to-end encrypted with a key
   only the couple has, so the developer can't read it; progress photos are in the user's own private iCloud; Apple
@@ -76,5 +76,4 @@ Apple counts data as "collected" only when the developer (or a third party) can 
   operating system. If you distribute in France, Apple may still ask for the French declaration.
 - **iPad.** The app is iPhone-only, but reviewers sometimes run it on an iPad. Tap through onboarding, the paywall
   and Today once in an iPad simulator.
-- The 75 disclaimer ("not affiliated with 44Seven Media…") lives in the Terms and in Profile → About. Keep it out
-  of the App Store description and keywords: naming another company's trademark in metadata can be flagged.
+- Never name other programs or companies (e.g. other 75-day challenges) in the app, the description or keywords.

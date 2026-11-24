@@ -51,6 +51,26 @@ enum RelayCrypto {
         return CoupleSecret(tag: tag, key: key)
     }
 
+    /// The inviter's first name in the invite, sealed with the code: only someone with the code can read it (the
+    /// developer can't). Stored in the existing `inviterName` field as "v2:" + base64, so no schema change.
+    static func sealInviterName(_ name: String, code: String, tag: String) throws -> String {
+        guard let combined = try AES.GCM.seal(Data(name.utf8), using: inviteKey(code: code, tag: tag),
+                                              authenticating: Data("inviter-name".utf8)).combined else {
+            throw Failure.badData
+        }
+        return "v2:" + combined.base64EncodedString()
+    }
+
+    /// The name back; older invites stored it in plain text.
+    static func openInviterName(_ stored: String, code: String, tag: String) -> String? {
+        guard stored.hasPrefix("v2:") else { return stored.isEmpty ? nil : stored }
+        guard let data = Data(base64Encoded: String(stored.dropFirst(3))),
+              let box = try? AES.GCM.SealedBox(combined: data),
+              let plain = try? AES.GCM.open(box, using: inviteKey(code: code, tag: tag),
+                                            authenticating: Data("inviter-name".utf8)) else { return nil }
+        return String(data: plain, encoding: .utf8)
+    }
+
     /// The invite record's name: a hash of the code, never the code itself, so a listing of the public database
     /// can't reveal open codes (and with them the couple's key).
     static func inviteRecordName(code: String) -> String {

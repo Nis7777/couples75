@@ -380,7 +380,8 @@ final class RelayStore: Store {
             let rec = CKRecord(recordType: Self.inviteType, recordID: Self.inviteID(code))
             rec["couple"] = secret.tag as NSString
             rec["sealedKey"] = try RelayCrypto.wrapKey(secret, code: code) as NSData
-            rec["inviterName"] = inviterName as NSString
+            // Sealed with the code: nobody without the code (the developer included) can read the name.
+            rec["inviterName"] = try RelayCrypto.sealInviterName(inviterName, code: code, tag: secret.tag) as NSString
             rec["createdAt"] = Date() as NSDate
             do {
                 let op = try await db.modifyRecords(saving: [rec], deleting: [], savePolicy: .ifServerRecordUnchanged,
@@ -463,7 +464,9 @@ final class RelayStore: Store {
         do {
             let rec = try await inviteRecord(code: clean)
             guard rec["sealedKey"] is Data else { throw StoreError.codeNotFound }
-            return InviteLookup(code: clean, inviterName: rec["inviterName"] as? String ?? "Your partner",
+            let tag = rec["couple"] as? String ?? ""
+            let name = (rec["inviterName"] as? String).flatMap { RelayCrypto.openInviterName($0, code: clean, tag: tag) }
+            return InviteLookup(code: clean, inviterName: name ?? "Your partner",
                                 shareURL: Self.joinLink(code: clean))
         } catch let ck as CKError where ck.code == .unknownItem {
             throw StoreError.codeNotFound
