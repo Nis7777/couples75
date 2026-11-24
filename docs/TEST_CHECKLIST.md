@@ -152,3 +152,5 @@ Old onboarding progress from the 75-only version is discarded (start from the ho
       "{B} accepted your invite" (the card with their signature). Same from the Waiting screen.
 - [ ] Front camera proof photo: the saved photo looks like the preview (mirrored, like a selfie); the stamp text reads
       normally.
+- [ ] A tap check-in (no photo) shows as done ✓ on the partner's phone with no "Tap to approve", no coral dot, no
+      Proof badge; its notification reads "{name} finished {habit} ✓". Photo check-ins still ask to be approved.

@@ -187,7 +187,9 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
         let oldCheckIns = Set(oldFacts.checkIns.map { $0.id })
         for c in newFacts.checkIns where Prefs.partnerCheckInNotifsOn && !oldCheckIns.contains(c.id)
             && c.memberID == partner.id {
-            post("\(name) finished \(ruleTitle(c.ruleID)). React?", route: "checkin:\(c.id)")
+            // Only a photo asks for a look; a tap is just news.
+            post(c.hasPhoto ? "\(name) finished \(ruleTitle(c.ruleID)). Take a look?" : "\(name) finished \(ruleTitle(c.ruleID)) ✓",
+                 route: "checkin:\(c.id)")
         }
 
         let oldReactions = Set(oldFacts.reactions.map { $0.id })

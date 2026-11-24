@@ -386,10 +386,10 @@ struct TodayView: View {
         .accessibilityLabel(label)
     }
 
-    /// Waiting for MY approval: my partner checked it in and I haven't reacted yet.
+    /// Waiting for MY approval: my partner checked it in with a photo and I haven't reacted yet (taps need none).
     private func awaitsMyApproval(_ item: ChecklistItem, isMe: Bool) -> Bool {
         guard !isMe, let c = item.checkIn else { return false }
-        return !model.hasReacted(to: c)
+        return model.needsMyApproval(c)
     }
 
     private func ruleRow(_ item: ChecklistItem, isMe: Bool) -> some View {
@@ -441,7 +441,9 @@ struct TodayView: View {
         if !warmup, !item.isChecked, item.rule.type == .honour, hour < 18 { return ("Tap tonight", Color.textSecondary) }
         if item.state == .notSent { return ("Not sent yet", .coral) }
         if let c = item.checkIn, let status = model.partnerStatus(of: c) { return (status, .sage) }
-        if item.isChecked, !warmup, model.partner?.joinedAt != nil { return ("Waiting for \(model.partnerName)", Color.textSecondary) }
+        if item.isChecked, item.checkIn?.hasPhoto == true, !warmup, model.partner?.joinedAt != nil {
+            return ("Waiting for \(model.partnerName)", Color.textSecondary)
+        }
         return nil
     }
 

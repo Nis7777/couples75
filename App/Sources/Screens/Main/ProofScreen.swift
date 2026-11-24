@@ -67,7 +67,7 @@ struct ProofScreen: View {
         }
         return order.map { label in
             let items = byLabel[label] ?? []
-            return (label, items.filter { !model.hasReacted(to: $0) } + items.filter { model.hasReacted(to: $0) })
+            return (label, items.filter { model.needsMyApproval($0) } + items.filter { !model.needsMyApproval($0) })
         }
     }
 
@@ -346,13 +346,13 @@ struct HonourProofCard: View {
     }
 }
 
-/// Coral dot on check-ins I haven't reacted to.
+/// Coral dot on photo check-ins I haven't approved yet.
 struct UnreactedDot: View {
     @Environment(AppModel.self) private var model
     var checkIn: CheckInFact
 
     var body: some View {
-        if checkIn.memberID != model.meID && !model.hasReacted(to: checkIn) {
+        if model.needsMyApproval(checkIn) {
             Circle()
                 .fill(Color.coral)
                 .frame(width: 12, height: 12)

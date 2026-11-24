@@ -13,13 +13,19 @@ extension AppModel {
         return checkIns(of: p.id)
     }
 
-    /// Partner check-ins I haven't reacted to, newest first.
+    /// Only photo proof asks to be approved: a tap (or an Apple Health check) has nothing to look at.
+    /// Approving never decides whether a day counts; it's how partners keep each other honest on photos.
+    func needsMyApproval(_ checkIn: CheckInFact) -> Bool {
+        checkIn.memberID != meID && checkIn.hasPhoto && !hasReacted(to: checkIn)
+    }
+
+    /// My partner's photo check-ins I haven't approved or reacted to yet, newest first.
     var unreactedPartnerCheckIns: [CheckInFact] {
-        partnerCheckIns.filter { !hasReacted(to: $0) }
+        partnerCheckIns.filter(needsMyApproval)
     }
 
     /// The coral number on the Proof tab.
-    /// Check-ins to react to plus rule changes to approve.
+    /// Photos to approve plus rule changes to approve.
     var proofBadge: Int { unreactedPartnerCheckIns.count + proposalsForMeToAnswer.count }
 
     /// "Today", "Yesterday", "Day 21" (or a date) for a check-in, in its member's own local days.
@@ -42,7 +48,10 @@ extension AppModel {
         for r in theirs where r.kind == .emoji { if let e = r.emoji { out.append(e) } }
         if theirs.contains(where: { $0.kind == .sus }) { out.append("Sus 🤨") }
         for r in theirs where r.kind == .comment { if let c = r.comment { out.append("\u{201C}\(c)\u{201D}") } }
-        if out.isEmpty { out.append(theirs.contains { $0.kind == .seen } ? "Seen" : "Not seen yet") }
+        if out.isEmpty {
+            // A tap has nothing to approve.
+            out.append(!checkIn.hasPhoto ? "Done ✓" : theirs.contains { $0.kind == .seen } ? "Seen" : "Not seen yet")
+        }
         return out
     }
 
