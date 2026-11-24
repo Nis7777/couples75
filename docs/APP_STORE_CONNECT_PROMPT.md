@@ -98,8 +98,9 @@ delete it if App Store Connect allows, otherwise just don't add it to the app ve
 
 ## Step 7. App Privacy (App Privacy → Get Started)
 
-Pact stores user data in the user's own iCloud with Apple; the developer can't access it. Only two things reach the
-developer. Answer:
+Pact keeps user data on the users' iPhones; what the two partners share travels between their phones through the
+app's CloudKit database, end-to-end encrypted with a key only the couple has, so the developer can't read it. Only
+two things reach the developer in readable form. Answer:
 
 - Do you collect data? **Yes**.
 - **Contact Info → Name**: used for **App Functionality**; linked to the user **Yes**; tracking **No**.
@@ -161,11 +162,12 @@ Pact is for couples: two people on two iPhones, each signed in to iCloud with th
 
 To review:
 1. Open Pact, tap "Let's start" and go through onboarding (any names; tap "No, I'll invite them").
-2. Subscribe on the paywall with a sandbox account. One subscription covers both partners.
-3. The app shows an invite link and a 6-letter code. On a second iPhone (another Apple ID, iCloud on), open Pact, tap "My partner invited me" and enter the code. The partner joins free and picks their own habits.
-4. Day 1 starts the day after the partner joins. On Today: check in with a live photo or an honour tap; the partner sees it in Proof and can react. Challenges tab: start a challenge (it starts the next day).
+2. Subscribe on the paywall with a sandbox account (Yearly has a 7-day free trial). One subscription covers both partners. Closing the paywall with × shows a one-time 38% off yearly offer.
+3. The app shows a 6-letter invite code. On a second iPhone (another Apple ID, signed in to iCloud), open Pact, tap "My partner invited me" and enter the code. The partner joins free and picks their own habits.
+4. With one iPhone only: after subscribing, tap "Done for now", then "Or start a warm-up day" on the waiting screen to try check-ins (a live photo or a tap).
+5. Day 1 starts the day after the partner joins. On Today: check in; the partner sees it and approves photo check-ins in Proof. Challenges tab: start a challenge or "Create your own" (it starts the next day).
 
-The app has no servers: all data is stored in the users' own iCloud (CloudKit) and shared between the two partners through iCloud sharing. Apple Health is optional and read-only (Profile > Use Apple Health as proof).
+The app has no servers of its own. Data lives on the two iPhones and passes between them through the app's CloudKit public database, end-to-end encrypted on the devices (AES-GCM, Apple CryptoKit) with a key only the couple has; it never uses the users' personal iCloud storage. Apple Health is optional and read-only (Profile > Use Apple Health as proof).
 
 Contact: pact.couples.app@gmail.com
 ```
