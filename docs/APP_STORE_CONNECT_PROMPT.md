@@ -89,8 +89,9 @@ Create four auto-renewable subscriptions in that group (the last one is the payw
   which countries you changed.
 - Introductory offers: **Pact Yearly** → Free Trial, **3 days**, all countries, starting now, no end date.
   **Pact Yearly 7-day trial** → Free Trial, **1 week**, same settings. **Pact Monthly** and **Pact Yearly Offer** → none.
-- Subscription ranking inside the group: Pact Yearly, Pact Yearly 7-day trial and Pact Yearly Offer on the same
-  level at the top, Pact Monthly below.
+- Subscription ranking inside the group: Pact Yearly at the top, Pact Yearly Offer on the same level or right below,
+  Pact Yearly 7-day trial on its own level, Pact Monthly last. (Levels only decide when a switch between plans takes
+  effect; the app doesn't depend on them.)
 - Each subscription asks for a **Review Screenshot**: leave it empty and tell me (I'll upload a screenshot of the
   paywall).
 

@@ -24,8 +24,9 @@ what's described, stop and tell me what you see.
 6. Review Information → Review Screenshot: leave it empty and tell me (I'll upload a screenshot of the offer
    screen). Review Notes: `Shown once, when the user closes the paywall during onboarding. 40% off the regular
    yearly plan.`
-7. In the group's subscription list, set the ranking (levels) so that **Pact Yearly**, **Pact Yearly 7-day trial**
-   and **Pact Yearly Offer** are on the **same level** at the top, and **Pact Monthly** below them.
+7. Ranking (levels) in the group: keep **Pact Yearly** and **Pact Yearly 7-day trial** on separate levels, as they
+   are. Put **Pact Yearly Offer** on the same level as Pact Yearly, or on its own level right below it if that's not
+   possible. **Pact Monthly** stays at the bottom. The app doesn't depend on the levels.
 8. App Store → the **1.0** version page → **In-App Purchases and Subscriptions** → add **Pact Yearly Offer** next to
    the other three. Save.
 9. Tell me: that it was created and its status, the prices you set by hand, and what's still missing (the review
