@@ -108,4 +108,11 @@ final class RelayTests: XCTestCase {
         XCTAssertNil(RelayCrypto.openInviterName(sealed, code: "K7M2QR", tag: "t1"))
         XCTAssertEqual(RelayCrypto.openInviterName("Maya", code: "K7M2QP", tag: "t1"), "Maya")
     }
+
+    /// The share link keeps the code and the name in the fragment (never sent to the web server).
+    func testJoinLinkKeepsCodeAndNameInTheFragment() {
+        let url = RelayStore.joinLink(code: "K7M2QP", name: "Maya Rose")
+        XCTAssertNil(url?.query)
+        XCTAssertEqual(url?.fragment, "code=K7M2QP&from=Maya%20Rose")
+    }
 }

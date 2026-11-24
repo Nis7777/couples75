@@ -371,7 +371,16 @@ final class RelayStore: Store {
     }
 
     /// The link that goes with the code: a page that says how to join (and opens Pact if it's installed).
-    static func joinLink(code: String) -> URL? { URL(string: "https://nis7777.github.io/pact/join.html?code=\(code)") }
+    /// The code and the inviter's first name go after the "#", which browsers never send to the web server.
+    nonisolated static func joinLink(code: String, name: String? = nil) -> URL? {
+        var items = [URLQueryItem(name: "code", value: code)]
+        if let name, !name.isEmpty { items.append(URLQueryItem(name: "from", value: String(name.prefix(30)))) }
+        var fragment = URLComponents()
+        fragment.queryItems = items
+        var c = URLComponents(string: "https://nis7777.github.io/pact/join.html")
+        c?.percentEncodedFragment = fragment.percentEncodedQuery
+        return c?.url
+    }
 
     private func makeInvite(inviterName: String) async throws -> InviteInfo {
         guard let secret = state.secret else { throw StoreError.noCouple }
@@ -387,7 +396,7 @@ final class RelayStore: Store {
                 let op = try await db.modifyRecords(saving: [rec], deleting: [], savePolicy: .ifServerRecordUnchanged,
                                                     atomically: false)
                 if case .failure(let e) = op.saveResults[rec.recordID] { throw e }
-                return InviteInfo(code: code, shareURL: Self.joinLink(code: code))
+                return InviteInfo(code: code, shareURL: Self.joinLink(code: code, name: inviterName))
             } catch let ck as CKError where ck.code == .serverRecordChanged {
                 continue  // code already taken
             }
