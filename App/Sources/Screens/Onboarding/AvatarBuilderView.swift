@@ -147,7 +147,7 @@ struct AvatarBuilderView: View {
                 .font(.app(14, .medium))
                 .foregroundStyle(Color.textSecondary)
             LazyVGrid(columns: columns, spacing: 14) {
-                swatch(hex: original, name: "Original", selected: value.wrappedValue == nil) {
+                swatch(hex: original, name: "As drawn", selected: value.wrappedValue == nil) {
                     value.wrappedValue = nil
                 }
                 ForEach(palette) { s in
