@@ -158,7 +158,9 @@ The 75 challenge in Pact is not affiliated with 44Seven Media or the 75 HARD pro
   - Notes (paste exactly):
 
 ```
-Pact is for couples: two people on two iPhones, each signed in to iCloud with their own Apple ID.
+Pact has no account and no login: nothing to sign in to, no username or password. It uses the iPhone's iCloud (Settings > your name), which review devices already have, so "Sign-in required" is off.
+
+Pact is for couples: the full experience uses two iPhones with two different Apple IDs, linked with a 6-letter code. Everything a single person sees can be reviewed on one iPhone (steps 1, 2 and 4). A screen recording of two iPhones joining is attached.
 
 To review:
 1. Open Pact, tap "Let's start" and go through onboarding (any names; tap "No, I'll invite them").
