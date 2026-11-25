@@ -70,6 +70,12 @@ struct WidgetSnapshot: Codable, Equatable {
         return try? decoder.decode(WidgetSnapshot.self, from: data)
     }
 
+    /// Removes the widgets' copy (after leaving the couple or deleting my data).
+    static func clear() {
+        guard let url = fileURL else { return }
+        try? FileManager.default.removeItem(at: url)
+    }
+
     func save() {
         guard let url = Self.fileURL else { return }
         let encoder = JSONEncoder()

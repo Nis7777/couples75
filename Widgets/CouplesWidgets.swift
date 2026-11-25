@@ -9,6 +9,8 @@ struct SnapshotEntry: TimelineEntry {
     let date: Date
     let snapshot: WidgetSnapshot
     let isPlaceholder: Bool
+    /// No real data yet (Pact not set up on this iPhone): show "Open Pact" instead of the sample couple.
+    var needsSetup = false
 }
 
 struct SnapshotProvider: TimelineProvider {
@@ -18,16 +20,20 @@ struct SnapshotProvider: TimelineProvider {
 
     func getSnapshot(in context: Context, completion: @escaping (SnapshotEntry) -> Void) {
         let snap = WidgetSnapshot.load()
-        completion(SnapshotEntry(date: Date(), snapshot: snap ?? .placeholder, isPlaceholder: snap == nil))
+        // The widget gallery shows the sample couple; on the Home Screen, never fake data.
+        completion(SnapshotEntry(date: Date(), snapshot: snap ?? .placeholder, isPlaceholder: snap == nil,
+                                 needsSetup: snap == nil && !context.isPreview))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<SnapshotEntry>) -> Void) {
         let snap = WidgetSnapshot.load()
         let now = Date()
-        var entries = [SnapshotEntry(date: now, snapshot: snap ?? .placeholder, isPlaceholder: snap == nil)]
+        var entries = [SnapshotEntry(date: now, snapshot: snap ?? .placeholder, isPlaceholder: snap == nil,
+                                     needsSetup: snap == nil)]
         // Honour rules become tappable at 18:00: add an entry then so the widget updates on time.
         if let six = Calendar.current.date(bySettingHour: HonourWindow.opensAtHour, minute: 0, second: 0, of: now), six > now {
-            entries.append(SnapshotEntry(date: six, snapshot: snap ?? .placeholder, isPlaceholder: snap == nil))
+            entries.append(SnapshotEntry(date: six, snapshot: snap ?? .placeholder, isPlaceholder: snap == nil,
+                                         needsSetup: snap == nil))
         }
         // The app reloads timelines after every change; refresh hourly as a fallback.
         let next = Calendar.current.date(byAdding: .hour, value: 1, to: now) ?? now.addingTimeInterval(3600)
@@ -50,7 +56,7 @@ struct CouplesWidgets: WidgetBundle {
 struct CoupleSmallWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "CoupleSmall", provider: SnapshotProvider()) { entry in
-            SmallWidgetView(entry: entry)
+            SetupGate(entry: entry) { SmallWidgetView(entry: entry) }
                 .containerBackground(Color.ivory, for: .widget)
         }
         .configurationDisplayName("Our ring")
@@ -62,7 +68,7 @@ struct CoupleSmallWidget: Widget {
 struct CoupleMediumWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "CoupleMedium", provider: SnapshotProvider()) { entry in
-            MediumWidgetView(entry: entry)
+            SetupGate(entry: entry) { MediumWidgetView(entry: entry) }
                 .containerBackground(Color.ivory, for: .widget)
         }
         .configurationDisplayName("Today together")
@@ -188,7 +194,7 @@ enum HonourWindow {
 struct MyRulesWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "MyRules", provider: SnapshotProvider()) { entry in
-            MyRulesWidgetView(entry: entry)
+            SetupGate(entry: entry) { MyRulesWidgetView(entry: entry) }
                 .containerBackground(Color.ivory, for: .widget)
         }
         .configurationDisplayName("My rules today")
@@ -281,7 +287,7 @@ struct MyRulesWidgetView: View {
 struct LockScreenWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "LockScreen", provider: SnapshotProvider()) { entry in
-            LockScreenWidgetView(entry: entry)
+            SetupGate(entry: entry) { LockScreenWidgetView(entry: entry) }
                 .containerBackground(.clear, for: .widget)
         }
         .configurationDisplayName(Brand.appName)
@@ -398,7 +404,7 @@ struct PactCardWidget: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "PactCard", provider: SnapshotProvider()) { entry in
-            PactCardWidgetView(entry: entry)
+            SetupGate(entry: entry) { PactCardWidgetView(entry: entry) }
                 .containerBackground(for: .widget) {
                     LinearGradient(colors: [Color(hex: 0x4A382D), Color(hex: 0x382A22), Color(hex: 0x271C16)],
                                    startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -507,5 +513,40 @@ struct PactCardWidgetView: View {
                 .lineLimit(1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+
+/// Before Pact is set up on this iPhone: a calm "Open Pact" instead of a made-up couple.
+struct SetupGate<Content: View>: View {
+    @Environment(\.widgetFamily) private var family
+    let entry: SnapshotEntry
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        if entry.needsSetup {
+            switch family {
+            case .accessoryInline:
+                Text("Open \(Brand.appName)")
+            case .accessoryCircular, .accessoryRectangular:
+                VStack(spacing: 2) {
+                    Image(systemName: "heart.circle")
+                    Text("Open \(Brand.appName)").font(.caption2)
+                }
+            default:
+                VStack(spacing: 6) {
+                    Image(systemName: "heart.circle")
+                        .font(.system(size: 26, weight: .semibold))
+                        .foregroundStyle(Color.coral)
+                    Text("Open \(Brand.appName) to start your pact")
+                        .font(.app(14, .semibold))
+                        .foregroundStyle(Color.textPrimary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(8)
+            }
+        } else {
+            content()
+        }
     }
 }

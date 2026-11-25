@@ -572,6 +572,7 @@ extension AppModel {
         do {
             try await store.leaveCouple(me: m)
             resetLocalCoupleState()
+            await LiveActivityManager.shared.endAllNow()
             return true
         } catch {
             errorMessage = (error as? StoreError)?.errorDescription ?? error.localizedDescription
@@ -609,6 +610,7 @@ extension AppModel {
         Prefs.wipe()
         Identity.wipe()
         NotificationManager.shared.cancelAll()
+        await LiveActivityManager.shared.endAllNow()
         draft = OnboardingDraft()
         joinDraft = nil
         pendingInvite = nil

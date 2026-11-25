@@ -624,7 +624,12 @@ final class AppModel {
     }
 
     func writeWidgetSnapshot() {
-        guard let a = memberA else { return }
+        guard let a = memberA else {
+            // No couple on this iPhone (left, deleted, not set up): the widgets must not keep showing the old one.
+            WidgetSnapshot.clear()
+            WidgetCenter.shared.reloadAllTimelines()
+            return
+        }
         let ta = todayA, tb = todayB
         let day = myToday?.dayNumber ?? ta?.dayNumber
         var status: String?

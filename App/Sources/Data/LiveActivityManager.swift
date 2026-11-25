@@ -42,6 +42,11 @@ final class LiveActivityManager {
         _ = try? Activity.request(attributes: attributes, content: content, pushType: nil)
     }
 
+    /// Ends the Lock Screen activity right away (leaving the couple, deleting my data).
+    func endAllNow() async {
+        await endAll(Activity<TodayActivityAttributes>.activities)
+    }
+
     private func endAll(_ list: [Activity<TodayActivityAttributes>]) async {
         for a in list { await a.end(nil, dismissalPolicy: .immediate) }
     }
