@@ -11,6 +11,7 @@ struct MainView: View {
     private var mustRenew: Bool { model.subscriptionLapsed && model.iAmPayer }
     /// The payer's subscription lapsed: the partner may take it over (the only paywall B ever sees).
     @State private var takeOverDismissed = false
+    @State private var renewDismissed = false
     private var offerTakeOver: Bool { model.subscriptionLapsed && !model.iAmPayer && !takeOverDismissed }
 
     var body: some View {
@@ -61,8 +62,10 @@ struct MainView: View {
         .fullScreenCover(isPresented: $model.presentedPartnerJoined) {
             PartnerJoinedView()
         }
-        .fullScreenCover(isPresented: .constant(mustRenew && model.presentedDay75 == nil)) {
-            PaywallView(variant: .renew, onClose: nil) { Task { await model.refresh() } }
+        .fullScreenCover(isPresented: Binding(get: { mustRenew && !renewDismissed && model.presentedDay75 == nil },
+                                              set: { if !$0 { renewDismissed = true } })) {
+            // Closable: the app stays usable (Profile, Leave couple, Delete my data) with the "Run paused" banner.
+            PaywallView(variant: .renew, onClose: { renewDismissed = true }) { Task { await model.refresh() } }
         }
         .fullScreenCover(isPresented: Binding(get: { offerTakeOver && model.presentedDay75 == nil },
                                               set: { if !$0 { takeOverDismissed = true } })) {

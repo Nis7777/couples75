@@ -181,9 +181,6 @@ private let noop: () -> Void = {}
 #Preview("13a–13c Paywall", traits: .sizeThatFitsLayout) {
     screen { PaywallView(variant: .onboarding(partner: "Joao"), onClose: noop, onPurchased: noop) }
 }
-#Preview("13d Exit offer", traits: .sizeThatFitsLayout) {
-    screen { ExitOfferView(claim: {}, close: noop) }
-}
 #Preview("14 Invite", traits: .sizeThatFitsLayout) { screen { InviteView(next: noop) } }
 #Preview("Notifications", traits: .sizeThatFitsLayout) { screen { NotificationPrimingView(next: noop) } }
 #Preview("Android waitlist", traits: .sizeThatFitsLayout) { screen { AndroidWaitlistView(done: noop, back: noop) } }
