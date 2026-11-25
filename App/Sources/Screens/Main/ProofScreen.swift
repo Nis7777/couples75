@@ -236,21 +236,23 @@ struct ProofTile: View {
                     Text(model.ruleTitle(for: checkIn))
                         .font(.app(15, .semibold))
                         .foregroundStyle(Color.textPrimary)
-                        .lineLimit(1)
-                    HStack(spacing: 6) {
-                        Text(checkIn.capturedAt.formatted(date: .omitted, time: .shortened))
-                            .font(.app(12, .medium))
-                            .foregroundStyle(Color.textSecondary)
-                        Spacer(minLength: 4)
-                        HStack(spacing: 4) {
-                            Circle().fill(status.color).frame(width: 6, height: 6)
-                            Text(status.text)
-                                .font(.app(12, .medium))
-                                .foregroundStyle(Color.textSecondary)
-                                .lineLimit(1)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                    // Time and status side by side when they fit; otherwise the status goes under the time.
+                    // Never cut off.
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 6) {
+                            timeText
+                            Spacer(minLength: 4)
+                            statusLabel
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            timeText
+                            statusLabel
                         }
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 2)
             }
             .contentShape(Rectangle())
@@ -259,6 +261,23 @@ struct ProofTile: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(model.ruleTitle(for: checkIn)), \(checkIn.capturedAt.formatted(date: .omitted, time: .shortened)), \(status.text)")
         .accessibilityHint("Opens the proof")
+    }
+
+    private var timeText: some View {
+        Text(checkIn.capturedAt.formatted(date: .omitted, time: .shortened))
+            .font(.app(12, .medium))
+            .foregroundStyle(Color.textSecondary)
+            .fixedSize()
+    }
+
+    private var statusLabel: some View {
+        HStack(spacing: 4) {
+            Circle().fill(status.color).frame(width: 6, height: 6)
+            Text(status.text)
+                .font(.app(12, .medium))
+                .foregroundStyle(Color.textSecondary)
+                .fixedSize()
+        }
     }
 
     private var honourFace: some View {

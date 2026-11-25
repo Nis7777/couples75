@@ -133,24 +133,42 @@ struct PartnerCheckInView: View {
             Text(rule?.title ?? model.ruleTitle(for: checkIn))
                 .font(.app(26, .bold))
                 .foregroundStyle(Color.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
-            HStack(spacing: 10) {
-                Text(subtitle)
-                    .font(.app(14, .medium))
-                    .foregroundStyle(Color.textSecondary)
-                Spacer(minLength: 8)
-                HStack(spacing: 5) {
-                    Circle().fill(status.color).frame(width: 7, height: 7)
-                    Text(status.text)
-                        .font(.app(13, .semibold))
-                        .foregroundStyle(Color.textSecondary)
+            // Date and status side by side when they fit; otherwise the status goes under the date. Never cut off.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 10) {
+                    subtitleText
+                    Spacer(minLength: 8)
+                    statusPill
                 }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(Capsule().fill(Color.peach.opacity(0.7)))
-                .accessibilityElement(children: .combine)
+                VStack(alignment: .leading, spacing: 8) {
+                    subtitleText
+                    statusPill
+                }
             }
         }
+    }
+
+    private var subtitleText: some View {
+        Text(subtitle)
+            .font(.app(14, .medium))
+            .foregroundStyle(Color.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var statusPill: some View {
+        HStack(spacing: 5) {
+            Circle().fill(status.color).frame(width: 7, height: 7)
+            Text(status.text)
+                .font(.app(13, .semibold))
+                .foregroundStyle(Color.textSecondary)
+                .fixedSize()
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(Capsule().fill(Color.peach.opacity(0.7)))
+        .accessibilityElement(children: .combine)
     }
 
     private var subtitle: String {
