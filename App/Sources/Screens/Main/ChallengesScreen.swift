@@ -72,6 +72,12 @@ struct ChallengesScreen: View {
 
     private var createOwnCard: some View {
         Button {
+            // Never a dead button: if a challenge can't start yet, say why.
+            if let reason = model.challengeBlockedReason {
+                Haptics.warning()
+                model.toast = reason
+                return
+            }
             Haptics.tap()
             creating = true
         } label: {
@@ -99,7 +105,6 @@ struct ChallengesScreen: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(PressableStyle())
-        .disabled(!model.canStartChallenge)
         .opacity(model.canStartChallenge ? 1 : 0.5)
         .accessibilityHint("Make a challenge with your own name, length and rules")
     }
@@ -330,6 +335,7 @@ struct ChallengeDetailSheet: View {
                         }
                     }
                     .padding(.top, 26)
+                    .padding(.trailing, 36)   // room for the ×
                     Text(challenge.tagline).font(.app(16)).foregroundStyle(Color.textSecondary)
                     HStack(spacing: 10) {
                         stat(challenge.lengthText, "length")
@@ -357,6 +363,12 @@ struct ChallengeDetailSheet: View {
             }
         }
         .background(Color.ivory.ignoresSafeArea())
+        .overlay(alignment: .topTrailing) {
+            // A visible way out (the sheet also closes with a swipe down).
+            CloseButton { dismiss() }
+                .padding(.top, 6)
+                .padding(.trailing, 8)
+        }
         .onAppear { withBet = challenge.stakesRequired }
     }
 
@@ -483,10 +495,5 @@ struct ChallengeDetailSheet: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    private var blockedReason: String {
-        if model.memberB?.joinedAt == nil { return "Challenges start once \(model.partnerName) has joined." }
-        if model.activeChallenge != nil { return "Finish or give up the current challenge first." }
-        if model.upcomingChallenge != nil { return "You already have a challenge starting tomorrow." }
-        return "You can start a challenge from your daily habits."
-    }
+    private var blockedReason: String { model.challengeBlockedReason ?? "" }
 }

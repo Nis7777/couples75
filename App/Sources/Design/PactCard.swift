@@ -507,6 +507,7 @@ struct PactCardCompact<Trailing: View>: View {
 /// Profile → "Our Pact card": the card (with a soft idle float) and Share.
 struct PactCardSheet: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
     @State private var image: UIImage?
     @State private var visible = false
 
@@ -541,6 +542,12 @@ struct PactCardSheet: View {
         .padding(.bottom, 20)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.ivory.ignoresSafeArea())
+        .overlay(alignment: .topTrailing) {
+            // A visible way out (the sheet also closes with a swipe down).
+            CloseButton { dismiss() }
+                .padding(.top, 6)
+                .padding(.trailing, 8)
+        }
         .onAppear { render() }
     }
 

@@ -24,6 +24,7 @@ struct SectionTitle: View {
 /// of you. "Continue" hands the challenge to the usual details sheet (optional bet, "Start tomorrow").
 struct CustomChallengeSheet: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
     var onContinue: (Challenge) -> Void
 
     @State private var name = ""
@@ -64,6 +65,12 @@ struct CustomChallengeSheet: View {
             }
         }
         .background(Color.ivory.ignoresSafeArea())
+        .overlay(alignment: .topTrailing) {
+            // A visible way out (the sheet also closes with a swipe down).
+            CloseButton { dismiss() }
+                .padding(.top, 6)
+                .padding(.trailing, 8)
+        }
         .onAppear { nameFocused = name.isEmpty }
         .sheet(isPresented: $adding) {
             RuleChangeSheet(
@@ -108,6 +115,7 @@ struct CustomChallengeSheet: View {
         }
         .padding(.top, 26)
         .padding(.bottom, 4)
+        .padding(.trailing, 36)   // room for the ×
     }
 
     // MARK: Name

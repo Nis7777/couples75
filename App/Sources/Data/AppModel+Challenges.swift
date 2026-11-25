@@ -45,6 +45,15 @@ extension AppModel {
         state.rounds.filter { $0.challengeID == c.id && $0.status == .completed }.count
     }
 
+    /// Why a challenge can't start right now (nil when it can), shown instead of a dead button.
+    var challengeBlockedReason: String? {
+        if canStartChallenge { return nil }
+        if memberB?.joinedAt == nil { return "Challenges start once \(partnerName) has joined." }
+        if activeChallenge != nil { return "Finish or give up the current challenge first." }
+        if upcomingChallenge != nil { return "You already have a challenge starting tomorrow." }
+        return "You can start a challenge from your daily habits."
+    }
+
     /// Can a new challenge be started right now? Only from daily habits, once the partner has joined.
     var canStartChallenge: Bool {
         guard facts.memberB?.joinedAt != nil, let r = currentRound else { return false }
