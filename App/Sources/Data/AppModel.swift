@@ -402,16 +402,16 @@ final class AppModel {
 
     /// The iCloud account status, but never waiting more than 5 seconds: on a slow network the app opens
     /// instead of sitting on the launch screen ("couldn't tell" doesn't block; syncing retries on its own).
-    static func quickAccountStatus(timeout: Double = 5) async -> CKAccountStatus {
+    nonisolated static func quickAccountStatus(timeout: Double = 5) async -> CKAccountStatus {
         await withCheckedContinuation { (cont: CheckedContinuation<CKAccountStatus, Never>) in
-            let once = AnswerOnce()   // main-actor box: whichever answers first wins
-            Task { @MainActor in
+            let once = AnswerOnce()   // whichever answers first wins; the other is ignored
+            Task.detached {
                 let s = (try? await CKContainer(identifier: Brand.cloudKitContainer).accountStatus()) ?? .couldNotDetermine
-                if !once.done { once.done = true; cont.resume(returning: s) }
+                if once.claim() { cont.resume(returning: s) }
             }
-            Task { @MainActor in
+            Task.detached {
                 try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
-                if !once.done { once.done = true; cont.resume(returning: .couldNotDetermine) }
+                if once.claim() { cont.resume(returning: .couldNotDetermine) }
             }
         }
     }
@@ -680,7 +680,16 @@ final class AppModel {
 }
 
 /// Lets exactly one of two racing tasks answer (see `AppModel.quickAccountStatus`).
-@MainActor
-private final class AnswerOnce {
-    var done = false
+private final class AnswerOnce: @unchecked Sendable {
+    private let lock = NSLock()
+    private var done = false
+
+    /// True for the first caller only.
+    func claim() -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        if done { return false }
+        done = true
+        return true
+    }
 }
