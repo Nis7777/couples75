@@ -107,7 +107,7 @@ struct PaywallView: View {
                 .padding(.top, 10)
             VStack(alignment: .leading, spacing: 8) {
                 valueRow("checklist", "Daily habits for body, looks, mind and money")
-                valueRow("flame.fill", "Challenges with real stakes, like The 75")
+                valueRow("flame.fill", "Challenges with stakes you set, like The 75")
                 valueRow("crown.fill", "One streak, one rank, both of you")
                 valueRow("person.2.fill", partnerName.isEmpty ? "One subscription covers you both"
                                                                 : "One subscription covers you both: \(partnerName) joins free")

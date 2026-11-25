@@ -372,7 +372,7 @@ final class AppModel {
         guard !isBootstrapped else { return }
         if !isMock {
             let status = (try? await CKContainer(identifier: Brand.cloudKitContainer).accountStatus()) ?? .couldNotDetermine
-            if status != .available {
+            if Self.iCloudBlocks(status) {
                 #if DEBUG
                 // No iCloud on a DEBUG build: run in Mock mode so everything can be clicked through.
                 switchToMock()
@@ -396,8 +396,14 @@ final class AppModel {
 
     func recheckICloud() async {
         let status = (try? await CKContainer(identifier: Brand.cloudKitContainer).accountStatus()) ?? .couldNotDetermine
-        iCloudAvailable = status == .available
+        iCloudAvailable = !Self.iCloudBlocks(status)
         if iCloudAvailable { await refresh() }
+    }
+
+    /// Only a definite "no iCloud account" (or one restricted by parental controls) stops the app. "Couldn't tell
+    /// right now" (slow network, iCloud still starting up) lets it carry on; syncing retries on its own.
+    nonisolated static func iCloudBlocks(_ status: CKAccountStatus) -> Bool {
+        status == .noAccount || status == .restricted
     }
 
     #if DEBUG

@@ -1,4 +1,5 @@
 import XCTest
+import CloudKit
 @testable import Pact
 
 /// The encrypted relay: keys, encryption, the invite and facts ⇄ envelopes.
@@ -114,5 +115,14 @@ final class RelayTests: XCTestCase {
         let url = RelayStore.joinLink(code: "K7M2QP", name: "Maya Rose")
         XCTAssertNil(url?.query)
         XCTAssertEqual(url?.fragment, "code=K7M2QP&from=Maya%20Rose")
+    }
+
+    /// Only a missing or restricted iCloud account blocks the app; an unknown status doesn't.
+    func testOnlyNoAccountBlocks() {
+        XCTAssertTrue(AppModel.iCloudBlocks(.noAccount))
+        XCTAssertTrue(AppModel.iCloudBlocks(.restricted))
+        XCTAssertFalse(AppModel.iCloudBlocks(.available))
+        XCTAssertFalse(AppModel.iCloudBlocks(.couldNotDetermine))
+        XCTAssertFalse(AppModel.iCloudBlocks(.temporarilyUnavailable))
     }
 }
