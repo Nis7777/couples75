@@ -499,6 +499,12 @@ final class RelayStore: Store {
             state.secret = secret
             state.isOwner = false
             try await pull(secret)
+            if state.facts.memberA?.id == me {
+                // Same iCloud account as the person who made the invite: you can't be your own partner.
+                state = State()
+                persist()
+                throw StoreError.ownInvite
+            }
             if let b = state.facts.memberB, b.id != me {
                 // Only one partner can join.
                 state = State()

@@ -35,6 +35,14 @@ struct ProgressCameraView: View {
                         #else
                         Text("Allow camera access in Settings to take a progress pic.")
                             .font(.app(15)).multilineTextAlignment(.center)
+                        Button("Open Settings") {
+                            if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+                        }
+                        .font(.app(16, .semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 20)
+                        .frame(height: 44)
+                        .background(Capsule().fill(.white.opacity(0.18)))
                         #endif
                     }
                     .foregroundStyle(.white.opacity(0.7))

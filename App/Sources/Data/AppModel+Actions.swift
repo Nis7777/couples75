@@ -148,6 +148,7 @@ extension AppModel {
     func join(_ lookup: InviteLookup) async -> Bool {
         do {
             let f = try await store.acceptInvite(lookup)
+            if f.memberA?.id == meID { throw StoreError.ownInvite }
             if let b = f.memberB, b.id != meID {
                 throw StoreError.coupleFull
             }

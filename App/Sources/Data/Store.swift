@@ -16,6 +16,8 @@ struct InviteLookup: Equatable {
 enum StoreError: LocalizedError, Equatable {
     case codeNotFound
     case coupleFull
+    /// The invite was made with this same iCloud account (each partner needs their own).
+    case ownInvite
     case notAuthenticated
     case participantNeedsVerification
     /// The iPhone has no space left to save it.
@@ -28,6 +30,8 @@ enum StoreError: LocalizedError, Equatable {
         switch self {
         case .codeNotFound: return "We couldn't find that code. Check the 6 letters and try again."
         case .coupleFull: return "This couple is already full."
+        case .ownInvite:
+            return "This is your own invite: this iPhone uses the same iCloud account that made it. Your partner needs to join on their iPhone, signed in to their own iCloud."
         case .notAuthenticated: return "You're signed out of iCloud. Turn on iCloud in Settings to keep syncing."
         case .deviceFull:
             return "Your iPhone is full, so this couldn't be saved. Free up some space (Settings → General → iPhone Storage) and try again."
