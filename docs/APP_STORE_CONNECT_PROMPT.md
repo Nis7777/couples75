@@ -160,7 +160,7 @@ Pact is for couples: the full experience uses two iPhones with two different App
 To review:
 1. Open Pact, tap "Let's start" and go through onboarding (any names; tap "No, I'll invite them").
 2. Subscribe on the paywall with a sandbox account (Yearly has a 7-day free trial). One subscription covers both partners. The × on the paywall simply closes it.
-3. The app shows a 6-letter invite code. On a second iPhone (another Apple ID, signed in to iCloud), open Pact, tap "My partner invited me" and enter the code. The partner joins free and picks their own habits. The code doesn't unlock anything by itself: it only links the second partner to the couple that the first partner paid for with an in-app subscription (like sharing a household plan), and the partner's access ends if that subscription ends.
+3. The app shows a 6-letter invite code. On a second iPhone (another Apple ID, signed in to iCloud), open Pact, tap "My partner invited me" and enter the code. The partner joins free and picks their own habits. The code doesn't unlock anything by itself: it only links the second partner to the couple that the first partner paid for with an in-app subscription (like sharing a household plan), and if that subscription ends, the couple's run pauses for both until one of them subscribes.
 4. With one iPhone only: after subscribing, tap "Done for now", then "Or start a warm-up day" on the waiting screen to try check-ins (a photo or a tap).
 5. Day 1 starts the day after the partner joins. On Today: check in; the partner sees it and approves photo check-ins in Proof. Challenges tab: start a challenge or "Create your own" (it starts the next day).
 
