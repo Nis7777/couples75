@@ -36,7 +36,10 @@ struct PaywallView: View {
     var onPurchased: () -> Void
 
     @State private var page: Page = .outcome
-    @State private var yearlySelected = true
+    /// Which plan is selected. `.offer` only exists once the paywall was closed once (see `showsOffer`).
+    enum Choice { case monthly, yearly, offer }
+    @State private var choice: Choice = .yearly
+    private var yearlySelected: Bool { choice == .yearly }
     @State private var showAllPlans = false
     @State private var working = false
     /// The trial reminder is a local notification: only promise it when notifications are allowed.
@@ -52,8 +55,12 @@ struct PaywallView: View {
         VStack(spacing: 0) {
             HStack {
                 if onClose != nil {
-                    // × always just closes: no second offer, no extra step (Guideline 5.6).
-                    CloseButton { onClose?() }
+                    // × always just closes: nothing pops up (Guideline 5.6). In onboarding, the next visit to the
+                    // paywall shows the welcome offer as one more plan card.
+                    CloseButton {
+                        if isOnboarding { Prefs.exitOfferShown = true }
+                        onClose?()
+                    }
                 } else {
                     Color.clear.frame(width: 44, height: 44)
                 }
@@ -81,7 +88,8 @@ struct PaywallView: View {
         .sheet(isPresented: $showAllPlans) { AllPlansSheet() }
         .task {
             canRemind = await NotificationManager.shared.authorizationStatus() == .authorized
-            if purchases.yearly == nil { await purchases.loadProducts() }
+            if purchases.yearly == nil || purchases.yearlyOffer == nil { await purchases.loadProducts() }
+            if showsOffer { choice = .offer }
         }
     }
 
@@ -160,6 +168,7 @@ struct PaywallView: View {
                     if purchases.yearly == nil && purchases.monthly == nil {
                         loadingState
                     } else {
+                        if showsOffer { offerCard }
                         // Monthly first, then Yearly (preselected): the yearly saving reads against the monthly price.
                         planCard(yearly: false)
                         planCard(yearly: true)
@@ -305,13 +314,13 @@ struct PaywallView: View {
     /// Plan card: name (caramel), "$12.99 / month for 2 people", "$6.50 / person / month"; the selected one has an
     /// espresso border and a check; Yearly carries the "SAVE x%" pill on its bottom edge.
     private func planCard(yearly: Bool) -> some View {
-        let selected = yearlySelected == yearly
+        let selected = choice == (yearly ? .yearly : .monthly)
         let product = yearly ? purchases.yearly : purchases.monthly
         let price = (yearly ? purchases.yearlyPrice : purchases.monthlyPrice) ?? "…"
         let trial = yearly ? purchases.trialDays(purchases.yearly) : nil
         return Button {
             Haptics.tap()
-            withAnimation(.open(0.25)) { yearlySelected = yearly }
+            withAnimation(.open(0.25)) { choice = yearly ? .yearly : .monthly }
         } label: {
             HStack(alignment: .center, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -368,7 +377,85 @@ struct PaywallView: View {
         .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
     }
 
-    private var selectedProduct: Product? { yearlySelected ? purchases.yearly : purchases.monthly }
+    private var selectedProduct: Product? {
+        switch choice {
+        case .monthly: return purchases.monthly
+        case .yearly: return purchases.yearly
+        case .offer: return purchases.yearlyOffer
+        }
+    }
+
+    /// The welcome offer shows (as a plan card, never a pop-up) in onboarding once the paywall was closed once.
+    private var showsOffer: Bool { isOnboarding && Prefs.exitOfferShown && purchases.yearlyOffer != nil }
+
+    /// "38%": how much less than the regular yearly price.
+    private var offerPercent: Int? {
+        guard let o = purchases.yearlyOffer?.price, let y = purchases.yearly?.price, y > 0 else { return nil }
+        let pct = Int(((1 - NSDecimalNumber(decimal: o / y).doubleValue) * 100).rounded())
+        return pct > 0 ? pct : nil
+    }
+
+    /// The welcome offer: a normal plan card with honest terms (the same yearly plan for less, no free trial).
+    private var offerCard: some View {
+        let selected = choice == .offer
+        let price = purchases.yearlyOffer?.displayPrice ?? "…"
+        return VStack(alignment: .leading, spacing: 8) {
+            Text("Still deciding? Here's the yearly plan for less.")
+                .font(.app(14, .medium))
+                .foregroundStyle(Color.textSecondary)
+            Button {
+                Haptics.tap()
+                withAnimation(.open(0.25)) { choice = .offer }
+            } label: {
+                HStack(alignment: .center, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Welcome offer")
+                            .font(.app(19, .semibold))
+                            .foregroundStyle(Color.gold)
+                        (Text("\(price) / year").font(.app(18, .bold)) + Text(" for 2 people").font(.app(17)))
+                            .foregroundStyle(Color.textPrimary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                        if let regular = purchases.yearlyPrice {
+                            Text("Instead of \(regular) / year · no free trial")
+                                .font(.app(14))
+                                .foregroundStyle(Color.textSecondary)
+                        }
+                    }
+                    Spacer(minLength: 0)
+                    ZStack {
+                        Circle()
+                            .fill(selected ? Color.coral : Color.clear)
+                            .overlay(Circle().stroke(selected ? Color.coral : Color.radio, lineWidth: 1.5))
+                        if selected {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(.white)
+                        }
+                    }
+                    .frame(width: 30, height: 30)
+                }
+                .padding(.horizontal, 22)
+                .padding(.vertical, 18)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous)
+                    .fill(selected ? Color.peach.opacity(0.75) : Color.white))
+                .overlay(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous)
+                    .stroke(selected ? Color.coral.opacity(0.85) : Color.cardBorder, lineWidth: selected ? 1.5 : 1))
+                .overlay(alignment: .bottomTrailing) {
+                    if let pct = offerPercent {
+                        Pill(text: "\(pct)% LESS", fill: .highlight, size: 14)
+                            .offset(x: -18, y: 14)
+                    }
+                }
+                .contentShape(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous))
+            }
+            .buttonStyle(PressableStyle())
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
+        }
+        .padding(.bottom, 12)
+    }
 
     /// "Free for 7 days, then $39.99/year." plus the reminder only when it can really be sent.
     private func trialLine(days: Int) -> String {
@@ -379,8 +466,8 @@ struct PaywallView: View {
 
     /// "Auto-renews at $39.99/year until you cancel…" for the selected plan.
     private var renewalLine: String {
-        let price = (yearlySelected ? purchases.yearlyPrice : purchases.monthlyPrice) ?? ""
-        let period = yearlySelected ? "year" : "month"
+        let price = selectedProduct?.displayPrice ?? ""
+        let period = choice == .monthly ? "month" : "year"
         let charge = yearlySelected && hasTrial ? "Charged to your Apple ID when the free trial ends." : "Charged to your Apple ID when you confirm."
         return "\(charge) Auto-renews at \(price)/\(period) until you cancel, at least 24 hours before the end of the period, in Settings → [your name] → Subscriptions."
     }

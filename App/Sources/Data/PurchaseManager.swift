@@ -22,6 +22,8 @@ final class PurchaseManager {
     private(set) var yearly: Product?
     private(set) var yearly7: Product?
     private(set) var monthly: Product?
+    /// The welcome offer ($24.99 a year, no trial): an extra plan card once the paywall was closed once.
+    private(set) var yearlyOffer: Product?
     private(set) var entitlement: Entitlement?
     private(set) var isLoadingProducts = false
     private(set) var productsFailed = false
@@ -109,6 +111,7 @@ final class PurchaseManager {
             // The paywall's yearly plan: $39.99 a year with a 7-day free trial.
             yearly = yearly7
             monthly = products.first { $0.id == Brand.iapMonthly }
+            yearlyOffer = products.first { $0.id == Brand.iapYearlyOffer }
             productsFailed = yearly == nil && monthly == nil
             if let sub = yearly?.subscription {
                 trialEligible = await sub.isEligibleForIntroOffer
@@ -135,6 +138,7 @@ final class PurchaseManager {
             switch b.productID {
             case Brand.iapMonthly: product = monthly
             case Brand.iapYearly7: product = yearly7
+            case Brand.iapYearlyOffer: product = yearlyOffer
             default: product = yearly
             }
             if let status = try? await product?.subscription?.status.first,
