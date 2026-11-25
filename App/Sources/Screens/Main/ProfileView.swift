@@ -276,7 +276,15 @@ struct ProfileView: View {
         c.scheme = "mailto"
         c.path = Brand.supportEmail
         c.queryItems = [URLQueryItem(name: "subject", value: "\(Brand.appName) support")]
-        if let url = c.url { openURL(url) }
+        if let url = c.url {
+            openURL(url) { accepted in
+                // No Mail account on this device: copy the address instead, so the button never does nothing.
+                if !accepted {
+                    UIPasteboard.general.string = Brand.supportEmail
+                    model.toast = "No Mail account set up. \(Brand.supportEmail) copied: paste it into any email app."
+                }
+            }
+        }
     }
 }
 

@@ -33,6 +33,16 @@ struct AndroidWaitlistView: View {
                         .padding(16)
                         .card(radius: 14)
                         .accessibilityLabel("Email")
+                    // Said where the email is collected (GDPR, Guideline 5.1.1).
+                    VStack(spacing: 2) {
+                        Text("We only use it to tell you, and you can ask us to delete it.")
+                        Link("Privacy Policy", destination: Brand.privacyURL)
+                            .underline()
+                    }
+                    .font(.app(13))
+                    .foregroundStyle(Color.textSecondary)
+                    .tint(Color.textSecondary)
+                    .multilineTextAlignment(.center)
                 }
                 Spacer(minLength: 0)
             }
