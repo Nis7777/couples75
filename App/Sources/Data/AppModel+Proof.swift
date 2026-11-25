@@ -46,7 +46,7 @@ extension AppModel {
         var out: [String] = []
         if theirs.contains(where: { $0.kind == .approve }) { out.append("Approved ❤️") }
         for r in theirs where r.kind == .emoji { if let e = r.emoji { out.append(e) } }
-        if theirs.contains(where: { $0.kind == .sus }) { out.append("Sus 🤨") }
+        if theirs.contains(where: { $0.kind == .sus }) { out.append("Questioned 🤨") }
         for r in theirs where r.kind == .comment { if let c = r.comment { out.append("\u{201C}\(c)\u{201D}") } }
         if out.isEmpty {
             // A tap has nothing to approve.

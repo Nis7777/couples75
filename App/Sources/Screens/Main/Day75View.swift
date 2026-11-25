@@ -96,7 +96,7 @@ struct RecapCard: View {
             Divider()
             row("Best streak", "\(max(round.bestStreak, model.state.bestStreak)) days")
             Divider()
-            row("Most sus moments", "\(round.susCount) 🤨")
+            row("Questions asked", "\(round.susCount) 🤨")
             if !round.betText.isEmpty {
                 Divider()
                 row("The bet", owesText)

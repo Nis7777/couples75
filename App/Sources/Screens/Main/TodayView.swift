@@ -421,6 +421,7 @@ struct TodayView: View {
                         .font(.app(11, .semibold))
                         .foregroundStyle(sub.color)
                         .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 }
             }
             Spacer(minLength: 0)
@@ -440,7 +441,7 @@ struct TodayView: View {
             if let metric = HealthMetric.metric(for: item.rule), let v = model.healthReadings[item.rule.id] {
                 return (metric.progressText(v), .sage)
             }
-            return (HealthMetric.proofLine, .sage)
+            return ("Auto-checked", .sage)
         }
         if !warmup, !item.isChecked, item.rule.type == .honour, hour < 18 { return ("Tap tonight", Color.textSecondary) }
         if item.state == .notSent { return ("Not sent yet", .coral) }
