@@ -174,11 +174,13 @@ struct PaywallView: View {
                     if purchases.yearly == nil && purchases.monthly == nil {
                         loadingState
                     } else {
-                        if showsOffer { offerCard }
                         // Monthly first, then Yearly (preselected): the yearly saving reads against the monthly price.
+                        // On a return visit the welcome offer takes the Yearly card's place (never two yearly plans).
                         planCard(yearly: false)
-                        planCard(yearly: true)
-                            .padding(.bottom, 10)
+                        Group {
+                            if showsOffer { offerCard } else { planCard(yearly: true) }
+                        }
+                        .padding(.bottom, 10)
                         if yearlySelected, let days = purchases.trialDays(purchases.yearly) {
                             // The trial, in one line (no separate page): free now, a reminder the day before it ends.
                             HStack(alignment: .top, spacing: 8) {
@@ -401,66 +403,77 @@ struct PaywallView: View {
         return pct > 0 ? pct : nil
     }
 
-    /// The welcome offer: a normal plan card with honest terms (the same yearly plan for less, no free trial).
+    /// The welcome offer: the Yearly card at the lower price, in the Yearly card's place (no free trial).
     private var offerCard: some View {
         let selected = choice == .offer
         let price = purchases.yearlyOffer?.displayPrice ?? "…"
-        return VStack(alignment: .leading, spacing: 8) {
-            Text("Still deciding? Here's the yearly plan for less.")
-                .font(.app(14, .medium))
-                .foregroundStyle(Color.textSecondary)
-            Button {
-                Haptics.tap()
-                withAnimation(.open(0.25)) { choice = .offer }
-            } label: {
-                HStack(alignment: .center, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Welcome offer")
+        return Button {
+            Haptics.tap()
+            withAnimation(.open(0.25)) { choice = .offer }
+        } label: {
+            HStack(alignment: .center, spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 8) {
+                        Text("Yearly")
                             .font(.app(19, .semibold))
                             .foregroundStyle(Color.gold)
+                        Text("Welcome offer")
+                            .font(.app(12, .semibold))
+                            .foregroundStyle(Color.sage)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(Capsule().fill(Color.sage.opacity(0.15)))
+                    }
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
                         (Text("\(price) / year").font(.app(18, .bold)) + Text(" for 2 people").font(.app(17)))
                             .foregroundStyle(Color.textPrimary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.75)
                         if let regular = purchases.yearlyPrice {
-                            Text("Instead of \(regular) / year · no free trial")
-                                .font(.app(14))
+                            Text(regular)
+                                .font(.app(15))
+                                .strikethrough(true, color: Color.textSecondary)
                                 .foregroundStyle(Color.textSecondary)
                         }
                     }
-                    Spacer(minLength: 0)
-                    ZStack {
-                        Circle()
-                            .fill(selected ? Color.coral : Color.clear)
-                            .overlay(Circle().stroke(selected ? Color.coral : Color.radio, lineWidth: 1.5))
-                        if selected {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(.white)
-                        }
-                    }
-                    .frame(width: 30, height: 30)
-                }
-                .padding(.horizontal, 22)
-                .padding(.vertical, 18)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous)
-                    .fill(selected ? Color.peach.opacity(0.75) : Color.white))
-                .overlay(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous)
-                    .stroke(selected ? Color.coral.opacity(0.85) : Color.cardBorder, lineWidth: selected ? 1.5 : 1))
-                .overlay(alignment: .bottomTrailing) {
-                    if let pct = offerPercent {
-                        Pill(text: "\(pct)% LESS", fill: .highlight, size: 14)
-                            .offset(x: -18, y: 14)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                    if let per = purchases.perPersonPerMonth(purchases.yearlyOffer) {
+                        Text("\(per) / person / month · no free trial")
+                            .font(.app(14))
+                            .foregroundStyle(Color.textSecondary)
                     }
                 }
-                .contentShape(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous))
+                Spacer(minLength: 0)
+                ZStack {
+                    Circle()
+                        .fill(selected ? Color.coral : Color.clear)
+                        .overlay(Circle().stroke(selected ? Color.coral : Color.radio, lineWidth: 1.5))
+                    if selected {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                }
+                .frame(width: 30, height: 30)
             }
-            .buttonStyle(PressableStyle())
-            .accessibilityElement(children: .combine)
-            .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
+            .padding(.horizontal, 22)
+            .padding(.vertical, 18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous)
+                .fill(selected ? Color.peach.opacity(0.75) : Color.white))
+            .overlay(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous)
+                .stroke(selected ? Color.coral.opacity(0.85) : Color.cardBorder, lineWidth: selected ? 1.5 : 1))
+            .overlay(alignment: .bottomTrailing) {
+                if let pct = offerPercent {
+                    Pill(text: "\(pct)% OFF", fill: .highlight, size: 14)
+                        .offset(x: -18, y: 14)
+                }
+            }
+            .contentShape(RoundedRectangle(cornerRadius: Metrics.cardRadius, style: .continuous))
         }
-        .padding(.bottom, 12)
+        .buttonStyle(PressableStyle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Yearly, welcome offer, \(price) a year for 2 people, instead of \(purchases.yearlyPrice ?? ""), no free trial")
+        .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
     }
 
     /// "Free for 7 days, then $39.99/year." plus the reminder only when it can really be sent.
