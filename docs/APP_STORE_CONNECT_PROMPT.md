@@ -70,7 +70,7 @@ email on the EU App Store, so I'll decide what to enter.
 
 Create a subscription group: Reference Name `Pact`, then group localization English (U.S.), Display Name `Pact`.
 
-Create three auto-renewable subscriptions in that group (the last one is the welcome offer: a lower-priced yearly plan shown as an extra plan card when someone returns to the paywall).
+Create the auto-renewable subscriptions in that group. The app doesn't sell the third one (Pact Yearly Offer): don't add it to the app version. Use Apple's win-back offers later instead.
 If an older **Pact Yearly** (`com.tomasbeja.pact.yearly`, 3-day trial) exists, the app doesn't use it any more:
 delete it if App Store Connect allows, otherwise just don't add it to the app version.
 
@@ -133,7 +133,7 @@ Take a daily progress pic if you like. Progress photos are private by default: t
 - Private progress photos with a before/after slider and timelapse
 - Widgets, Live Activity and Apple Health. No account to create: it runs on iCloud
 
-Subscriptions: every Pact plan (yearly, monthly and the yearly welcome offer) renews automatically unless cancelled at least 24 hours before the end of the period. Manage or cancel in Settings > [your name] > Subscriptions. One subscription covers both partners.
+Subscriptions: every Pact plan (yearly and monthly) renews automatically unless cancelled at least 24 hours before the end of the period. Manage or cancel in Settings > [your name] > Subscriptions. One subscription covers both partners.
 
 Terms of Use: https://nis7777.github.io/pact/terms.html
 Privacy Policy: https://nis7777.github.io/pact/privacy.html
@@ -159,7 +159,7 @@ Pact is for couples: the full experience uses two iPhones with two different App
 
 To review:
 1. Open Pact, tap "Let's start" and go through onboarding (any names; tap "No, I'll invite them").
-2. Subscribe on the paywall with a sandbox account (Yearly has a 7-day free trial). One subscription covers both partners. The × on the paywall simply closes it (back to the plan screen); when the user comes back to the paywall, the yearly plan is shown at a lower price ($24.99/year, no free trial) in place of the regular yearly plan, with no pop-up or time limit.
+2. Subscribe on the paywall with a sandbox account (Yearly has a 7-day free trial). One subscription covers both partners. The × on the paywall simply closes it.
 3. The app shows a 6-letter invite code. On a second iPhone (another Apple ID, signed in to iCloud), open Pact, tap "My partner invited me" and enter the code. The partner joins free and picks their own habits. The code doesn't unlock anything by itself: it only links the second partner to the couple that the first partner paid for with an in-app subscription (like sharing a household plan), and if that subscription ends, the couple's run pauses for both until one of them subscribes.
 4. With one iPhone only: after subscribing, tap "Done for now", then "Or start a warm-up day" on the waiting screen to try check-ins (a photo or a tap).
 5. Day 1 starts the day after the partner joins. On Today: check in; the partner sees it and approves photo check-ins in Proof. Challenges tab: start a challenge or "Create your own" (it starts the next day).

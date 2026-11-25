@@ -24,8 +24,8 @@ enum Brand {
     static let iapMonthly = "com.tomasbeja.pact.monthly"    // $12.99 a month (US base price), no trial
     /// The paywall's exit offer: 38% off yearly, $24.99 a year (about $1.04 per person a month), no free trial.
     static let iapYearlyOffer = "com.tomasbeja.pact.yearlyoffer"
-    /// What the paywall sells. The offer only appears as an extra plan card after the paywall was closed once.
-    static let allProducts = [iapYearly7, iapMonthly, iapYearlyOffer]
+    /// What the paywall sells. (The old offer's id is kept only so an existing subscription to it is recognised.)
+    static let allProducts = [iapYearly7, iapMonthly]
     static let savesPerRound = 3
     /// 4 to 6 rules per person, at least 2 of them photo rules.
     static let minRules = 4
