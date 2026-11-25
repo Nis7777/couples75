@@ -44,6 +44,8 @@ struct PaywallView: View {
     @State private var working = false
     /// The trial reminder is a local notification: only promise it when notifications are allowed.
     @State private var canRemind = false
+    /// Set once the paywall has handed over (bought or restored), so it never fires twice.
+    @State private var finished = false
 
     private var purchases: PurchaseManager { model.purchases }
     private var isOnboarding: Bool {
@@ -86,6 +88,10 @@ struct PaywallView: View {
         .screenBackground()
         .onAppear { if !isOnboarding { page = .plans } }
         .sheet(isPresented: $showAllPlans) { AllPlansSheet() }
+        // Restore found a subscription: carry on, exactly like after buying.
+        .onChange(of: model.hasActiveSubscription) { _, active in
+            if active, isOnboarding, !purchases.isPurchasing { finish() }
+        }
         .task {
             canRemind = await NotificationManager.shared.authorizationStatus() == .authorized
             if purchases.yearly == nil || purchases.yearlyOffer == nil { await purchases.loadProducts() }
@@ -474,13 +480,21 @@ struct PaywallView: View {
 
 
     private var primaryTitle: String {
+        if isOnboarding && model.hasActiveSubscription { return "Continue" }
         if yearlySelected && hasTrial { return "Start my free trial" }
         return "Subscribe"
     }
 
+    /// Hands over once: after a purchase, or as soon as Restore finds an active subscription.
+    private func finish() {
+        guard !finished else { return }
+        finished = true
+        onPurchased()
+    }
+
     private func buy() async {
         if isOnboarding && model.hasActiveSubscription {
-            onPurchased()
+            finish()
             return
         }
         working = true
@@ -498,7 +512,7 @@ struct PaywallView: View {
         do {
             if try await purchases.purchase(item, memberID: model.meID) {
                 Haptics.success()
-                onPurchased()
+                finish()
             }
         } catch {
             model.errorMessage = error.localizedDescription
@@ -541,6 +555,10 @@ struct AllPlansSheet: View {
                     plan(title: "Yearly", price: model.purchases.yearlyPrice, period: "year",
                          trial: model.purchases.trialDays(model.purchases.yearly))
                     plan(title: "Monthly", price: model.purchases.monthlyPrice, period: "month", trial: nil)
+                    if Prefs.exitOfferShown, let offer = model.purchases.yearlyOffer {
+                        // The welcome offer, when the paywall shows it.
+                        plan(title: "Welcome offer (yearly)", price: offer.displayPrice, period: "year", trial: nil)
+                    }
                     Text("One subscription covers you both: your partner joins free. Payment is charged to your Apple ID when you confirm, or when the free trial ends. It renews automatically unless you turn it off at least 24 hours before the end of the current period, in Settings → [your name] → Subscriptions. Cancel anytime.")
                         .font(.app(14))
                         .foregroundStyle(Color.textSecondary)
