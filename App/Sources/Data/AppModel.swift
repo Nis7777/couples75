@@ -371,7 +371,7 @@ final class AppModel {
     func bootstrap() async {
         guard !isBootstrapped else { return }
         if !isMock {
-            let status = (try? await CKContainer(identifier: Brand.cloudKitContainer).accountStatus()) ?? .couldNotDetermine
+            let status = await Self.quickAccountStatus()
             if Self.iCloudBlocks(status) {
                 #if DEBUG
                 // No iCloud on a DEBUG build: run in Mock mode so everything can be clicked through.
@@ -395,9 +395,25 @@ final class AppModel {
     }
 
     func recheckICloud() async {
-        let status = (try? await CKContainer(identifier: Brand.cloudKitContainer).accountStatus()) ?? .couldNotDetermine
+        let status = await Self.quickAccountStatus()
         iCloudAvailable = !Self.iCloudBlocks(status)
         if iCloudAvailable { await refresh() }
+    }
+
+    /// The iCloud account status, but never waiting more than 5 seconds: on a slow network the app opens
+    /// instead of sitting on the launch screen ("couldn't tell" doesn't block; syncing retries on its own).
+    static func quickAccountStatus(timeout: Double = 5) async -> CKAccountStatus {
+        await withCheckedContinuation { (cont: CheckedContinuation<CKAccountStatus, Never>) in
+            let once = AnswerOnce()   // main-actor box: whichever answers first wins
+            Task { @MainActor in
+                let s = (try? await CKContainer(identifier: Brand.cloudKitContainer).accountStatus()) ?? .couldNotDetermine
+                if !once.done { once.done = true; cont.resume(returning: s) }
+            }
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+                if !once.done { once.done = true; cont.resume(returning: .couldNotDetermine) }
+            }
+        }
     }
 
     /// Only a definite "no iCloud account" (or one restricted by parental controls) stops the app. "Couldn't tell
@@ -661,4 +677,10 @@ final class AppModel {
         full.save()
         WidgetCenter.shared.reloadAllTimelines()
     }
+}
+
+/// Lets exactly one of two racing tasks answer (see `AppModel.quickAccountStatus`).
+@MainActor
+private final class AnswerOnce {
+    var done = false
 }

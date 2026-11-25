@@ -468,9 +468,21 @@ struct ProofPager: View {
     @State private var current: String = ""
     @Environment(AppModel.self) private var model
 
+    /// The proofs that still exist (one can disappear while open, e.g. the partner left).
+    private var existing: [String] { ids.filter { id in model.facts.checkIns.contains { $0.id == id } } }
+
     var body: some View {
+        if existing.isEmpty {
+            // Nothing left to show: never a blank screen without a way out.
+            Color.clear.onAppear { dismiss() }
+        } else {
+            pager
+        }
+    }
+
+    private var pager: some View {
         TabView(selection: $current) {
-            ForEach(ids, id: \.self) { id in
+            ForEach(existing, id: \.self) { id in
                 if let c = model.facts.checkIns.first(where: { $0.id == id }) {
                     PartnerCheckInView(checkIn: c, onClose: { dismiss() })
                         .tag(id)
